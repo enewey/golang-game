@@ -6,12 +6,16 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Room woo
 type Room struct {
 	layers []*Layer
 }
+
+// Layers woo
+func (room *Room) Layers() []*Layer { return room.layers }
 
 // NewRoomFromFile woo
 func NewRoomFromFile(source string) *Room {
@@ -22,18 +26,42 @@ func NewRoomFromFile(source string) *Room {
 
 	r := csv.NewReader(file)
 
-	var layers []*Layer
-	var priority int
+	return &Room{parseRoomFile(r)}
+}
+
+func parseRoomFile(r *csv.Reader) []*Layer {
+	var ret []*Layer
+	var curr []string
+	var priority, width, height int
+	var appender = func() []*Layer {
+		return append(ret, NewLayer(
+			parseLayer(padArray(curr, width*height)),
+			priority))
+	}
+
 	for {
-		record, err := r.Read()
+		line, err := r.Read()
 		if err == io.EOF {
+			ret = appender()
 			break
 		}
 
-		layers = append(layers, NewLayer(parseLayer(record), priority))
+		if strings.HasPrefix(line[0], "width") {
+			width, _ = strconv.Atoi(strings.Split(line[0], " ")[1])
+		} else if strings.HasPrefix(line[0], "height") {
+			height, _ = strconv.Atoi(strings.Split(line[0], " ")[1])
+		} else if strings.HasPrefix(line[0], "layer") {
+			if curr != nil {
+				ret = appender()
+			}
+			priority, err = strconv.Atoi(strings.Split(line[0], " ")[1])
+			curr = []string{}
+		} else {
+			curr = append(curr, padArray(line, width)...)
+		}
 	}
 
-	return &Room{layers}
+	return ret
 }
 
 func parseLayer(strs []string) []int {
@@ -45,5 +73,13 @@ func parseLayer(strs []string) []int {
 	return ret
 }
 
-// Layers woo
-func (room *Room) Layers() []*Layer { return room.layers }
+func padArray(arr []string, size int) []string {
+	ret := arr[:]
+	if len(ret) < size {
+		ret = append(ret, make([]string, size-len(ret))...)
+		for i := len(ret); i < size; i++ {
+			ret[i] = "0"
+		}
+	}
+	return ret
+}
