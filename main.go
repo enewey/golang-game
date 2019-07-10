@@ -1,22 +1,33 @@
 package main
 
 import (
+	"fmt"
 	_ "image/png"
 	"log"
+	"math"
 
 	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 
 	"enewey.com/golang-game/src/cache"
 	"enewey.com/golang-game/src/room"
 	"enewey.com/golang-game/src/sprites"
 )
 
-const tileWidth = 16
-const tileHeight = 16
+const tileDimX = 16
+const tileDimY = 16
+const tilesX = 10
+const tilesY = 8
+
+var screenW = tileDimX * tilesX
+var screenH = tileDimY * tilesY
 
 var charaX = 50
 var charaY = 76
-var charaPr = 1
+var charaH = 0
+var charaZ = 1
+var jumping = false
+var jumpTime = 0
 
 var tiles *sprites.Spritesheet
 var charas *sprites.Spritesheet
@@ -26,20 +37,20 @@ var scene *room.Room
 func init() {
 
 	var err error
-	tiles = sprites.New(cache.Get().LoadImage("blue-walls.png"), 16, 16)
+	tiles = sprites.New(cache.Get().LoadImage("blue-walls.png"), tileDimX, tileDimY)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	charas = sprites.New(cache.Get().LoadImage("hoodgirl.png"), 16, 16)
+	charas = sprites.New(cache.Get().LoadImage("hoodgirl.png"), tileDimX, tileDimY)
 	girlChar = charas.GetSpriteByNum(0)
 
-	scene = cache.Get().LoadRoom("room1")
+	scene = cache.Get().LoadRoom("room2")
 }
 
 func drawTile(mapX, mapY, tileNum int, rm *ebiten.Image, tiles *sprites.Spritesheet) {
 	opt := &ebiten.DrawImageOptions{}
-	opt.GeoM.Translate(float64(16*mapX), float64(16*mapY))
+	opt.GeoM.Translate(float64(tileDimX*mapX), float64(tileDimY*mapY))
 	// opt.GeoM.Scale(1.5, 1)
 
 	rm.DrawImage(tiles.GetSpriteByNum(tileNum).Img(), opt)
@@ -53,7 +64,7 @@ func drawSprite(x, y int, sprite *ebiten.Image, rm *ebiten.Image) {
 }
 
 func drawRoom() *ebiten.Image {
-	rm, _ := ebiten.NewImage(320, 240, ebiten.FilterDefault)
+	rm, _ := ebiten.NewImage(screenW, screenH, ebiten.FilterDefault)
 
 	for pr, layer := range scene.Layers() {
 		mapTiles := layer.Tiles()
@@ -62,8 +73,8 @@ func drawRoom() *ebiten.Image {
 			col := i % 20
 
 			drawTile(col, row, mapTiles[i], rm, tiles)
-			if col == 0 && row == int(charaY/16)+1 && pr == charaPr {
-				drawSprite(charaX, charaY, girlChar.Img(), rm)
+			if col == 0 && row == int(charaY/16)+1 && pr <= charaZ {
+				drawSprite(charaX, charaY-charaH, girlChar.Img(), rm)
 			}
 		}
 	}
@@ -72,6 +83,11 @@ func drawRoom() *ebiten.Image {
 }
 
 func checkInputs() {
+	if ebiten.IsKeyPressed(ebiten.KeySpace) && !jumping {
+		jumping = true
+		jumpTime = 0
+	}
+
 	if ebiten.IsKeyPressed(ebiten.KeyRight) {
 		charaX++
 	}
@@ -88,6 +104,17 @@ func checkInputs() {
 
 func update(screen *ebiten.Image) error {
 	checkInputs()
+	if jumping {
+		jumpTime += 2
+		rads := math.Pi * float64(jumpTime) / 100.0
+		sine := math.Sin(rads)
+		charaZ = 1 + int(math.Round(2.0*sine))
+		charaH = int(1 + (sine * tileDimY))
+		if jumpTime >= 100 {
+			jumping = false
+			charaH = 0
+		}
+	}
 
 	if ebiten.IsDrawingSkipped() {
 		return nil
@@ -96,11 +123,12 @@ func update(screen *ebiten.Image) error {
 	opt := &ebiten.DrawImageOptions{}
 	opt.GeoM.Scale(3, 3)
 	screen.DrawImage(rm, opt)
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("z: %d\nh: %d", charaZ, charaH))
 	return nil
 }
 
 func main() {
-	if err := ebiten.Run(update, 960, 720, 1, "Render tiles"); err != nil {
+	if err := ebiten.Run(update, screenW*3, screenH*3, 1, "Render tiles"); err != nil {
 		log.Fatal(err)
 	}
 }
