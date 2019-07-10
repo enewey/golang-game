@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -60,7 +61,7 @@ func parseRoomFile(r *csv.Reader) []*Layer {
 			curr = append(curr, padArray(line, width)...)
 		}
 	}
-
+	sort.Sort(ByPriority(ret))
 	return ret
 }
 
