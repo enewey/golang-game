@@ -8,6 +8,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/inpututil"
 
 	"enewey.com/golang-game/src/cache"
 	"enewey.com/golang-game/src/room"
@@ -69,8 +70,8 @@ func drawRoom() *ebiten.Image {
 	for pr, layer := range scene.Layers() {
 		mapTiles := layer.Tiles()
 		for i := 0; i < len(mapTiles); i++ {
-			row := int(i / 20)
-			col := i % 20
+			row := int(i / tilesX)
+			col := i % tilesX
 
 			drawTile(col, row, mapTiles[i], rm, tiles)
 			if col == 0 && row == int(charaY/16)+1 && pr <= charaZ {
@@ -88,6 +89,9 @@ func checkInputs() {
 		jumpTime = 0
 	}
 
+	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
+		ebiten.SetFullscreen(!ebiten.IsFullscreen())
+	}
 	if ebiten.IsKeyPressed(ebiten.KeyRight) {
 		charaX++
 	}
