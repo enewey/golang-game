@@ -1,6 +1,7 @@
 
-build:
-	go build -o build/out
+go:
+	go build -o Game ./
+	./Game
 
 run:
 	go run main.go

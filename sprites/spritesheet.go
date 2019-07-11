@@ -11,6 +11,7 @@ const dimY = 30
 
 // Spritesheet woo
 type Spritesheet struct {
+	cache   map[int]*Sprite
 	image   *ebiten.Image
 	theight int
 	twidth  int
@@ -19,21 +20,24 @@ type Spritesheet struct {
 // New woo
 func New(image *ebiten.Image, dimX, dimY int) *Spritesheet {
 	return &Spritesheet{
+		make(map[int]*Sprite),
 		image,
 		dimX,
 		dimY,
 	}
 }
 
-// GetSpriteByNum woo
-func (ts *Spritesheet) GetSpriteByNum(num int) *Sprite {
+// GetSprite woo
+func (ts *Spritesheet) GetSprite(num int) *Sprite {
+	if ts.cache[num] != nil {
+		return ts.cache[num]
+	}
 	x := num % dimX
 	y := int(num / dimY)
-	return ts.GetSprite(x, y)
+	return ts.getSpriteByCoord(x, y)
 }
 
-// GetSprite woo
-func (ts *Spritesheet) GetSprite(x, y int) *Sprite {
+func (ts *Spritesheet) getSpriteByCoord(x, y int) *Sprite {
 	tx := x * ts.twidth
 	ty := y * ts.theight
 

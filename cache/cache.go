@@ -3,7 +3,8 @@ package cache
 import (
 	"log"
 
-	"enewey.com/golang-game/src/room"
+	"enewey.com/golang-game/room"
+	"enewey.com/golang-game/sprites"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
@@ -12,6 +13,7 @@ import (
 type Cache struct {
 	images map[string]*ebiten.Image
 	rooms  map[string]*room.Room
+	sheets map[string]*sprites.Spritesheet
 }
 
 const imgLoc = "assets/img/"
@@ -25,10 +27,16 @@ func Get() *Cache {
 		singer = &Cache{
 			make(map[string]*ebiten.Image),
 			make(map[string]*room.Room),
+			make(map[string]*sprites.Spritesheet),
 		}
 	}
 
 	return singer
+}
+
+// LoadSpritesheet woo
+func (c *Cache) LoadSpritesheet(src string, th, tw int) *sprites.Spritesheet {
+	return sprites.New(c.LoadImage(src), th, tw)
 }
 
 // LoadImage woo
