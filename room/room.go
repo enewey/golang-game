@@ -79,7 +79,7 @@ func parseRoomFile(r *csv.Reader) ([]*Layer, collider.Colliders) {
 }
 
 func parseBlock(strs []string) *collider.Collider {
-	var y, x, zh, zd, w, h int
+	var y, x, z, w, h, d int
 	var err error
 	for _, v := range strs {
 		sp := strings.Split(v, " ")
@@ -90,17 +90,17 @@ func parseBlock(strs []string) *collider.Collider {
 		case "x":
 			x, err = strconv.Atoi(sp[1])
 			break
-		case "zh":
-			zh, err = strconv.Atoi(sp[1])
-			break
-		case "zd":
-			zd, err = strconv.Atoi(sp[1])
+		case "z":
+			z, err = strconv.Atoi(sp[1])
 			break
 		case "w":
 			w, err = strconv.Atoi(sp[1])
 			break
 		case "h":
 			h, err = strconv.Atoi(sp[1])
+			break
+		case "d":
+			d, err = strconv.Atoi(sp[1])
 			break
 		}
 
@@ -109,7 +109,7 @@ func parseBlock(strs []string) *collider.Collider {
 		}
 	}
 
-	return collider.NewBlock(x*16, y*16, w*16, h*16, zh, zd)
+	return collider.NewBlock(x*16, y*16, z*16, w*16, h*16, d*16)
 }
 
 func parseLayer(strs []string) []int {

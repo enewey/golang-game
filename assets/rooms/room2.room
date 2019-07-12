@@ -24,6 +24,5 @@ layer 2
 0,
 0,318,320
 0,45,47
-collider block,y 2,x 3,zh 1,zd 3,w 1,h 1
-collider block,y 3,x 2,zh 1,zd 3,w 1,h 1
-collider block,y 5,x 1,zh 1,zd 1,w 2,h 2
+collider block,x 0,y 0,z -1,w 10,h 8,d 1
+collider block,x 1,y 5,z 0,w 2,h 2,d 1

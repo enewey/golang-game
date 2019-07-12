@@ -6,7 +6,6 @@ import (
 	"log"
 	"math"
 
-	"github.com/SolarLune/resolv/resolv"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"github.com/hajimehoshi/ebiten/inpututil"
@@ -25,22 +24,22 @@ const tilesY = 8
 var screenW = tileDimX * tilesX
 var screenH = tileDimY * tilesY
 
-var charaX = 50
-var charaY = 76
-var charaH = 0
-var charaZ = 1
+var cX = 50
+var cY = 76
+var cZ = 1
+var jumpZ, jumpTime int
+var fallV float64
+var onGround bool
 var jumping = false
-var jumpTime = 0
 
 var tiles *sprites.Spritesheet
 var charas *sprites.Spritesheet
 var girlChar *sprites.Sprite
 var scene *room.Room
 var roomImage *ebiten.Image
-var collGroupCache map[int]*resolv.Space
+var groupCache *collider.SpaceCache
 
-var block *resolv.Rectangle
-var charBlock *resolv.Rectangle
+var charBlock *collider.Collider
 
 func init() {
 
@@ -54,11 +53,9 @@ func init() {
 	girlChar = charas.GetSprite(0)
 
 	scene = cache.Get().LoadRoom("room2")
-
-	block = resolv.NewRectangle(48, 32, 16, 16)
-	charBlock = resolv.NewRectangle(int32(charaX)+2, int32(charaY)+8, 12, 8)
+	charBlock = collider.NewBlock(cX+2, cY+8, cZ, 8, 12, 16)
 	roomImage, _ = ebiten.NewImage(screenW, screenH, ebiten.FilterDefault)
-	collGroupCache = make(map[int]*resolv.Space)
+	groupCache = collider.NewSpaceCache(scene.Colliders())
 }
 
 func drawTile(mapX, mapY, tileNum int,
@@ -86,8 +83,9 @@ func drawRoom() *ebiten.Image {
 			col := i % tilesX
 
 			drawTile(col, row, mapTiles[i], roomImage, tiles)
-			if col == 0 && row == int(charaY/16)+1 && pr <= charaZ {
-				drawSprite(charaX, charaY-charaH, girlChar.Img(), roomImage)
+			sx, sy, sz := charBlock.GetPos()
+			if col == 0 && row == int(sy/16)+1 && pr <= int(sz/16)+1 {
+				drawSprite(sx, sy-sz, girlChar.Img(), roomImage)
 			}
 		}
 	}
@@ -95,12 +93,14 @@ func drawRoom() *ebiten.Image {
 	return roomImage
 }
 
+// ---------
+
 func checkInputs() {
-	if inpututil.IsKeyJustPressed(ebiten.KeySpace) && !jumping {
-		jumping = true
-		jumpTime = 0
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) && onGround {
+		fallV = 4.0
+		onGround = false
 	}
-	var dx, dy int
+	var dx, dy, dz int
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
@@ -118,57 +118,26 @@ func checkInputs() {
 		dy--
 	}
 
-	if !(dx == 0 && dy == 0) {
-		ax, ay := check2DCollision(dx, dy, charaZ, scene.Colliders())
-		charaX += ax
-		charaY += ay
+	dz = int(math.Max(fallV, -6)) // per second?? frame?? :thinking_face:
+
+	ax, ay, az, hitGround := collider.ResolveCollision(dx, dy, dz, charBlock, groupCache)
+	fmt.Printf("dz %d az %d\n fallV %f\n", dz, az, fallV)
+	charBlock.Translate(ax, ay, az)
+
+	if hitGround {
+		onGround = true
+	}
+	if onGround && fallV < -1 && az == 0 {
+		fallV = 0
+	} else {
+		fallV -= 0.3
 	}
 }
 
-func check2DCollision(dx, dy, currZ int, blocks collider.Colliders) (int, int) {
-	var rx, ry int = dx, dy
-	if collGroupCache[currZ] == nil {
-		collGroupCache[currZ] = blocks.GetGroup(currZ, "walls")
-	}
-	walls := collGroupCache[currZ]
-	// check dx first
-	resX := walls.Resolve(charBlock, int32(dx), 0)
-	if resX.Colliding() {
-		charBlock.X += resX.ResolveX
-		rx = int(resX.ResolveX)
-	} else {
-		charBlock.X += int32(dx)
-	}
-
-	// then check dy
-	resY := walls.Resolve(charBlock, 0, int32(dy))
-	if resY.Colliding() {
-		charBlock.Y += resY.ResolveY
-		ry = int(resY.ResolveY)
-	} else {
-		charBlock.Y += int32(dy)
-	}
-
-	return rx, ry
-}
-
-// func checkZCollision(dz, currZ int) int {
-
-// }
+// -------
 
 func update(screen *ebiten.Image) error {
 	checkInputs()
-	if jumping {
-		jumpTime += 3
-		rads := math.Pi * float64(jumpTime) / 100.0
-		sine := math.Sin(rads)
-		charaZ = 1 + int(3.0*sine)
-		charaH = int(1 + (sine * tileDimY * 1.25))
-		if jumpTime >= 100 {
-			jumping = false
-			charaH = 0
-		}
-	}
 
 	if ebiten.IsDrawingSkipped() {
 		return nil
@@ -177,7 +146,8 @@ func update(screen *ebiten.Image) error {
 	opt := &ebiten.DrawImageOptions{}
 	opt.GeoM.Scale(3, 3)
 	screen.DrawImage(rm, opt)
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("z: %d\nh: %d", charaZ, charaH))
+	x, y, z := charBlock.GetPos()
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("x: %d\ny: %d\n z: %d", x, y, z))
 	return nil
 }
 
