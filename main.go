@@ -53,8 +53,8 @@ func init() {
 	girlChar = charas.GetSprite(0)
 
 	scene = cache.Get().LoadRoom("room2")
-	charBlock = collider.NewBlock(cX+2, cY+8, cZ, 8, 12, 16)
-	roomImage, _ = ebiten.NewImage(screenW, screenH, ebiten.FilterDefault)
+	charBlock = collider.NewBlock(cX+2, cY+6, cZ, 12, 8, 16, "chara")
+	roomImage, _ = ebiten.NewImage(screenW*2, screenH*2, ebiten.FilterDefault)
 	groupCache = collider.NewSpaceCache(scene.Colliders())
 }
 
@@ -76,6 +76,7 @@ func drawSprite(x, y int, sprite *ebiten.Image, rm *ebiten.Image) {
 }
 
 func drawRoom() *ebiten.Image {
+	var spriteDrawn bool
 	for pr, layer := range scene.Layers() {
 		mapTiles := layer.Tiles()
 		for i := 0; i < len(mapTiles); i++ {
@@ -85,9 +86,15 @@ func drawRoom() *ebiten.Image {
 			drawTile(col, row, mapTiles[i], roomImage, tiles)
 			sx, sy, sz := charBlock.GetPos()
 			if col == 0 && row == int(sy/16)+1 && pr <= int(sz/16)+1 {
-				drawSprite(sx, sy-sz, girlChar.Img(), roomImage)
+				drawSprite(sx-2, sy-sz-8, girlChar.Img(), roomImage)
+				spriteDrawn = true
 			}
 		}
+	}
+
+	if !spriteDrawn {
+		sx, sy, sz := charBlock.GetPos()
+		drawSprite(sx-2, sy-sz-8, girlChar.Img(), roomImage)
 	}
 
 	return roomImage
@@ -121,7 +128,7 @@ func checkInputs() {
 	dz = int(math.Max(fallV, -6)) // per second?? frame?? :thinking_face:
 
 	ax, ay, az, hitGround := collider.ResolveCollision(dx, dy, dz, charBlock, groupCache)
-	fmt.Printf("dz %d az %d\n fallV %f\n", dz, az, fallV)
+	// fmt.Printf("dz %d az %d\n fallV %f\n", dz, az, fallV)
 	charBlock.Translate(ax, ay, az)
 
 	if hitGround {
@@ -144,6 +151,7 @@ func update(screen *ebiten.Image) error {
 	}
 	rm := drawRoom()
 	opt := &ebiten.DrawImageOptions{}
+	// opt.GeoM.Translate(-float64(screenW)/2.0, -float64(screenH)/2.0)
 	opt.GeoM.Scale(3, 3)
 	screen.DrawImage(rm, opt)
 	x, y, z := charBlock.GetPos()

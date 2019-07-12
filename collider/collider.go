@@ -1,6 +1,9 @@
 package collider
 
 import (
+	"fmt"
+	"math"
+
 	"github.com/SolarLune/resolv/resolv"
 )
 
@@ -11,6 +14,7 @@ type Collider struct {
 	xzshape          resolv.Shape
 	zyshape          resolv.Shape
 	x, y, z, w, h, d int
+	name             string
 }
 
 func (b *Collider) setX(x int) {
@@ -53,10 +57,11 @@ func (b *Collider) Translate(dx, dy, dz int) {
 }
 
 // NewBlock woo
-func NewBlock(x, y, z, w, h, d int) *Collider {
+func NewBlock(x, y, z, w, h, d int, name string) *Collider {
 	return &Collider{
 		x: x, y: y, z: z,
 		w: w, h: h, d: d,
+		name:    name,
 		xyshape: resolv.Shape(resolv.NewRectangle(int32(x), int32(y), int32(w), int32(h))),
 		xzshape: resolv.Shape(resolv.NewRectangle(int32(x), int32(z), int32(w), int32(d))),
 		zyshape: resolv.Shape(resolv.NewRectangle(int32(z), int32(y), int32(d), int32(h))),
@@ -130,31 +135,61 @@ func (c *SpaceCache) getPlanes(tag string) (*resolv.Space, *resolv.Space, *resol
 // ResolveCollision woo
 func ResolveCollision(dx, dy, dz int, subject *Collider, cache *SpaceCache) (int, int, int, bool) {
 	var rx, ry, rz int
-	var onGround bool
-	_, xzgroup, zygroup := cache.getPlanes("walls")
+	var hitGround bool
+	// _, xzgroup, zygroup := cache.getPlanes("walls")
 
-	resX := xzgroup.Resolve(subject.xzshape, int32(dx), 0)
+	for _, v := range cache.colliders {
+		resXZ := resolv.Resolve(subject.xzshape, v.xzshape, 0, int32(dz))
+		resZY := resolv.Resolve(subject.zyshape, v.zyshape, int32(dz), 0)
+		if resXZ.Colliding() && resZY.Colliding() {
+			if math.Abs(float64(resXZ.ResolveY)) < math.Abs(float64(resZY.ResolveX)) {
+				rz = int(resXZ.ResolveY)
+			} else {
+				rz = int(resZY.ResolveX)
+			}
+			hitGround = true
+			break
+		}
+	}
+	if !hitGround {
+		rz = dz
+	}
+
+	filterColls := colliderFilter(
+		subject.z,
+		subject.z+subject.d,
+		cache.colliders,
+		filterByZRange)
+	xygroup := filterColls.getXYGroup("walls")
+
+	fmt.Printf("before %d after %d\n", len(cache.colliders), len(filterColls))
+	resX := xygroup.Resolve(subject.xyshape, int32(dx), 0)
 	if resX.Colliding() {
 		rx = int(resX.ResolveX)
 	} else {
 		rx = dx
 	}
 
-	resY := zygroup.Resolve(subject.zyshape, 0, int32(dy))
+	resY := xygroup.Resolve(subject.xyshape, 0, int32(dy))
 	if resY.Colliding() {
 		ry = int(resY.ResolveY)
 	} else {
 		ry = dy
 	}
 
-	resZ := xzgroup.Resolve(subject.xzshape, 0, int32(dz))
-	if resZ.Colliding() {
-		rz = int(resZ.ResolveY)
-		onGround = true
-	} else {
-		rz = dz
-		onGround = false
-	}
+	return rx, ry, rz, hitGround
+}
 
-	return rx, ry, rz, onGround
+func filterByZRange(zmin, zmax int, collider *Collider) bool {
+	return collider.z+collider.d > zmin && collider.z < zmax
+}
+
+func colliderFilter(zmin, zmax int, arr Colliders, f func(int, int, *Collider) bool) Colliders {
+	var ret Colliders
+	for _, v := range arr {
+		if f(zmin, zmax, v) {
+			ret = append(ret, v)
+		}
+	}
+	return ret
 }

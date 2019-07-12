@@ -80,27 +80,37 @@ func parseRoomFile(r *csv.Reader) ([]*Layer, collider.Colliders) {
 
 func parseBlock(strs []string) *collider.Collider {
 	var y, x, z, w, h, d int
+	var yy, xx, zz, ww, hh, dd float64
+	var name string
 	var err error
 	for _, v := range strs {
 		sp := strings.Split(v, " ")
 		switch sp[0] {
+		case "name":
+			name = sp[0]
 		case "y":
-			y, err = strconv.Atoi(sp[1])
+			yy, err = strconv.ParseFloat(sp[1], 64)
+			y = int(yy * 16)
 			break
 		case "x":
-			x, err = strconv.Atoi(sp[1])
+			xx, err = strconv.ParseFloat(sp[1], 64)
+			x = int(xx * 16)
 			break
 		case "z":
-			z, err = strconv.Atoi(sp[1])
+			zz, err = strconv.ParseFloat(sp[1], 64)
+			z = int(zz * 16)
 			break
 		case "w":
-			w, err = strconv.Atoi(sp[1])
+			ww, err = strconv.ParseFloat(sp[1], 64)
+			w = int(ww * 16)
 			break
 		case "h":
-			h, err = strconv.Atoi(sp[1])
+			hh, err = strconv.ParseFloat(sp[1], 64)
+			h = int(hh * 16)
 			break
 		case "d":
-			d, err = strconv.Atoi(sp[1])
+			dd, err = strconv.ParseFloat(sp[1], 64)
+			d = int(dd * 16)
 			break
 		}
 
@@ -109,7 +119,7 @@ func parseBlock(strs []string) *collider.Collider {
 		}
 	}
 
-	return collider.NewBlock(x*16, y*16, z*16, w*16, h*16, d*16)
+	return collider.NewBlock(x, y, z, w, h, d, name)
 }
 
 func parseLayer(strs []string) []int {
