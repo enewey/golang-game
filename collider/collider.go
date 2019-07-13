@@ -1,7 +1,6 @@
 package collider
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/SolarLune/resolv/resolv"
@@ -49,8 +48,7 @@ func (b *Collider) SetPos(x, y, z int) {
 
 // Translate - move the x,y,z position of this collider by a delta
 func (b *Collider) Translate(dx, dy, dz int) {
-	cx, cy := b.xyshape.GetXY()
-	_, cz := b.xzshape.GetXY()
+	cx, cy, cz := b.GetPos()
 	b.setX(dx + int(cx))
 	b.setY(dy + int(cy))
 	b.setZ(dz + int(cz))
@@ -101,68 +99,41 @@ func (cs Colliders) getZYGroup(tag string) *resolv.Space {
 	return ret
 }
 
-const (
-	exy = iota
-	exz
-	ezy
-)
-
-// SpaceCache woo
-type SpaceCache struct {
-	colliders Colliders
-	cache     map[int]*resolv.Space
-}
-
-// NewSpaceCache woo
-func NewSpaceCache(colls Colliders) *SpaceCache {
-	return &SpaceCache{colls, make(map[int]*resolv.Space)}
-}
-
-func (c *SpaceCache) getPlanes(tag string) (*resolv.Space, *resolv.Space, *resolv.Space) {
-	if c.cache[exy] == nil {
-		c.cache[exy] = c.colliders.getXYGroup(tag)
-	}
-	if c.cache[exz] == nil {
-		c.cache[exz] = c.colliders.getXZGroup(tag)
-	}
-	if c.cache[ezy] == nil {
-		c.cache[ezy] = c.colliders.getZYGroup(tag)
-	}
-
-	return c.cache[exy], c.cache[exz], c.cache[ezy]
-}
-
 // ResolveCollision woo
-func ResolveCollision(dx, dy, dz int, subject *Collider, cache *SpaceCache) (int, int, int, bool) {
+func ResolveCollision(dx, dy, dz int, subject *Collider, colliders Colliders) (int, int, int, bool, bool) {
 	var rx, ry, rz int
-	var hitGround bool
-	// _, xzgroup, zygroup := cache.getPlanes("walls")
+	var hitGround, hitCeiling bool
 
-	for _, v := range cache.colliders {
+	// first, check each collider's XZ and ZY shapes to see if the Z is colliding
+	for _, v := range colliders {
 		resXZ := resolv.Resolve(subject.xzshape, v.xzshape, 0, int32(dz))
 		resZY := resolv.Resolve(subject.zyshape, v.zyshape, int32(dz), 0)
+		// z-collision occurred only if *both* shapes collide
 		if resXZ.Colliding() && resZY.Colliding() {
 			if math.Abs(float64(resXZ.ResolveY)) < math.Abs(float64(resZY.ResolveX)) {
 				rz = int(resXZ.ResolveY)
 			} else {
 				rz = int(resZY.ResolveX)
 			}
-			hitGround = true
+			hitGround = dz < 0
+			hitCeiling = dz > 0
 			break
 		}
 	}
-	if !hitGround {
+	if !(hitGround || hitCeiling) {
 		rz = dz
 	}
 
+	// to resolve the XY collision, filter out the colliders that are NOT in the
+	// range of Z that we care about.
 	filterColls := colliderFilter(
 		subject.z,
 		subject.z+subject.d,
-		cache.colliders,
+		colliders,
 		filterByZRange)
 	xygroup := filterColls.getXYGroup("walls")
 
-	fmt.Printf("before %d after %d\n", len(cache.colliders), len(filterColls))
+	// now that we have our group of XY shapes we care about, resolve the deltas
 	resX := xygroup.Resolve(subject.xyshape, int32(dx), 0)
 	if resX.Colliding() {
 		rx = int(resX.ResolveX)
@@ -177,7 +148,7 @@ func ResolveCollision(dx, dy, dz int, subject *Collider, cache *SpaceCache) (int
 		ry = dy
 	}
 
-	return rx, ry, rz, hitGround
+	return rx, ry, rz, hitGround, hitCeiling
 }
 
 func filterByZRange(zmin, zmax int, collider *Collider) bool {

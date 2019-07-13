@@ -37,7 +37,6 @@ var charas *sprites.Spritesheet
 var girlChar *sprites.Sprite
 var scene *room.Room
 var roomImage *ebiten.Image
-var groupCache *collider.SpaceCache
 
 var charBlock *collider.Collider
 
@@ -55,7 +54,6 @@ func init() {
 	scene = cache.Get().LoadRoom("room2")
 	charBlock = collider.NewBlock(cX+2, cY+6, cZ, 12, 8, 16, "chara")
 	roomImage, _ = ebiten.NewImage(screenW*2, screenH*2, ebiten.FilterDefault)
-	groupCache = collider.NewSpaceCache(scene.Colliders())
 }
 
 func drawTile(mapX, mapY, tileNum int,
@@ -126,15 +124,16 @@ func checkInputs() {
 	}
 
 	dz = int(math.Max(fallV, -6)) // per second?? frame?? :thinking_face:
-
-	ax, ay, az, hitGround := collider.ResolveCollision(dx, dy, dz, charBlock, groupCache)
+	ax, ay, az, hitGround, hitCeiling :=
+		collider.ResolveCollision(dx, dy, dz, charBlock, scene.Colliders())
 	// fmt.Printf("dz %d az %d\n fallV %f\n", dz, az, fallV)
 	charBlock.Translate(ax, ay, az)
-
 	if hitGround {
 		onGround = true
 	}
-	if onGround && fallV < -1 && az == 0 {
+	if onGround && fallV < -1 && az >= 0 {
+		fallV = 0
+	} else if hitCeiling && fallV > 0 && az <= 0 {
 		fallV = 0
 	} else {
 		fallV -= 0.3
