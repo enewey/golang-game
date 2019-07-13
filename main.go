@@ -111,7 +111,7 @@ func drawRoom() *ebiten.Image {
 
 func checkInputs() {
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) && onGround {
-		fallV = 4.0
+		fallV = 3.5
 		onGround = false
 	}
 	var dx, dy, dz int
@@ -147,7 +147,7 @@ func checkInputs() {
 	} else if hitCeiling && fallV > 0 && az <= 0 {
 		fallV = 0
 	} else {
-		fallV -= 0.3
+		fallV -= 0.25
 	}
 
 	shadowZ = scene.Colliders().FindFloor(charBlock)
