@@ -99,6 +99,30 @@ func (cs Colliders) getZYGroup(tag string) *resolv.Space {
 	return ret
 }
 
+func (cs Colliders) getCollidingXY(subject *Collider) Colliders {
+	var ret Colliders
+	for _, v := range cs {
+		if v.xyshape.IsColliding(subject.xyshape) {
+			ret = append(ret, v)
+		}
+	}
+	return ret
+}
+
+// FindFloor woo
+func (cs Colliders) FindFloor(subject *Collider) int {
+	_, _, sz := subject.GetPos()
+	colls := cs.getCollidingXY(subject)
+	var floorZ = -99
+	for _, v := range colls {
+		z := v.z + v.d
+		if z > floorZ && z <= sz {
+			floorZ = z
+		}
+	}
+	return floorZ
+}
+
 // ResolveCollision woo
 func ResolveCollision(dx, dy, dz int, subject *Collider, colliders Colliders) (int, int, int, bool, bool) {
 	var rx, ry, rz int

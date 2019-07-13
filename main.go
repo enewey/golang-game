@@ -26,7 +26,8 @@ var screenH = tileDimY * tilesY
 
 var cX = 50
 var cY = 76
-var cZ = 1
+var cZ = 0
+var shadowZ = 0
 var jumpZ, jumpTime int
 var fallV float64
 var onGround bool
@@ -35,6 +36,7 @@ var jumping = false
 var tiles *sprites.Spritesheet
 var charas *sprites.Spritesheet
 var girlChar *sprites.Sprite
+var shadowChar *sprites.Sprite
 var scene *room.Room
 var roomImage *ebiten.Image
 
@@ -50,9 +52,10 @@ func init() {
 
 	charas = cache.Get().LoadSpritesheet("hoodgirl.png", tileDimX, tileDimY)
 	girlChar = charas.GetSprite(0)
+	shadowChar = charas.GetSprite(1)
 
 	scene = cache.Get().LoadRoom("room2")
-	charBlock = collider.NewBlock(cX+2, cY+6, cZ, 12, 8, 16, "chara")
+	charBlock = collider.NewBlock(cX+3, cY+8, cZ, 10, 8, 12, "chara")
 	roomImage, _ = ebiten.NewImage(screenW*2, screenH*2, ebiten.FilterDefault)
 }
 
@@ -61,7 +64,6 @@ func drawTile(mapX, mapY, tileNum int,
 
 	opt := &ebiten.DrawImageOptions{}
 	opt.GeoM.Translate(float64(tileDimX*mapX), float64(tileDimY*mapY))
-	// opt.GeoM.Scale(1.5, 1)
 
 	rm.DrawImage(tiles.GetSprite(tileNum).Img(), opt)
 }
@@ -74,7 +76,7 @@ func drawSprite(x, y int, sprite *ebiten.Image, rm *ebiten.Image) {
 }
 
 func drawRoom() *ebiten.Image {
-	var spriteDrawn bool
+	var spriteDrawn, shadowDrawn bool
 	for pr, layer := range scene.Layers() {
 		mapTiles := layer.Tiles()
 		for i := 0; i < len(mapTiles); i++ {
@@ -83,8 +85,12 @@ func drawRoom() *ebiten.Image {
 
 			drawTile(col, row, mapTiles[i], roomImage, tiles)
 			sx, sy, sz := charBlock.GetPos()
-			if col == 0 && row == int(sy/16)+1 && pr <= int(sz/16)+1 {
-				drawSprite(sx-2, sy-sz-8, girlChar.Img(), roomImage)
+			if col == 0 && row == int(sy/16)+1 && pr == int(shadowZ/16)+1 && !shadowDrawn {
+				drawSprite(sx-3, sy-shadowZ-8, shadowChar.Img(), roomImage)
+				shadowDrawn = true
+			}
+			if col == 0 && row == int(sy/16)+1 && pr == int(sz/16)+1 && !spriteDrawn {
+				drawSprite(sx-3, sy-sz-8, girlChar.Img(), roomImage)
 				spriteDrawn = true
 			}
 		}
@@ -92,7 +98,10 @@ func drawRoom() *ebiten.Image {
 
 	if !spriteDrawn {
 		sx, sy, sz := charBlock.GetPos()
-		drawSprite(sx-2, sy-sz-8, girlChar.Img(), roomImage)
+		if !shadowDrawn {
+			drawSprite(sx-3, sy-shadowZ-8, shadowChar.Img(), roomImage)
+		}
+		drawSprite(sx-3, sy-sz-8, girlChar.Img(), roomImage)
 	}
 
 	return roomImage
@@ -130,6 +139,8 @@ func checkInputs() {
 	charBlock.Translate(ax, ay, az)
 	if hitGround {
 		onGround = true
+	} else if az != 0 {
+		onGround = false
 	}
 	if onGround && fallV < -1 && az >= 0 {
 		fallV = 0
@@ -138,6 +149,8 @@ func checkInputs() {
 	} else {
 		fallV -= 0.3
 	}
+
+	shadowZ = scene.Colliders().FindFloor(charBlock)
 }
 
 // -------
@@ -154,7 +167,7 @@ func update(screen *ebiten.Image) error {
 	opt.GeoM.Scale(3, 3)
 	screen.DrawImage(rm, opt)
 	x, y, z := charBlock.GetPos()
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("x: %d\ny: %d\n z: %d", x, y, z))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("x: %d\ny: %d\n z: %d\n shadz: %d", x, y, z, shadowZ))
 	return nil
 }
 
