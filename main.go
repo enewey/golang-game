@@ -68,40 +68,97 @@ func drawTile(mapX, mapY, tileNum int,
 	rm.DrawImage(tiles.GetSprite(tileNum).Img(), opt)
 }
 
-func drawSprite(x, y int, sprite *ebiten.Image, rm *ebiten.Image) {
+func drawSprite(x, y int, sprite *sprites.Sprite, rm *ebiten.Image) {
 	opt := &ebiten.DrawImageOptions{}
 	opt.GeoM.Translate(float64(x), float64(y))
 
-	rm.DrawImage(sprite, opt)
+	rm.DrawImage(sprite.Img(), opt)
+}
+
+func getLayerRow(row int, layer *room.Layer) []int {
+	if row*tilesX > len(layer.Tiles()) {
+		log.Fatal("out of bounds row on getTileRow")
+	}
+
+	return layer.Tiles()[row*tilesX : (row+1)*tilesX]
 }
 
 func drawRoom() *ebiten.Image {
 	var spriteDrawn, shadowDrawn bool
-	for pr, layer := range scene.Layers() {
-		mapTiles := layer.Tiles()
-		for i := 0; i < len(mapTiles); i++ {
-			row := int(i / tilesX)
-			col := i % tilesX
+	// for row := tilesY - 1; row >= 0; row-- {
+	// 	for pr, layer := range scene.Layers() {
+	// 		rowTiles := getLayerRow(row, layer)
+	// 		// fmt.Printf("%v\n", rowTiles)
+	// 		for col := 0; col < len(rowTiles); col++ {
+	// 			tile := tiles.GetSprite(rowTiles[col])
+	// 			drawSprite(col*tileDimX, row*tileDimY, tile, roomImage)
+	// 		}
 
-			drawTile(col, row, mapTiles[i], roomImage, tiles)
-			sx, sy, sz := charBlock.GetPos()
-			if col == 0 && row == int(sy/16)+1 && pr == int(shadowZ/16)+1 && !shadowDrawn {
-				drawSprite(sx-3, sy-shadowZ-8, shadowChar.Img(), roomImage)
+	// 		sx, sy, sz := charBlock.Pos()
+	// 		sh := charBlock.Height()
+
+	// 		// sd := charBlock.Depth()
+	// 		charPr := (int(sz/16.0) * 2) + 1
+
+	// 		doDrawShadow := row == int((sy+sh)/16) && pr == int(shadowZ/16) && !shadowDrawn
+	// 		if doDrawShadow {
+	// 			drawSprite(sx-3, sy-shadowZ-8, shadowChar, roomImage)
+	// 			shadowDrawn = true
+	// 		}
+	// 		doDrawChar := sy > (row+pr-1)*16 && pr == charPr
+	// 		if doDrawChar {
+	// 			drawSprite(sx-3, sy-sz-8, girlChar, roomImage)
+	// 			spriteDrawn = true
+	// 		}
+	// 		fmt.Printf("charpr %d\n", charPr)
+	// 	}
+	// }
+	// if !spriteDrawn {
+	// 	sx, sy, sz := charBlock.Pos()
+	// 	if !shadowDrawn {
+	// 		drawSprite(sx-3, sy-shadowZ-8, shadowChar, roomImage)
+	// 	}
+	// 	drawSprite(sx-3, sy-sz-8, girlChar, roomImage)
+	// }
+
+	// return roomImage
+	for _, layer := range scene.Layers() {
+		pr := layer.Priority()
+		mapTiles := layer.Tiles()
+		for i := 0; i < len(mapTiles); i += tilesX {
+			row := int(i / tilesX)
+			for col := 0; col < tilesX; col++ {
+				tile := tiles.GetSprite(mapTiles[i+col])
+				drawSprite(col*tileDimX, row*tileDimY, tile, roomImage)
+			}
+
+			sx, sy, sz := charBlock.Pos()
+			charPr := 1 + (int(sz/16) * 2)
+			shadowPr := 1 + (int(shadowZ/16) * 2)
+			// sd := charBlock.Depth()
+
+			yfactor := (sy + sz) - ((row + pr) * 16)
+			shadowDraw := sy > row*16 && pr == shadowPr && !shadowDrawn
+			doDraw := yfactor >= -16 && yfactor < 16 && pr <= charPr
+
+			// inRow := (row == int((sy-sz)/16)+1 || row == int((sy-sz)/16)) && col == 0
+			if shadowDraw { //inRow && pr == int(shadowZ/16)+1 && !shadowDrawn {
+				drawSprite(sx-3, sy-shadowZ-8, shadowChar, roomImage)
 				shadowDrawn = true
 			}
-			if col == 0 && row == int(sy/16)+1 && pr == int(sz/16)+1 && !spriteDrawn {
-				drawSprite(sx-3, sy-sz-8, girlChar.Img(), roomImage)
+			if doDraw { //inRow && pr == int((sz+sd)/16)+1 {
+				drawSprite(sx-3, sy-sz-8, girlChar, roomImage)
 				spriteDrawn = true
 			}
 		}
 	}
 
 	if !spriteDrawn {
-		sx, sy, sz := charBlock.GetPos()
-		if !shadowDrawn {
-			drawSprite(sx-3, sy-shadowZ-8, shadowChar.Img(), roomImage)
-		}
-		drawSprite(sx-3, sy-sz-8, girlChar.Img(), roomImage)
+		// sx, sy, sz := charBlock.Pos()
+		// if !shadowDrawn {
+		// 	drawSprite(sx-3, sy-shadowZ-8, shadowChar, roomImage)
+		// }
+		// drawSprite(sx-3, sy-sz-8, girlChar, roomImage)
 	}
 
 	return roomImage
@@ -111,7 +168,7 @@ func drawRoom() *ebiten.Image {
 
 func checkInputs() {
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) && onGround {
-		fallV = 3.5
+		fallV = 4.0
 		onGround = false
 	}
 	var dx, dy, dz int
@@ -147,7 +204,7 @@ func checkInputs() {
 	} else if hitCeiling && fallV > 0 && az <= 0 {
 		fallV = 0
 	} else {
-		fallV -= 0.25
+		fallV -= 0.3
 	}
 
 	shadowZ = scene.Colliders().FindFloor(charBlock)
@@ -166,8 +223,9 @@ func update(screen *ebiten.Image) error {
 	// opt.GeoM.Translate(-float64(screenW)/2.0, -float64(screenH)/2.0)
 	opt.GeoM.Scale(3, 3)
 	screen.DrawImage(rm, opt)
-	x, y, z := charBlock.GetPos()
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("x: %d\ny: %d\n z: %d\n shadz: %d", x, y, z, shadowZ))
+	x, y, z := charBlock.Pos()
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("x: %d\ny: %d\n z: %d\n shadz: %d\nrow: %d\ncol: %d\n pr: %d",
+		x, y, z, shadowZ, int(y/16), int(x/16), int(z/16)))
 	return nil
 }
 

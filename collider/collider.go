@@ -34,10 +34,19 @@ func (b *Collider) setZ(z int) {
 	b.zyshape.SetXY(int32(z), int32(b.y))
 }
 
-// GetPos - get the x,y,z position
-func (b *Collider) GetPos() (int, int, int) {
+// Pos - get the x,y,z position
+func (b *Collider) Pos() (int, int, int) {
 	return b.x, b.y, b.z
 }
+
+// Width - x span
+func (b *Collider) Width() int { return b.w }
+
+// Height - y span
+func (b *Collider) Height() int { return b.h }
+
+// Depth - z span
+func (b *Collider) Depth() int { return b.d }
 
 // SetPos - set the x,y,z position of this collider
 func (b *Collider) SetPos(x, y, z int) {
@@ -48,7 +57,7 @@ func (b *Collider) SetPos(x, y, z int) {
 
 // Translate - move the x,y,z position of this collider by a delta
 func (b *Collider) Translate(dx, dy, dz int) {
-	cx, cy, cz := b.GetPos()
+	cx, cy, cz := b.Pos()
 	b.setX(dx + int(cx))
 	b.setY(dy + int(cy))
 	b.setZ(dz + int(cz))
@@ -111,7 +120,7 @@ func (cs Colliders) getCollidingXY(subject *Collider) Colliders {
 
 // FindFloor woo
 func (cs Colliders) FindFloor(subject *Collider) int {
-	_, _, sz := subject.GetPos()
+	_, _, sz := subject.Pos()
 	colls := cs.getCollidingXY(subject)
 	var floorZ = -99
 	for _, v := range colls {
