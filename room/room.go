@@ -87,7 +87,7 @@ func parseBlock(strs []string) *collider.Collider {
 		sp := strings.Split(v, " ")
 		switch sp[0] {
 		case "name":
-			name = sp[0]
+			name = sp[1]
 		case "y":
 			yy, err = strconv.ParseFloat(sp[1], 64)
 			y = int(yy * 16)

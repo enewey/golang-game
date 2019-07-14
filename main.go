@@ -85,43 +85,6 @@ func getLayerRow(row int, layer *room.Layer) []int {
 
 func drawRoom() *ebiten.Image {
 	var spriteDrawn, shadowDrawn bool
-	// for row := tilesY - 1; row >= 0; row-- {
-	// 	for pr, layer := range scene.Layers() {
-	// 		rowTiles := getLayerRow(row, layer)
-	// 		// fmt.Printf("%v\n", rowTiles)
-	// 		for col := 0; col < len(rowTiles); col++ {
-	// 			tile := tiles.GetSprite(rowTiles[col])
-	// 			drawSprite(col*tileDimX, row*tileDimY, tile, roomImage)
-	// 		}
-
-	// 		sx, sy, sz := charBlock.Pos()
-	// 		sh := charBlock.Height()
-
-	// 		// sd := charBlock.Depth()
-	// 		charPr := (int(sz/16.0) * 2) + 1
-
-	// 		doDrawShadow := row == int((sy+sh)/16) && pr == int(shadowZ/16) && !shadowDrawn
-	// 		if doDrawShadow {
-	// 			drawSprite(sx-3, sy-shadowZ-8, shadowChar, roomImage)
-	// 			shadowDrawn = true
-	// 		}
-	// 		doDrawChar := sy > (row+pr-1)*16 && pr == charPr
-	// 		if doDrawChar {
-	// 			drawSprite(sx-3, sy-sz-8, girlChar, roomImage)
-	// 			spriteDrawn = true
-	// 		}
-	// 		fmt.Printf("charpr %d\n", charPr)
-	// 	}
-	// }
-	// if !spriteDrawn {
-	// 	sx, sy, sz := charBlock.Pos()
-	// 	if !shadowDrawn {
-	// 		drawSprite(sx-3, sy-shadowZ-8, shadowChar, roomImage)
-	// 	}
-	// 	drawSprite(sx-3, sy-sz-8, girlChar, roomImage)
-	// }
-
-	// return roomImage
 	for _, layer := range scene.Layers() {
 		pr := layer.Priority()
 		mapTiles := layer.Tiles()
@@ -135,18 +98,17 @@ func drawRoom() *ebiten.Image {
 			sx, sy, sz := charBlock.Pos()
 			charPr := 1 + (int(sz/16) * 2)
 			shadowPr := 1 + (int(shadowZ/16) * 2)
-			// sd := charBlock.Depth()
 
-			yfactor := (sy + sz) - ((row + pr) * 16)
-			shadowDraw := sy > row*16 && pr == shadowPr && !shadowDrawn
-			doDraw := yfactor >= -16 && yfactor < 16 && pr <= charPr
+			yfactor := math.Abs(float64((sy + sz) - ((row + pr) * 16)))
+			shyfactor := math.Abs(float64((sy + shadowZ) - ((row + pr) * 16)))
+			shadowDraw := shyfactor <= 16 && pr == shadowPr && !shadowDrawn
+			doDraw := yfactor <= 16 && pr == charPr
 
-			// inRow := (row == int((sy-sz)/16)+1 || row == int((sy-sz)/16)) && col == 0
-			if shadowDraw { //inRow && pr == int(shadowZ/16)+1 && !shadowDrawn {
+			if shadowDraw {
 				drawSprite(sx-3, sy-shadowZ-8, shadowChar, roomImage)
 				shadowDrawn = true
 			}
-			if doDraw { //inRow && pr == int((sz+sd)/16)+1 {
+			if doDraw {
 				drawSprite(sx-3, sy-sz-8, girlChar, roomImage)
 				spriteDrawn = true
 			}
@@ -154,11 +116,12 @@ func drawRoom() *ebiten.Image {
 	}
 
 	if !spriteDrawn {
-		// sx, sy, sz := charBlock.Pos()
-		// if !shadowDrawn {
-		// 	drawSprite(sx-3, sy-shadowZ-8, shadowChar, roomImage)
-		// }
-		// drawSprite(sx-3, sy-sz-8, girlChar, roomImage)
+		// fmt.Printf("sprite wasn't drawn\n")
+		sx, sy, sz := charBlock.Pos()
+		if !shadowDrawn {
+			drawSprite(sx-3, sy-shadowZ-8, shadowChar, roomImage)
+		}
+		drawSprite(sx-3, sy-sz-8, girlChar, roomImage)
 	}
 
 	return roomImage
