@@ -131,7 +131,7 @@ func (cs Colliders) FindFloor(subject *Collider) int {
 }
 
 // ResolveCollision woo
-func ResolveCollision(dx, dy, dz int, subject *Collider, colliders Colliders) (int, int, int, bool, bool, bool) {
+func ResolveCollision(dx, dy, dz int, subject *Collider, colliders Colliders) (int, int, int, bool, bool, bool, bool) {
 	var rx, ry, rz int = dx, dy, dz
 	var hitGround, hitCeiling bool
 
@@ -148,13 +148,13 @@ func ResolveCollision(dx, dy, dz int, subject *Collider, colliders Colliders) (i
 	resX := xygroup.Resolve(subject.xyshape, int32(dx), 0)
 	if resX.Colliding() {
 		rx = int(resX.ResolveX)
-		return rx, ry, rz, hitGround, hitCeiling, true
+		return rx, ry, rz, hitGround, hitCeiling, true, false
 	}
 
 	resY := xygroup.Resolve(subject.xyshape, 0, int32(dy))
 	if resY.Colliding() {
 		ry = int(resY.ResolveY)
-		return rx, ry, rz, hitGround, hitCeiling, true
+		return rx, ry, rz, hitGround, hitCeiling, false, true
 	}
 
 	for _, v := range colliders {
@@ -169,7 +169,7 @@ func ResolveCollision(dx, dy, dz int, subject *Collider, colliders Colliders) (i
 		}
 	}
 
-	return rx, ry, rz, hitGround, hitCeiling, false
+	return rx, ry, rz, hitGround, hitCeiling, false, false
 }
 
 func filterByZRange(zmin, zmax int, collider *Collider) bool {
