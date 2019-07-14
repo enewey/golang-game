@@ -153,10 +153,21 @@ func checkInputs() {
 	}
 
 	dz = int(math.Max(fallV, -6)) // per second?? frame?? :thinking_face:
-	ax, ay, az, hitGround, hitCeiling :=
-		collider.ResolveCollision(dx, dy, dz, charBlock, scene.Colliders())
+	var ax, ay, az int = dx, dy, dz
+	var hitGround, hitCeiling bool
+	var unresolved = true
+	for unresolved {
+		ax, ay, az, hitGround, hitCeiling, unresolved =
+			collider.ResolveCollision(ax, ay, az, charBlock, scene.Colliders())
+		if unresolved {
+			charBlock.Translate(ax, ay, 0)
+			ax = 0
+			ay = 0
+		} else {
+			charBlock.Translate(ax, ay, az)
+		}
+	}
 	// fmt.Printf("dz %d az %d\n fallV %f\n", dz, az, fallV)
-	charBlock.Translate(ax, ay, az)
 	if hitGround {
 		onGround = true
 	} else if az != 0 {

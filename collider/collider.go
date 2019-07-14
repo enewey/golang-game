@@ -1,8 +1,6 @@
 package collider
 
 import (
-	"math"
-
 	"github.com/SolarLune/resolv/resolv"
 )
 
@@ -133,29 +131,9 @@ func (cs Colliders) FindFloor(subject *Collider) int {
 }
 
 // ResolveCollision woo
-func ResolveCollision(dx, dy, dz int, subject *Collider, colliders Colliders) (int, int, int, bool, bool) {
-	var rx, ry, rz int
+func ResolveCollision(dx, dy, dz int, subject *Collider, colliders Colliders) (int, int, int, bool, bool, bool) {
+	var rx, ry, rz int = dx, dy, dz
 	var hitGround, hitCeiling bool
-
-	// first, check each collider's XZ and ZY shapes to see if the Z is colliding
-	for _, v := range colliders {
-		resXZ := resolv.Resolve(subject.xzshape, v.xzshape, 0, int32(dz))
-		resZY := resolv.Resolve(subject.zyshape, v.zyshape, int32(dz), 0)
-		// z-collision occurred only if *both* shapes collide
-		if resXZ.Colliding() && resZY.Colliding() {
-			if math.Abs(float64(resXZ.ResolveY)) < math.Abs(float64(resZY.ResolveX)) {
-				rz = int(resXZ.ResolveY)
-			} else {
-				rz = int(resZY.ResolveX)
-			}
-			hitGround = dz < 0
-			hitCeiling = dz > 0
-			break
-		}
-	}
-	if !(hitGround || hitCeiling) {
-		rz = dz
-	}
 
 	// to resolve the XY collision, filter out the colliders that are NOT in the
 	// range of Z that we care about.
@@ -170,18 +148,28 @@ func ResolveCollision(dx, dy, dz int, subject *Collider, colliders Colliders) (i
 	resX := xygroup.Resolve(subject.xyshape, int32(dx), 0)
 	if resX.Colliding() {
 		rx = int(resX.ResolveX)
-	} else {
-		rx = dx
+		return rx, ry, rz, hitGround, hitCeiling, true
 	}
 
 	resY := xygroup.Resolve(subject.xyshape, 0, int32(dy))
 	if resY.Colliding() {
 		ry = int(resY.ResolveY)
-	} else {
-		ry = dy
+		return rx, ry, rz, hitGround, hitCeiling, true
 	}
 
-	return rx, ry, rz, hitGround, hitCeiling
+	for _, v := range colliders {
+		resXZ := resolv.Resolve(subject.xzshape, v.xzshape, 0, int32(dz))
+		resZY := resolv.Resolve(subject.zyshape, v.zyshape, int32(dz), 0)
+		// z-collision occurred only if *both* shapes collide
+		if resXZ.Colliding() && resZY.Colliding() {
+			rz = int(resZY.ResolveX)
+			hitGround = dz < 0
+			hitCeiling = dz > 0
+			break
+		}
+	}
+
+	return rx, ry, rz, hitGround, hitCeiling, false
 }
 
 func filterByZRange(zmin, zmax int, collider *Collider) bool {
