@@ -86,7 +86,7 @@ func getLayerRow(row int, layer *room.Layer) []int {
 func drawRoom() *ebiten.Image {
 	var spriteDrawn, shadowDrawn bool
 	for _, layer := range scene.Layers() {
-		pr := layer.Priority()
+		pr := layer.Priority() // z-layer of this tile, basically
 		mapTiles := layer.Tiles()
 		for i := 0; i < len(mapTiles); i += tilesX {
 			row := int(i / tilesX)
@@ -96,38 +96,38 @@ func drawRoom() *ebiten.Image {
 			}
 
 			sx, sy, sz := charBlock.Pos()
-			charPr := 1 + (int(sz/16) * 2)
-			shadowPr := 1 + (int(shadowZ/16) * 2)
-
-			yfactor := math.Abs(float64((sy + sz) - ((row + pr) * 16)))
-			shyfactor := math.Abs(float64((sy + shadowZ) - ((row + pr) * 16)))
-			shadowDraw := shyfactor <= 16 && pr == shadowPr && !shadowDrawn
-			doDraw := yfactor <= 16 && pr == charPr
+			sd := charBlock.Depth()
+			charPr := int(math.Ceil(float64(sz+1) / float64(tileDimY/2)))
+			shadowPr := int(math.Floor(float64(shadowZ+sd) / float64(tileDimY/2)))
+			charRow := int(math.Ceil(float64(sy) / float64(tileDimY)))
+			doDraw := charPr == pr && charRow == (row+pr)
+			shadowDraw := shadowPr == pr && charRow == (row+pr)
 
 			if shadowDraw {
-				drawSprite(sx-3, sy-shadowZ-8, shadowChar, roomImage)
+				drawSprite(sx-4, sy-shadowZ-8, shadowChar, roomImage)
 				shadowDrawn = true
 			}
 			if doDraw {
-				drawSprite(sx-3, sy-sz-8, girlChar, roomImage)
+				drawSprite(sx-4, sy-sz-8, girlChar, roomImage)
 				spriteDrawn = true
 			}
 		}
 	}
 
 	if !spriteDrawn {
-		// fmt.Printf("sprite wasn't drawn\n")
 		sx, sy, sz := charBlock.Pos()
 		if !shadowDrawn {
 			drawSprite(sx-3, sy-shadowZ-8, shadowChar, roomImage)
 		}
 		drawSprite(sx-3, sy-sz-8, girlChar, roomImage)
 	}
-
 	return roomImage
 }
 
 // ---------
+
+var logicFrame int
+var slowdownSwitch bool
 
 func checkInputs() {
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) && onGround {
@@ -138,6 +138,9 @@ func checkInputs() {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyTab) {
+		slowdownSwitch = !slowdownSwitch
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyRight) {
 		dx++
@@ -152,39 +155,46 @@ func checkInputs() {
 		dy--
 	}
 
-	dz = int(math.Max(fallV, -6)) // per second?? frame?? :thinking_face:
-	var ax, ay, az int = dx, dy, dz
-	var hitGround, hitCeiling, xResolved, yResolved bool
-	var unresolved = true
-	for unresolved {
-		ax, ay, az, hitGround, hitCeiling, xResolved, yResolved =
-			collider.ResolveCollision(ax, ay, az, charBlock, scene.Colliders())
-		unresolved = xResolved || yResolved
-		if xResolved {
-			charBlock.Translate(ax, 0, 0)
-			ax = 0
-		} else if yResolved {
-			charBlock.Translate(0, ay, 0)
-			ay = 0
-		} else {
-			charBlock.Translate(ax, ay, az)
+	logicFrame = (logicFrame + 1) % 4
+	if (logicFrame == 0 && slowdownSwitch) || !slowdownSwitch {
+		dz = int(math.Max(fallV, -6)) // per second?? frame?? :thinking_face:
+		var ax, ay, az int = dx, dy, dz
+		var hitGround, hitCeiling, xResolved, yResolved bool
+		var unresolved = true
+		for unresolved {
+			ax, ay, az, hitGround, hitCeiling, xResolved, yResolved =
+				collider.ResolveCollision(ax, ay, az, charBlock, scene.Colliders())
+			unresolved = xResolved || yResolved
+			if xResolved {
+				// fmt.Printf("resolved x %d - ", ax)
+				charBlock.Translate(ax, 0, 0)
+				ax = 0
+			} else if yResolved {
+				// fmt.Printf("resolved y %d - ", ay)
+				charBlock.Translate(0, ay, 0)
+				ay = 0
+			} else {
+				// fmt.Printf("resolved all three %d %d %d\n", ax, ay, az)
+				charBlock.Translate(ax, ay, az)
+			}
 		}
-	}
-	// fmt.Printf("dz %d az %d\n fallV %f\n", dz, az, fallV)
-	if hitGround {
-		onGround = true
-	} else if az != 0 {
-		onGround = false
-	}
-	if onGround && fallV < -1 && az >= 0 {
-		fallV = 0
-	} else if hitCeiling && fallV > 0 && az <= 0 {
-		fallV = 0
-	} else {
-		fallV -= 0.3
+		// fmt.Printf("dz %d az %d\n fallV %f\n", dz, az, fallV)
+		if hitGround {
+			onGround = true
+		} else if az != 0 {
+			onGround = false
+		}
+		if onGround && fallV < -1 && az >= 0 {
+			fallV = 0
+		} else if hitCeiling && fallV > 0 && az <= 0 {
+			fallV = 0
+		} else {
+			fallV -= 0.3
+		}
+
+		shadowZ = scene.Colliders().FindFloor(charBlock)
 	}
 
-	shadowZ = scene.Colliders().FindFloor(charBlock)
 }
 
 // -------

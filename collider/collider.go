@@ -162,7 +162,7 @@ func ResolveCollision(dx, dy, dz int, subject *Collider, colliders Colliders) (i
 		resZY := resolv.Resolve(subject.zyshape, v.zyshape, int32(dz), 0)
 		// z-collision occurred only if *both* shapes collide
 		if resXZ.Colliding() && resZY.Colliding() {
-			rz = int(resZY.ResolveX)
+			rz = int(resXZ.ResolveY)
 			hitGround = dz < 0
 			hitCeiling = dz > 0
 			break
