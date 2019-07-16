@@ -52,5 +52,5 @@ collider block,x 3,y 2,z 0,w 1,h 1,d 1,name block
 collider block,x 2,y 3,z 0,w 1,h 1,d 1,name blockl
 collider block,x 4,y 3,z 0,w 1,h 1,d 1,name blockr
 collider block,x 5,y 6.5,z 0,w 1,h 0.35,d 0.5,name rock
-collider block,x 6,y 3,z 2,w 1,h 1,d 0.1,name platform1
-collider block,x 7,y 3,z 1,w 1,h 1,d 0.1,name platform2
+collider block,x 6,y 3,z 1.96,w 1,h 1,d 0.1,name platform1
+collider block,x 7,y 3,z 0.96,w 1,h 1,d 0.1,name platform2

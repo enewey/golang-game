@@ -1,4 +1,4 @@
-package collider
+package colliders
 
 import (
 	"github.com/SolarLune/resolv/resolv"

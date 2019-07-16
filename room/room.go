@@ -4,25 +4,26 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
+	"math"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
 
-	"enewey.com/golang-game/collider"
+	"enewey.com/golang-game/colliders"
 )
 
-// Room woo
+// Room - encapsulates what is parsed from a .room file.
 type Room struct {
 	layers []*Layer
-	blocks collider.Colliders
+	walls  colliders.Colliders
 }
 
 // Layers woo
 func (room *Room) Layers() []*Layer { return room.layers }
 
 // Colliders woo
-func (room *Room) Colliders() collider.Colliders { return room.blocks }
+func (room *Room) Colliders() colliders.Colliders { return room.walls }
 
 // NewRoomFromFile woo
 func NewRoomFromFile(source string) *Room {
@@ -37,9 +38,9 @@ func NewRoomFromFile(source string) *Room {
 	return &Room{layers, blocks}
 }
 
-func parseRoomFile(r *csv.Reader) ([]*Layer, collider.Colliders) {
+func parseRoomFile(r *csv.Reader) ([]*Layer, colliders.Colliders) {
 	var retLyr []*Layer
-	var retBlk = make(collider.Colliders, 0)
+	var retBlk = make(colliders.Colliders, 0)
 	var curr []string
 	var priority, width, height int
 	var appender = func() []*Layer {
@@ -78,7 +79,9 @@ func parseRoomFile(r *csv.Reader) ([]*Layer, collider.Colliders) {
 	return retLyr, retBlk
 }
 
-func parseBlock(strs []string) *collider.Collider {
+func flint(f float64) int { return int(math.Floor(f)) }
+
+func parseBlock(strs []string) *colliders.Collider {
 	var y, x, z, w, h, d int
 	var yy, xx, zz, ww, hh, dd float64
 	var name string
@@ -90,27 +93,27 @@ func parseBlock(strs []string) *collider.Collider {
 			name = sp[1]
 		case "y":
 			yy, err = strconv.ParseFloat(sp[1], 64)
-			y = int(yy * 16)
+			y = flint(yy * 16)
 			break
 		case "x":
 			xx, err = strconv.ParseFloat(sp[1], 64)
-			x = int(xx * 16)
+			x = flint(xx * 16)
 			break
 		case "z":
 			zz, err = strconv.ParseFloat(sp[1], 64)
-			z = int(zz * 16)
+			z = flint(zz * 16)
 			break
 		case "w":
 			ww, err = strconv.ParseFloat(sp[1], 64)
-			w = int(ww * 16)
+			w = flint(ww * 16)
 			break
 		case "h":
 			hh, err = strconv.ParseFloat(sp[1], 64)
-			h = int(hh * 16)
+			h = flint(hh * 16)
 			break
 		case "d":
 			dd, err = strconv.ParseFloat(sp[1], 64)
-			d = int(dd * 16)
+			d = flint(dd * 16)
 			break
 		}
 
@@ -119,7 +122,7 @@ func parseBlock(strs []string) *collider.Collider {
 		}
 	}
 
-	return collider.NewBlock(x, y, z, w, h, d, name)
+	return colliders.NewBlock(x, y, z, w, h, d, name)
 }
 
 func parseLayer(strs []string) []int {
