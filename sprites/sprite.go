@@ -11,3 +11,12 @@ type Sprite struct {
 func (s *Sprite) Img() *ebiten.Image {
 	return s.img
 }
+
+// DrawSprite - draw this sprite at x/y on the given image
+func (s *Sprite) DrawSprite(x, y int, img *ebiten.Image) *ebiten.Image {
+	opt := &ebiten.DrawImageOptions{}
+	opt.GeoM.Translate(float64(x), float64(y))
+
+	img.DrawImage(s.img, opt)
+	return img
+}
