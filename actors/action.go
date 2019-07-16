@@ -25,7 +25,8 @@ type BaseAction struct {
 }
 
 // Target woo
-func (b *BaseAction) Target() *Actor       { return b.target }
+func (b *BaseAction) Target() *Actor { return b.target }
+
 // Elapsed woo
 func (b *BaseAction) Elapsed() types.Frame { return b.elapsed }
 
@@ -76,12 +77,13 @@ func NewMoveByAction(target *Actor, dx, dy, dz int, duration types.Frame) *MoveB
 
 // Process w
 func (a *MoveByAction) Process(df types.Frame) bool {
-	a.elapsed += df
 	if a.elapsed > a.duration {
-		a.target.SetVel(0, 0, 0)
+		a.target.vx = 0
+		a.target.vy = 0
 		return true
 	}
-	a.target.SetVel(a.vx, a.vy, a.vz)
+	a.elapsed += df
+	a.target.vx, a.target.vy = a.vx, a.vy
 	return false
 }
 

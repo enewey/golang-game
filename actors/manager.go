@@ -1,7 +1,6 @@
 package actors
 
 import (
-	"fmt"
 	"math"
 
 	"enewey.com/golang-game/colliders"
@@ -20,7 +19,7 @@ type Manager struct {
 func NewManager() *Manager {
 	return &Manager{
 		make(map[int]*Actor),
-		make([]Action, 10),
+		make([]Action, 5),
 	}
 }
 
@@ -40,11 +39,10 @@ func (m *Manager) Act(df types.Frame) {
 			continue
 		}
 		if action.Process(df) {
-			fmt.Printf("action processed %d\n", len(m.actions))
-			if i == 0 {
-				m.actions = m.actions[i:]
+			if i == 0 && len(m.actions) > 1 {
+				m.actions = m.actions[i+1:]
 			} else if i == len(m.actions)-1 {
-				m.actions = m.actions[:i-1]
+				m.actions = m.actions[:i]
 			} else {
 				m.actions = append(m.actions[:i], m.actions[i+1:]...)
 			}
@@ -75,10 +73,10 @@ func (m *Manager) setActor(id int, a *Actor) {
 func (m *Manager) HandleInput(state input.Input) bool {
 	var dx, dy int
 	if state[ebiten.KeyUp].Pressed() {
-		dy++
+		dy--
 	}
 	if state[ebiten.KeyDown].Pressed() {
-		dy--
+		dy++
 	}
 	if state[ebiten.KeyLeft].Pressed() {
 		dx--

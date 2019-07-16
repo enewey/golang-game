@@ -70,8 +70,8 @@ func (s *Scene) resolveCollisions() {
 
 // Render - called by main render loop
 func (s *Scene) Render(img *ebiten.Image) *ebiten.Image {
-	for row := 0; row < 8; row++ {
-		for pr := 0; pr < 10; pr++ {
+	for pr := 0; pr < 10; pr++ {
+		for row := 0; row < 8; row++ {
 			s.RenderRow(img, pr, row)
 		}
 	}

@@ -82,5 +82,5 @@ func (a *Actor) draw(img *ebiten.Image) *ebiten.Image {
 
 func (a *Actor) drawShadow(img *ebiten.Image) *ebiten.Image {
 	x, y, _ := a.Pos()
-	return a.sprite.DrawSprite(x-4, y-a.shadowZ-8, img)
+	return a.shadow.DrawSprite(x-4, y-a.shadowZ-8, img)
 }

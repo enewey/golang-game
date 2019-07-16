@@ -11,27 +11,32 @@ var keys = []ebiten.Key{
 	ebiten.KeySpace, ebiten.KeyTab,
 }
 
+// KeyState w
 type KeyState struct {
 	key    ebiten.Key
 	frames types.Frame
 }
 
-func (k *KeyState) Pressed() bool       { return ebiten.IsKeyPressed(k.key) }
-func (k *KeyState) JustPressed() bool   { return inpututil.IsKeyJustPressed(k.key) }
+// Pressed w
+func (k *KeyState) Pressed() bool { return ebiten.IsKeyPressed(k.key) }
+
+// JustPressed w
+func (k *KeyState) JustPressed() bool { return inpututil.IsKeyJustPressed(k.key) }
+
+// Frames w
 func (k *KeyState) Frames() types.Frame { return k.frames }
 
 // CalcPress - accumulates the frames this key has been pressed.
 func (k *KeyState) CalcPress(df types.Frame) types.Frame {
 	if !k.Pressed() {
-		k.frames = 0
+		return 0
 	} else if k.JustPressed() {
-		k.frames = df
-	} else {
-		k.frames += df
+		return df
 	}
-	return k.frames
+	return k.frames + df
 }
 
+// Input - map of ebiten Keys to how many frames they have been held down
 type Input map[ebiten.Key]*KeyState
 
 var state Input
@@ -52,7 +57,7 @@ func State() Input {
 // Tick - meant to be called every frame. df = delta frames (since last tick).
 func (in Input) Tick(df types.Frame) Input {
 	for _, v := range in {
-		v.CalcPress(df)
+		v.frames = v.CalcPress(df)
 	}
 
 	return in
