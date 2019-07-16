@@ -17,15 +17,15 @@ layer 0
 layer 1
 0
 0
-0,0,0,133,0,0,0,0,0,0
-0,0,132,0,134,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0
+0,0,132,133,134,0,0,0,0,0
 0
 0
 0,132,134,0,0,441
 layer 2
 0
 0,0,0,13,0,0,0,0,0,0
-0,0,13,0,13,0,0,440,0,0
+0,0,13,13,13,0,0,440,0,0
 0,
 0,318,320
 0,45,47
@@ -48,7 +48,7 @@ collider block,x 10,y -1,z 0,w 1,h 10,d 10,name rightwall
 collider block,x -1,y -1,z 0,w 12,h 1,d 10,name upwall
 collider block,x -1,y 8,z 0,w 12,h 1,d 10,name downwall
 collider block,x 1,y 5,z 0,w 2,h 2,d 1,name platform
-collider block,x 3,y 2,z 0,w 1,h 1,d 1,name block
+collider block,x 3,y 2,z 0,w 1,h 2,d 1,name block
 collider block,x 2,y 3,z 0,w 1,h 1,d 1,name blockl
 collider block,x 4,y 3,z 0,w 1,h 1,d 1,name blockr
 collider block,x 5,y 6.5,z 0,w 1,h 0.35,d 0.5,name rock

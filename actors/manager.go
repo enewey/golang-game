@@ -91,7 +91,7 @@ func (m *Manager) HandleInput(state input.Input) bool {
 		// events.Hub().ActorEvents().Enqueue(ev)
 	}
 
-	if state[ebiten.KeySpace].JustPressed() {
+	if state[ebiten.KeySpace].Pressed() {
 		action := NewJumpAction(m.actors[0], 4.0)
 		m.actions = append(m.actions, action)
 		// ev := NewJumpActorEvent(0, -1, 4.0)
