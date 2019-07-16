@@ -34,21 +34,12 @@ func (m *Manager) Act(df types.Frame) {
 	i := 0
 	for i < len(m.actions) {
 		action := m.actions[i]
-		if action == nil {
-			i++
-			continue
-		}
-		if action.Process(df) {
-			if i == 0 && len(m.actions) > 1 {
-				m.actions = m.actions[i+1:]
-			} else if i == len(m.actions)-1 {
-				m.actions = m.actions[:i]
-			} else {
-				m.actions = append(m.actions[:i], m.actions[i+1:]...)
+		if action != nil {
+			if action.Process(df) {
+				m.actions[i] = nil
 			}
-		} else {
-			i++
 		}
+		i++
 	}
 }
 

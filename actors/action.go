@@ -77,7 +77,8 @@ func NewMoveByAction(target *Actor, dx, dy, dz int, duration types.Frame) *MoveB
 
 // Process w
 func (a *MoveByAction) Process(df types.Frame) bool {
-	if a.elapsed > a.duration {
+	// fmt.Printf("Process dx %d dy %d dz %d\nvx %f vy %f vz %f\n duration %d elapsed %d\n", a.dx, a.dy, a.dz, a.vx, a.vy, a.vz, a.duration, a.elapsed)
+	if a.elapsed >= a.duration {
 		a.target.vx = 0
 		a.target.vy = 0
 		return true
