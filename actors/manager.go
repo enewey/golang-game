@@ -176,8 +176,8 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 // Render - draw the actors given a priority and row
 func (m *Manager) Render(img *ebiten.Image, layer, row int) *ebiten.Image {
 	for _, actor := range m.actors {
-		_, sy, sz := actor.Pos()
-		sd := actor.Collider().Depth()
+		sx, sy, sz := actor.Pos()
+		sd := actor.Collider().ZDepth(sx, sy)
 		charPr := int(math.Ceil(float64(sz+1) / 8))
 		shadowPr := int(math.Floor(float64(actor.shadowZ+sd) / 8))
 		charRow := int(math.Ceil(float64(sy) / 16))

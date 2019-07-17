@@ -132,8 +132,8 @@ func parseBlock(strs []string) *colliders.Block {
 }
 
 func parseTriangle(strs []string) *colliders.Triangle {
-	var x1,y1,x2,y2,x3,y3,z,d int
-	var xx1,yy1,xx2,yy2,xx3,yy3,zz,dd float64
+	var rx2,ry2,rx3,ry3,x,y,z,d,axis int
+	var xx2,yy2,xx3,yy3,xx,yy,zz,dd float64
 	var name string
 	var err error
 	for _, v := range strs {
@@ -141,23 +141,31 @@ func parseTriangle(strs []string) *colliders.Triangle {
 		switch sp[0] {
 		case "name":
 			name = sp[1]
-		case "y1":
-			yy1, err = strconv.ParseFloat(sp[1], 64)
-			break
-		case "x1":
-			xx1, err = strconv.ParseFloat(sp[1], 64)
-			break
-		case "y2":
+		case "axis":
+			if sp[1] == "x" { 
+				axis = colliders.XAxis 
+			} else if sp[1] == "y" { 
+				axis = colliders.YAxis 
+			} else { 
+				axis = colliders.ZAxis 
+			}
+		case "ry2":
 			yy2, err = strconv.ParseFloat(sp[1], 64)
 			break
-		case "x2":
+		case "rx2":
 			xx2, err = strconv.ParseFloat(sp[1], 64)
 			break
-		case "y3":
+		case "ry3":
 			yy3, err = strconv.ParseFloat(sp[1], 64)
 			break
-		case "x3":
+		case "rx3":
 			xx3, err = strconv.ParseFloat(sp[1], 64)
+			break
+		case "x":
+			xx, err = strconv.ParseFloat(sp[1], 64)
+			break
+		case "y":
+			yy, err = strconv.ParseFloat(sp[1], 64)
 			break
 		case "z":
 			zz, err = strconv.ParseFloat(sp[1], 64)
@@ -170,18 +178,18 @@ func parseTriangle(strs []string) *colliders.Triangle {
 		if err != nil {
 			log.Fatal(err)
 		}
-		y1 = utils.Flint(yy1 * 16)
-		x1 = utils.Flint(xx1 * 16)
-		y2 = utils.Flint(yy2 * 16)
-		x2 = utils.Flint(xx2 * 16)
-		y3 = utils.Flint(yy3 * 16)
-		x3 = utils.Flint(xx3 * 16)
+		ry2 = utils.Flint(yy2 * 16)
+		rx2 = utils.Flint(xx2 * 16)
+		ry3 = utils.Flint(yy3 * 16)
+		rx3 = utils.Flint(xx3 * 16)
+		x = utils.Flint(xx * 16)
+		y = utils.Flint(yy * 16)
 		z =  utils.Flint(zz * 16)
 		d =  utils.Flint(dd * 16)
 	}
 
 	return colliders.
-		NewTriangle(x1, y1, x2, y2, x3, y3, z, d, name).(*colliders.Triangle)
+		NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis, name).(*colliders.Triangle)
 }
 
 func parseLayer(strs []string) []int {

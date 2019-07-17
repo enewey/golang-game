@@ -13,27 +13,32 @@ layer 0
 0
 0
 0
-0,0,0,0,0,0,307,307
+0,0,0,0,0,0,0,307,307
 layer 1
 0
 0
 0,0,0,0,0,0,0,0,0,0
-0,0,132,133,134,0,0,0,0,0
-0
+0,0,132,133,133,134
+0,0,0,0,407
 0,0,227
 0,132,315,0,0,441
+layer 1
+0
+0
+0
+0,0,0,0,0,468
 layer 2
 0
-0,0,0,13,0,0,0,0,0,0
-0,0,13,13,13,0,0,440,0,0
-0,
+0,0,0,13
+0,0,13,13,13,438,0,0,440
+0,0,0,0,407
 0,288,290
 0,42,0
 layer 3
 0
 layer 4
 0
-0,0,0,0,0,0,440,0,0,0
+0,0,0,0,0,0,0,440,0,0
 layer 5
 0
 layer 6
@@ -49,10 +54,12 @@ collider block,x -1,y -1,z 0,w 12,h 1,d 10,name upwall
 collider block,x -1,y 8,z 0,w 12,h 1,d 10,name downwall
 collider block,x 1,y 5,z 0,w 2,h 1,d 1,name platform_chunk1
 collider block,x 1,y 6,z 0,w 1,h 1,d 1,name platform_chunk2
-collider triangle,x1 2,y1 6,x2 2.9,y2 6,x3 2,y3 6.9,z 0,d 1,name platform_chunk3
+collider triangle,x 2,y 6,z 0,d 1,rx2 0.9,ry2 0,rx3 0,ry3 0.9,axis z,name platform_chunk3
+collider triangle,x 4,y 4,z 0,d 1,rx2 0,ry2 1,rx3 1,ry3 0,axis x,name platform_chunk4
+collider triangle,x 5,y 3,z 0,d 1,rx2 0,ry2 1,rx3 1,ry3 0,axis y,name platform_chunk5
 collider block,x 3,y 2,z 0,w 1,h 2,d 1,name block
 collider block,x 2,y 3,z 0,w 1,h 1,d 1,name blockl
 collider block,x 4,y 3,z 0,w 1,h 1,d 1,name blockr
 collider block,x 5,y 6.5,z 0,w 1,h 0.35,d 0.5,name rock
-collider block,x 6,y 3,z 1.96,w 1,h 1,d 0.1,name platform1
-collider block,x 7,y 3,z 0.96,w 1,h 1,d 0.1,name platform2
+collider block,x 7,y 3,z 1.96,w 1,h 1,d 0.1,name platform1
+collider block,x 8,y 3,z 0.96,w 1,h 1,d 0.1,name platform2

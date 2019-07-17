@@ -1,6 +1,7 @@
 package colliders
 
 import (
+	"fmt"
 	"github.com/enewey/resolv/resolv"
 	"enewey.com/golang-game/utils"
 )
@@ -12,13 +13,14 @@ type Collider interface {
 	X() int
 	Y() int
 	Z() int
-	Depth() int // TODO: make it so triangles can be oriented any which way
+	ZDepth(int,int) int
 	Pos() (int, int, int)
 	SetPos(int, int, int)
 	Translate(int, int, int)
 	XYShape() resolv.Shape
 	XZShape() resolv.Shape
 	ZYShape() resolv.Shape
+	Name() string
 }
 
 // BaseCollider is an anonymous struct included in each Collider
@@ -42,6 +44,8 @@ func (b *BaseCollider) XYShape() resolv.Shape { return b.xyshape }
 func (b *BaseCollider) XZShape() resolv.Shape { return b.xzshape }
 // ZYShape returns the shape of this collider on the YZ plane
 func (b *BaseCollider) ZYShape() resolv.Shape { return b.zyshape }
+// Name returns the name of this collider. Used primarily for debugging.
+func (b *BaseCollider) Name() string { return b.name }
 
 // Pos - get the x,y,z position
 func (b *BaseCollider) Pos() (int, int, int) {
@@ -94,8 +98,8 @@ func (b *Block) Width() int { return b.w }
 // Height - y span
 func (b *Block) Height() int { return b.h }
 
-// Depth - z span
-func (b *Block) Depth() int { return b.d }
+// ZDepth - z span is constant at any x/y
+func (b *Block) ZDepth(x,y int) int { return b.d }
 
 // NewBlock - creates a new 3D rectangle collider.
 func NewBlock(x, y, z, w, h, d int, name string) Collider {
@@ -111,36 +115,83 @@ func NewBlock(x, y, z, w, h, d int, name string) Collider {
 // Triangle - 3D triangular prism along the z-axis
 type Triangle struct {
 	BaseCollider
-	x2,y2,x3,y3,d int
+	// r variables mean they are RELATIVE to the BaseCollider x,y,z
+	rx2,ry2,rx3,ry3,d,axis int
 }
 
-// X2 gets the X-coord for the 2nd point of this triangle
-func (b *Triangle) X2() int { return b.x2 }
-// Y2 gets the Y-coord for the 2nd point of this triangle
-func (b *Triangle) Y2() int { return b.y2 }
-// X3 gets the X-coord for the 3rd point of this triangle
-func (b *Triangle) X3() int { return b.x3 }
-// Y3 gets the Y-coord for the 3rd point of this triangle
-func (b *Triangle) Y3() int { return b.y3 }
-// Depth - z span
-func (b *Triangle) Depth() int { return b.d }
+// // X2 gets the X-coord for the 2nd point of this triangle
+// func (b *Triangle) X2() int { return b.x2 }
+// // Y2 gets the Y-coord for the 2nd point of this triangle
+// func (b *Triangle) Y2() int { return b.y2 }
+// // X3 gets the X-coord for the 3rd point of this triangle
+// func (b *Triangle) X3() int { return b.x3 }
+// // Y3 gets the Y-coord for the 3rd point of this triangle
+// func (b *Triangle) Y3() int { return b.y3 }
+
+// ZDepth - z span at the given point
+func (b *Triangle) ZDepth(x,y int) int {
+	// switch (b.axis) {
+	// case ZAxis:
+	// 	return b.d
+	// case XAxis:
+
+	// case YAxis:
+	// }
+	return b.d
+}
+
+// Axis constants, to help build triangle prisms.
+const (
+	XAxis = iota
+	YAxis
+	ZAxis
+)
 
 // NewTriangle - creates a new 3D triangular prism, where the prism runs along 
-// the z-axis.
-func NewTriangle(x1, y1, x2, y2, x3, y3, z, d int, name string) Collider {
-	tri := &Triangle{
-		x2: x2, y2: y2, x3: x3, y3: y3, d: d,
-	}
-	tri.x, tri.y, tri.z = x1, y1, z
+// the specified axis. The named variables (x1, y1, z etc) are named as if the
+// prism runs "d" (depth) units along the Z axis.
+// When the XAxis is specified: x coordinates will map to the Z axis
+// When the YAxis is specified: y coordinates will map to the Z axis
+func NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis int, name string) Collider {
+	tri := &Triangle{rx2: rx2, ry2: ry2, rx3: rx3, ry3: ry3, d: d, axis: axis}
+	tri.x, tri.y, tri.z = x, y, z
 	tri.name = name
-	tri.xyshape = resolv.NewTriangle(
-		int32(x1), int32(y1), 
-		int32(x2), int32(y2), 
-		int32(x3), int32(y3))
-	w := utils.Max(x1, x2, x3) - utils.Min(x1, x2, x3)
-	h := utils.Max(y1, y2, y3) - utils.Min(y1, y2, y3)
-	tri.xzshape = resolv.Shape(resolv.NewRectangle(int32(x1), int32(z), int32(w), int32(d)))
-	tri.zyshape = resolv.Shape(resolv.NewRectangle(int32(z), int32(y1), int32(d), int32(h)))
+
+	switch axis {
+	case XAxis:
+		//fmt.Printf("parsed x triangle")
+		w := d
+		h := utils.Max(y, y+ry2, y+ry3) - utils.Min(y, y+ry2, y+ry3)
+		tri.zyshape = resolv.NewTriangle(
+			int32(z), int32(y),
+			int32(z+rx2), int32(y+ry2),
+			int32(z+rx3), int32(y+ry3))
+		tri.xzshape = resolv.Shape(resolv.NewRectangle(int32(x), int32(z), int32(w), int32(d)))
+		tri.xyshape = resolv.Shape(resolv.NewRectangle(int32(x), int32(y), int32(d), int32(h)))
+	case YAxis:
+		w := utils.Max(x, x+rx2, x+rx3) - utils.Min(x, x+rx2, x+rx3)
+		h := d
+		tri.xzshape = resolv.NewTriangle(
+			int32(x), int32(z), 
+			int32(x+rx2), int32(z+ry2), 
+			int32(x+rx3), int32(z+ry3))
+		tri.xyshape = resolv.Shape(resolv.NewRectangle(int32(x), int32(y), int32(w), int32(d)))
+		tri.zyshape = resolv.Shape(resolv.NewRectangle(int32(z), int32(y), int32(d), int32(h)))
+	case ZAxis:
+		w := utils.Max(x, x+rx2, x+rx3) - utils.Min(x, x+rx2, x+rx3)
+		h := utils.Max(y, y+ry2, y+ry3) - utils.Min(y, y+ry2, y+ry3)
+		tri.xyshape = resolv.NewTriangle(
+			int32(x), int32(y), 
+			int32(x+rx2), int32(y+ry2), 
+			int32(x+rx3), int32(y+ry3))
+		tri.xzshape = resolv.Shape(resolv.NewRectangle(int32(x), int32(z), int32(w), int32(d)))
+		tri.zyshape = resolv.Shape(resolv.NewRectangle(int32(z), int32(y), int32(d), int32(h)))
+	}
+
+	if name == "platform_chunk4" {
+		fmt.Printf("triangle made %s axis %d xy %v xz %v zy %v\n", tri.name, tri.axis, tri.xyshape, tri.xzshape, tri.zyshape )
+	}
+	
 
 	return tri
 }
@@ -148,53 +199,79 @@ func NewTriangle(x1, y1, x2, y2, x3, y3, z, d int, name string) Collider {
 // Colliders woo
 type Colliders []Collider
 
-// GetXYGroup woo
-func (cs Colliders) getXYGroup(tag string) *resolv.Space {
-	ret := resolv.NewSpace()
-	ret.AddTags(tag)
-	for _, b := range cs {
-		ret.Add(b.XYShape())
-	}
-	return ret
-}
+// // GetXYGroup woo
+// func (cs Colliders) getXYGroup(tag string) *resolv.Space {
+// 	ret := resolv.NewSpace()
+// 	ret.AddTags(tag)
+// 	for _, b := range cs {
+// 		ret.Add(b.XYShape())
+// 	}
+// 	return ret
+// }
 
-// GetXZGroup woo
-func (cs Colliders) getXZGroup(tag string) *resolv.Space {
-	ret := resolv.NewSpace()
-	ret.AddTags(tag)
-	for _, b := range cs {
-		ret.Add(b.XZShape())
-	}
-	return ret
-}
+// // GetXZGroup woo
+// func (cs Colliders) getXZGroup(tag string) *resolv.Space {
+// 	ret := resolv.NewSpace()
+// 	ret.AddTags(tag)
+// 	for _, b := range cs {
+// 		ret.Add(b.XZShape())
+// 	}
+// 	return ret
+// }
 
-// GetZYGroup woo
-func (cs Colliders) getZYGroup(tag string) *resolv.Space {
-	ret := resolv.NewSpace()
-	ret.AddTags(tag)
-	for _, b := range cs {
-		ret.Add(b.ZYShape())
-	}
-	return ret
-}
+// // GetZYGroup woo
+// func (cs Colliders) getZYGroup(tag string) *resolv.Space {
+// 	ret := resolv.NewSpace()
+// 	ret.AddTags(tag)
+// 	for _, b := range cs {
+// 		ret.Add(b.ZYShape())
+// 	}
+// 	return ret
+// }
 
 func (cs Colliders) getCollidingXY(subject Collider) Colliders {
-	var ret Colliders
+	var ret = make(Colliders, len(cs))
+	i := 0
 	for _, v := range cs {
 		if v.XYShape().IsColliding(subject.XYShape()) {
-			ret = append(ret, v)
+			ret[i] = v
+			i++
 		}
 	}
-	return ret
+	return ret[:i]
+}
+
+func (cs Colliders) getCollidingXZ(subject Collider) Colliders {
+	var ret = make(Colliders, len(cs))
+	i := 0
+	for _, v := range cs {
+		if v.XZShape().IsColliding(subject.XZShape()) {
+			ret[i] = v
+			i++
+		}
+	}
+	return ret[:i]
+}
+
+func (cs Colliders) getCollidingZY(subject Collider) Colliders {
+	var ret = make(Colliders, len(cs))
+	i := 0
+	for _, v := range cs {
+		if v.ZYShape().IsColliding(subject.ZYShape()) {
+			ret[i] = v
+			i++
+		}
+	}
+	return ret[:i]
 }
 
 // FindFloor woo
 func (cs Colliders) FindFloor(subject Collider) int {
-	_, _, sz := subject.Pos()
+	sx, sy, sz := subject.Pos()
 	colls := cs.getCollidingXY(subject)
 	var floorZ = -99
 	for _, v := range colls {
-		z := v.Z() + v.Depth()
+		z := v.Z() + v.ZDepth(sx, sy)
 		if z > floorZ && z <= sz {
 			floorZ = z
 		}
@@ -209,37 +286,67 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bo
 	var hitGround, hitCeiling, hitWall bool
 	var ax, ay, az = dx, dy, dz
 
-	// to resolve the XY collision, filter out the colliders that are NOT in the
-	// range of Z that we care about.
-	filterColls := colliderFilter(
-		subject.Z(),
-		subject.Z()+subject.Depth(),
-		cs,
-		filterByZRange)
-	xygroup := filterColls.getXYGroup("walls")
+	// resolve on Y axis
+	xzfcoll := cs.getCollidingXZ(subject)
+	
+	for _, v := range xzfcoll {
+		resXY := resolv.Resolve(subject.XYShape(), v.XYShape(), 0, int32(dy))
+		resZY := resolv.Resolve(subject.ZYShape(), v.ZYShape(), 0, int32(dy))
+		// z-collision occurred only if *both* shapes collide
+		if resXY.Colliding() && resZY.Colliding() {
+			ay = utils.Min(int(resXY.ResolveY), int(resZY.ResolveY))
+			hitWall = true
+			break
+		}
+	}
+	subject.Translate(0, ay, 0)
 
-	// now that we have our group of XY shapes we care about, resolve the deltas
-	// do X and Y as two individual checks to prevent stupid crap like jumping
-	// into corners and falling through the floor.
-	resX := xygroup.Resolve(subject.XYShape(), int32(dx), 0)
-	if resX.Colliding() {
-		subject.Translate(int(resX.ResolveX), 0, 0)
-		ax = 0
-		hitWall = true
-	}
-	if ax != 0 {
-		subject.Translate(ax, 0, 0)
-	}
+	// resolve on X axis
+	zyfcoll := cs.getCollidingZY(subject)
 
-	resY := xygroup.Resolve(subject.XYShape(), 0, int32(dy))
-	if resY.Colliding() {
-		subject.Translate(0, int(resY.ResolveY), 0)
-		ay = 0
-		hitWall = true
+	for _, v := range zyfcoll {
+		resXY := resolv.Resolve(subject.XYShape(), v.XYShape(), int32(dx), 0)
+		resXZ := resolv.Resolve(subject.XZShape(), v.XZShape(), int32(dx), 0)
+		// z-collision occurred only if *both* shapes collide
+		if resXY.Colliding() && resXZ.Colliding() {
+			ax = utils.Min(int(resXY.ResolveX), int(resXZ.ResolveX))
+			hitWall = true
+			break
+		}
 	}
-	if ay != 0 {
-		subject.Translate(0, ay, 0)
-	}
+	subject.Translate(ax, 0, 0)
+
+	// // to resolve the XY collision, filter out the colliders that are NOT in the
+	// // range of Z that we care about.
+	// filterColls := colliderFilter(
+	// 	subject.Z(),
+	// 	subject.Z()+subject.Depth(),
+	// 	cs,
+	// 	filterByZRange)
+	// xygroup := filterColls.getXYGroup("walls")
+
+	// // now that we have our group of XY shapes we care about, resolve the deltas
+	// // do X and Y as two individual checks to prevent stupid crap like jumping
+	// // into corners and falling through the floor.
+	// resX := xygroup.Resolve(subject.XYShape(), int32(dx), 0)
+	// if resX.Colliding() {
+	// 	subject.Translate(int(resX.ResolveX), 0, 0)
+	// 	ax = 0
+	// 	hitWall = true
+	// }
+	// if ax != 0 {
+	// 	subject.Translate(ax, 0, 0)
+	// }
+
+	// resY := xygroup.Resolve(subject.XYShape(), 0, int32(dy))
+	// if resY.Colliding() {
+	// 	subject.Translate(0, int(resY.ResolveY), 0)
+	// 	ay = 0
+	// 	hitWall = true
+	// }
+	// if ay != 0 {
+	// 	subject.Translate(0, ay, 0)
+	// }
 
 	// Now for Z collisions, imagine the XZ plane (camera facing down the Y axis
 	// where the horizon is the X axis)	and the ZY plane (camera facing up the
@@ -256,7 +363,7 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bo
 		resZY := resolv.Resolve(subject.ZYShape(), v.ZYShape(), int32(dz), 0)
 		// z-collision occurred only if *both* shapes collide
 		if resXZ.Colliding() && resZY.Colliding() {
-			az = int(resXZ.ResolveY)
+			az = utils.Min(int(resXZ.ResolveY), int(resZY.ResolveX))
 			hitGround = dz < 0
 			hitCeiling = dz > 0
 			break
@@ -267,16 +374,16 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bo
 	return hitGround, hitCeiling, hitWall
 }
 
-func filterByZRange(zmin, zmax int, collider Collider) bool {
-	return collider.Z()+collider.Depth() > zmin && collider.Z() < zmax
-}
+// func filterByZRange(zmin, zmax int, collider Collider) bool {
+// 	return collider.Z()+collider.Depth() > zmin && collider.Z() < zmax
+// }
 
-func colliderFilter(min, max int, arr Colliders, f func(int, int, Collider) bool) Colliders {
-	var ret Colliders
-	for _, v := range arr {
-		if f(min, max, v) {
-			ret = append(ret, v)
-		}
-	}
-	return ret
-}
+// func colliderFilter(min, max int, arr Colliders, f func(int, int, Collider) bool) Colliders {
+// 	var ret Colliders
+// 	for _, v := range arr {
+// 		if f(min, max, v) {
+// 			ret = append(ret, v)
+// 		}
+// 	}
+// 	return ret
+// }
