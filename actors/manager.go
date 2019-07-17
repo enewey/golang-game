@@ -6,6 +6,7 @@ import (
 	"enewey.com/golang-game/colliders"
 	"enewey.com/golang-game/input"
 	"enewey.com/golang-game/types"
+	"enewey.com/golang-game/utils"
 	"github.com/hajimehoshi/ebiten"
 )
 
@@ -181,19 +182,12 @@ func (m *Manager) Render(img *ebiten.Image, layer, row int) *ebiten.Image {
 		shadowPr := int(math.Floor(float64(actor.shadowZ+sd) / 8))
 		charRow := int(math.Ceil(float64(sy) / 16))
 
-		if shadowPr == layer && max(charRow-layer, 0) == row {
+		if shadowPr == layer && utils.Max(charRow-layer, 0) == row {
 			actor.drawShadow(img)
 		}
-		if charPr == layer && max(charRow-layer, 0) == row {
+		if charPr == layer && utils.Max(charRow-layer, 0) == row {
 			actor.draw(img)
 		}
 	}
 	return img
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }

@@ -3,7 +3,6 @@ package input
 import (
 	"enewey.com/golang-game/types"
 	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/inpututil"
 )
 
 var keys = []ebiten.Key{
@@ -21,7 +20,7 @@ type KeyState struct {
 func (k *KeyState) Pressed() bool { return ebiten.IsKeyPressed(k.key) }
 
 // JustPressed w
-func (k *KeyState) JustPressed() bool { return inpututil.IsKeyJustPressed(k.key) }
+func (k *KeyState) JustPressed() bool { return k.frames == 1 }
 
 // Frames w
 func (k *KeyState) Frames() types.Frame { return k.frames }
@@ -30,8 +29,6 @@ func (k *KeyState) Frames() types.Frame { return k.frames }
 func (k *KeyState) CalcPress(df types.Frame) types.Frame {
 	if !k.Pressed() {
 		return 0
-	} else if k.JustPressed() {
-		return df
 	}
 	return k.frames + df
 }

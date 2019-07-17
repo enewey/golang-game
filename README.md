@@ -7,7 +7,7 @@ It is a top-down perspective with low-resolution retro graphics.
 ## Dependencies
 
 * [ebiten](https://ebiten.org/) - Simple 2D graphics library
-* [resolv](https://github.com/SolarLune/resolv) - Simple 2D collision detection
+* [resolv](https://github.com/SolarLune/resolv) - Simple 2D collision detection (using a personal fork, github.com/enewey/resolv)
 
 ## Setup
 

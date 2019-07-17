@@ -26,7 +26,7 @@ type Actor struct {
 
 	sprite   *sprites.Sprite
 	shadow   *sprites.Sprite
-	collider *colliders.Collider
+	collider colliders.Collider
 
 	vx, vy, vz float64
 	shadowZ    int // shadow z-position
@@ -38,7 +38,7 @@ type Actor struct {
 
 // NewActor create a new actor
 func NewActor(category string, sprite, shadow *sprites.Sprite,
-	collider *colliders.Collider) *Actor {
+	collider colliders.Collider) *Actor {
 
 	return &Actor{
 		-1, Down,
@@ -95,11 +95,6 @@ func (a *Actor) Pos() (int, int, int) {
 	return a.collider.Pos()
 }
 
-// Dims woo
-func (a *Actor) Dims() (int, int, int) {
-	return a.collider.Width(), a.collider.Height(), a.collider.Depth()
-}
-
 // Vel - get the actor velocity, which is how many pixels the actor will attempt
 //		 to move each frame update
 func (a *Actor) Vel() (float64, float64, float64) {
@@ -121,7 +116,7 @@ func (a *Actor) SetVelY(y float64) { a.vy = y }
 func (a *Actor) SetVelZ(z float64) { a.vz = z }
 
 // Collider woo
-func (a *Actor) Collider() *colliders.Collider {
+func (a *Actor) Collider() colliders.Collider {
 	return a.collider
 }
 
