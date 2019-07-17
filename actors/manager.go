@@ -87,6 +87,7 @@ func (m *Manager) HandleInput(state input.Input) bool {
 		dx++
 	}
 	player.vx, player.vy = dx, dy
+	player.CalcDirection()
 	// action := NewMoveByAction(m.actors[0], dx, dy, 0, 1)
 	// m.actions.Add(action)
 	// ev := NewMoveByActorEvent(0, -1, dx, dy, 0, 1)

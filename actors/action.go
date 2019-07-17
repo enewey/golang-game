@@ -147,15 +147,11 @@ func NewDashAction(target *Actor, vx, vy float64) *DashAction {
 
 // Process w
 func (a *DashAction) Process(df types.Frame) bool {
-	a.elapsed += df
 	a.target.dashed = true
-
-	dz := a.vz * float64((a.duration-a.elapsed)/a.duration)
-	if dz <= 0.1 {
-		dz = a.target.vz
-	}
-	a.target.SetVel(a.vx, a.vy, dz)
-
 	a.target.controlled = false
+
+	a.target.SetVel(a.vx, a.vy, a.target.vz)
+
+	a.elapsed += df
 	return a.elapsed >= a.duration && a.target.OnGround()
 }
