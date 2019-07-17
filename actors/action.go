@@ -1,12 +1,13 @@
 package actors
 
 import (
+	"fmt"
 	"math"
 
 	"enewey.com/golang-game/types"
 )
 
-// Action - a series of commands fed to a target Actor
+// Action - something that happens to a target Actor over a number of frames.
 type Action interface {
 	Target() *Actor
 	Elapsed() types.Frame
@@ -16,6 +17,17 @@ type Action interface {
 
 // Actions woo
 type Actions []Action
+
+// Add - Add a new action. Keeps the slice slim.
+func (acts Actions) Add(a Action) {
+	for i, v := range acts {
+		if v == nil {
+			acts[i] = a
+			return
+		}
+	}
+	acts = append(acts, a)
+}
 
 // BaseAction woo
 type BaseAction struct {
@@ -77,14 +89,13 @@ func NewMoveByAction(target *Actor, dx, dy, dz int, duration types.Frame) *MoveB
 
 // Process w
 func (a *MoveByAction) Process(df types.Frame) bool {
-	// fmt.Printf("Process dx %d dy %d dz %d\nvx %f vy %f vz %f\n duration %d elapsed %d\n", a.dx, a.dy, a.dz, a.vx, a.vy, a.vz, a.duration, a.elapsed)
-	if a.elapsed >= a.duration {
-		a.target.vx = 0
-		a.target.vy = 0
-		return true
-	}
+	fmt.Printf("Process dx %d dy %d dz %d\nvx %f vy %f vz %f\n duration %d elapsed %d\n", a.dx, a.dy, a.dz, a.vx, a.vy, a.vz, a.duration, a.elapsed)
 	a.elapsed += df
 	a.target.vx, a.target.vy = a.vx, a.vy
+	if a.elapsed >= a.duration {
+		a.target.vx, a.target.vy = 0, 0
+		return true
+	}
 	return false
 }
 

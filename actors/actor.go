@@ -17,6 +17,7 @@ type Actor struct {
 	vx, vy, vz float64
 	shadowZ    int // shadow z-position
 	onGround   bool
+	controlled bool
 }
 
 // NewActor create a new actor
@@ -26,13 +27,19 @@ func NewActor(category string, sprite, shadow *sprites.Sprite,
 	return &Actor{
 		-1,
 		category, sprite, shadow, collider,
-		0, 0, 0, 0, false,
+		0, 0, 0, 0, false, false,
 	}
 }
 
 // OnGround woo
 func (a *Actor) OnGround() bool {
 	return a.onGround
+}
+
+// Controlled - this actor is being controlled by actions and cannot respond to
+// input
+func (a *Actor) Controlled() bool {
+	return a.controlled
 }
 
 // Pos woo

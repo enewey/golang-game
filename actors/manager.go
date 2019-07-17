@@ -13,6 +13,8 @@ import (
 type Manager struct {
 	actors  map[int]*Actor // actor 0 is always the player-controller actor
 	actions Actions
+
+	playerDrawn bool
 }
 
 // NewManager create a new actor manager
@@ -20,6 +22,7 @@ func NewManager() *Manager {
 	return &Manager{
 		make(map[int]*Actor),
 		make([]Action, 5),
+		false,
 	}
 }
 
@@ -62,7 +65,10 @@ func (m *Manager) setActor(id int, a *Actor) {
 // HandleInput - returns "true" if input is captured, disallowing any other
 // 				 manager from handling the input.
 func (m *Manager) HandleInput(state input.Input) bool {
-	var dx, dy int
+	if m.actors[0].Controlled() {
+		return false
+	}
+	var dx, dy float64
 	if state[ebiten.KeyUp].Pressed() {
 		dy--
 	}
@@ -75,20 +81,19 @@ func (m *Manager) HandleInput(state input.Input) bool {
 	if state[ebiten.KeyRight].Pressed() {
 		dx++
 	}
-	if dx != 0 || dy != 0 {
-		action := NewMoveByAction(m.actors[0], dx, dy, 0, 1)
-		m.actions = append(m.actions, action)
-		// ev := NewMoveByActorEvent(0, -1, dx, dy, 0, 1)
-		// events.Hub().ActorEvents().Enqueue(ev)
-	}
+	m.actors[0].vx, m.actors[0].vy = dx, dy
+	// action := NewMoveByAction(m.actors[0], dx, dy, 0, 1)
+	// m.actions.Add(action)
+	// ev := NewMoveByActorEvent(0, -1, dx, dy, 0, 1)
+	// events.Hub().ActorEvents().Enqueue(ev)
 
-	if state[ebiten.KeySpace].Pressed() {
+	if state[ebiten.KeySpace].Pressed() && m.actors[0].OnGround() {
 		action := NewJumpAction(m.actors[0], 4.0)
-		m.actions = append(m.actions, action)
+		m.actions.Add(action)
 		// ev := NewJumpActorEvent(0, -1, 4.0)
 		// events.Hub().ActorEvents().Enqueue(ev)
 	}
-	return false
+	return true
 }
 
 // ResolveCollisions - every actor being managed will check collision against
@@ -98,42 +103,30 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 	for _, v := range m.actors {
 		dx, dy, dz := v.Vel()
 		dz = math.Max(dz, -6)
-		var ax, ay, az int = int(dx), int(dy), int(dz)
-		var hitGround, hitCeiling, xResolved, yResolved bool
-		var unresolved = true
-		for unresolved {
-			ax, ay, az, hitGround, hitCeiling, xResolved, yResolved =
-				colliders.ResolveCollision(ax, ay, az, v.Collider(), scoll)
-			unresolved = xResolved || yResolved
-			if xResolved {
-				// fmt.Printf("resolved x %d - ", ax)
-				v.Collider().Translate(ax, 0, 0)
-				v.vx = 0
-				ax = 0
-			} else if yResolved {
-				// fmt.Printf("resolved y %d - ", ay)
-				v.Collider().Translate(0, ay, 0)
-				v.vy = 0
-				ay = 0
-			} else {
-				// fmt.Printf("resolved all three %d %d %d\n", ax, ay, az)
-				v.Collider().Translate(ax, ay, az)
-			}
-		}
-		// fmt.Printf("dz %d az %d\n fallV %f\n", dz, az, fallV)
-		if hitGround {
+
+		hitG, hitC, _ :=
+			scoll.PreventCollision(int(dx), int(dy), int(dz), v.Collider())
+
+		if hitG {
 			v.onGround = true
 			v.vz = 0
-		} else if az != 0 {
+		} else if math.Abs(dz) >= 1 {
 			v.onGround = false
 		}
-		if v.onGround && dz < -1 && az >= 0 {
+
+		if hitC {
 			v.vz = 0
-		} else if hitCeiling && dz > 0 && az <= 0 {
-			v.vz = 0
-		} else {
+		} else if !hitG {
 			v.vz -= 0.3
 		}
+
+		// if v.onGround && dz < -1 && dz >= 0 {
+		// 	v.vz = 0
+		// } else if hitC && dz > 0 && dz <= 0 {
+		// 	v.vz = 0
+		// } else {
+		// 	v.vz -= 0.3
+		// }
 
 		v.shadowZ = scoll.FindFloor(v.Collider())
 	}

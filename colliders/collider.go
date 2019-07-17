@@ -1,11 +1,14 @@
 package colliders
 
 import (
+	"fmt"
+
 	"github.com/SolarLune/resolv/resolv"
 )
 
 // Collider - BaseZ gets the "root" Z level of the collider.
 //            Depth is how many Z levels it spans.
+//            Need 3 shapes for 3D collision (see the PreventCollisions method)
 type Collider struct {
 	xyshape          resolv.Shape
 	xzshape          resolv.Shape
@@ -130,46 +133,77 @@ func (cs Colliders) FindFloor(subject *Collider) int {
 	return floorZ
 }
 
-// ResolveCollision woo
-func ResolveCollision(dx, dy, dz int, subject *Collider, colliders Colliders) (int, int, int, bool, bool, bool, bool) {
-	var rx, ry, rz int = dx, dy, dz
-	var hitGround, hitCeiling bool
+// PreventCollision - checks if the subject would collide against the provided colliders.
+//		if a collision would occur, translates the subject collider to prevent the collision.
+//	Returns three booleans: hitGround, hitCeiling, and hitWall.
+func (cs Colliders) PreventCollision(dx, dy, dz int, subject *Collider) (bool, bool, bool) {
+	var hitGround, hitCeiling, hitWall bool
+	var ax, ay, az = dx, dy, dz
+
+	fmt.Printf("Prevent collision dx %d dy %d dz %d x %d y %d z %d d %d\n", ax, ay, az, subject.x, subject.y, subject.z, subject.d)
 
 	// to resolve the XY collision, filter out the colliders that are NOT in the
 	// range of Z that we care about.
 	filterColls := colliderFilter(
 		subject.z,
 		subject.z+subject.d,
-		colliders,
+		cs,
 		filterByZRange)
+	fmt.Printf("Filtered colliders %d - ", len(filterColls))
 	xygroup := filterColls.getXYGroup("walls")
 
 	// now that we have our group of XY shapes we care about, resolve the deltas
+	// do X and Y as two individual checks to prevent stupid crap like jumping
+	// into corners and falling through the floor.
 	resX := xygroup.Resolve(subject.xyshape, int32(dx), 0)
 	if resX.Colliding() {
-		rx = int(resX.ResolveX)
-		return rx, ry, rz, hitGround, hitCeiling, true, false
+		subject.Translate(int(resX.ResolveX), 0, 0)
+		x, y, z := subject.Pos()
+		fmt.Printf("X resolved %d %d %d - ", x, y, z)
+		ax = 0
+		hitWall = true
+	}
+	if ax != 0 {
+		subject.Translate(ax, 0, 0)
 	}
 
 	resY := xygroup.Resolve(subject.xyshape, 0, int32(dy))
 	if resY.Colliding() {
-		ry = int(resY.ResolveY)
-		return rx, ry, rz, hitGround, hitCeiling, false, true
+		subject.Translate(0, int(resY.ResolveY), 0)
+		x, y, z := subject.Pos()
+		fmt.Printf("Y resolved %d %d %d - ", x, y, z)
+		ay = 0
+		hitWall = true
+	}
+	if ay != 0 {
+		subject.Translate(0, ay, 0)
 	}
 
-	for _, v := range colliders {
+	// Now for Z collisions, imagine the XZ plane (camera facing down the Y axis
+	// where the horizon is the X axis)	and the ZY plane (camera facing up the
+	// X axis, where the horizon is the Z axis). If a collider's XZ and ZY
+	// planes *both* collide with the subject, then there is a Z collision.
+	//
+	// This is a roundabout way to fit this square peg into a round hole
+	// (the resolv library is only meant for 2D, not 3D, collision) but it works
+	// pretty nicely.
+	for _, v := range cs {
 		resXZ := resolv.Resolve(subject.xzshape, v.xzshape, 0, int32(dz))
 		resZY := resolv.Resolve(subject.zyshape, v.zyshape, int32(dz), 0)
 		// z-collision occurred only if *both* shapes collide
 		if resXZ.Colliding() && resZY.Colliding() {
-			rz = int(resXZ.ResolveY)
+			az = int(resXZ.ResolveY)
+			fmt.Printf("Z resolved %d - ", az)
 			hitGround = dz < 0
 			hitCeiling = dz > 0
 			break
 		}
 	}
 
-	return rx, ry, rz, hitGround, hitCeiling, false, false
+	subject.Translate(0, 0, az)
+	x, y, z := subject.Pos()
+	fmt.Printf("After collision prevention %d %d %d\n", x, y, z)
+	return hitGround, hitCeiling, hitWall
 }
 
 func filterByZRange(zmin, zmax int, collider *Collider) bool {
