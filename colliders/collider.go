@@ -1,8 +1,6 @@
 package colliders
 
 import (
-	"fmt"
-
 	"github.com/SolarLune/resolv/resolv"
 )
 
@@ -140,8 +138,6 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject *Collider) (bool, b
 	var hitGround, hitCeiling, hitWall bool
 	var ax, ay, az = dx, dy, dz
 
-	fmt.Printf("Prevent collision dx %d dy %d dz %d x %d y %d z %d d %d\n", ax, ay, az, subject.x, subject.y, subject.z, subject.d)
-
 	// to resolve the XY collision, filter out the colliders that are NOT in the
 	// range of Z that we care about.
 	filterColls := colliderFilter(
@@ -149,7 +145,6 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject *Collider) (bool, b
 		subject.z+subject.d,
 		cs,
 		filterByZRange)
-	fmt.Printf("Filtered colliders %d - ", len(filterColls))
 	xygroup := filterColls.getXYGroup("walls")
 
 	// now that we have our group of XY shapes we care about, resolve the deltas
@@ -158,8 +153,6 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject *Collider) (bool, b
 	resX := xygroup.Resolve(subject.xyshape, int32(dx), 0)
 	if resX.Colliding() {
 		subject.Translate(int(resX.ResolveX), 0, 0)
-		x, y, z := subject.Pos()
-		fmt.Printf("X resolved %d %d %d - ", x, y, z)
 		ax = 0
 		hitWall = true
 	}
@@ -170,8 +163,6 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject *Collider) (bool, b
 	resY := xygroup.Resolve(subject.xyshape, 0, int32(dy))
 	if resY.Colliding() {
 		subject.Translate(0, int(resY.ResolveY), 0)
-		x, y, z := subject.Pos()
-		fmt.Printf("Y resolved %d %d %d - ", x, y, z)
 		ay = 0
 		hitWall = true
 	}
@@ -193,7 +184,6 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject *Collider) (bool, b
 		// z-collision occurred only if *both* shapes collide
 		if resXZ.Colliding() && resZY.Colliding() {
 			az = int(resXZ.ResolveY)
-			fmt.Printf("Z resolved %d - ", az)
 			hitGround = dz < 0
 			hitCeiling = dz > 0
 			break
@@ -201,8 +191,6 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject *Collider) (bool, b
 	}
 
 	subject.Translate(0, 0, az)
-	x, y, z := subject.Pos()
-	fmt.Printf("After collision prevention %d %d %d\n", x, y, z)
 	return hitGround, hitCeiling, hitWall
 }
 

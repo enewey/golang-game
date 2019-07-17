@@ -8,7 +8,7 @@ import (
 
 var keys = []ebiten.Key{
 	ebiten.KeyRight, ebiten.KeyLeft, ebiten.KeyDown, ebiten.KeyUp,
-	ebiten.KeySpace, ebiten.KeyTab,
+	ebiten.KeySpace, ebiten.KeyTab, ebiten.KeyShift,
 }
 
 // KeyState w

@@ -6,18 +6,34 @@ import (
 	"github.com/hajimehoshi/ebiten"
 )
 
+// Directions for the actor 'direction' property
+const (
+	Up = iota
+	UpRight
+	Right
+	DownRight
+	Down
+	DownLeft
+	Left
+	UpLeft
+)
+
 // Actor woo
 type Actor struct {
-	id       int    // unique identifier
-	category string // denotes the "type" of actor
+	id        int // unique identifier
+	direction int
+	category  string // denotes the "type" of actor
+
 	sprite   *sprites.Sprite
 	shadow   *sprites.Sprite
 	collider *colliders.Collider
 
 	vx, vy, vz float64
 	shadowZ    int // shadow z-position
+
 	onGround   bool
 	controlled bool
+	dashed     bool
 }
 
 // NewActor create a new actor
@@ -25,10 +41,42 @@ func NewActor(category string, sprite, shadow *sprites.Sprite,
 	collider *colliders.Collider) *Actor {
 
 	return &Actor{
-		-1,
+		-1, Down,
 		category, sprite, shadow, collider,
-		0, 0, 0, 0, false, false,
+		0, 0, 0, 0, false, false, false,
 	}
+}
+
+// Direction - gets the last calculated direction for this actor
+func (a *Actor) Direction() int {
+	return a.direction
+}
+
+// Dashed - get the "dashed" state -- set by the dash action.
+func (a *Actor) Dashed() bool {
+	return a.dashed
+}
+
+// CalcDirection - resolves the actor's direciton based on its current velocity.
+func (a *Actor) CalcDirection() int {
+	if a.vx < 0 && a.vy < 0 {
+		a.direction = UpLeft
+	} else if a.vx > 0 && a.vy < 0 {
+		a.direction = UpRight
+	} else if a.vx > 0 && a.vy > 0 {
+		a.direction = DownRight
+	} else if a.vx < 0 && a.vy > 0 {
+		a.direction = DownLeft
+	} else if a.vx == 0 && a.vy > 0 {
+		a.direction = Down
+	} else if a.vx == 0 && a.vy < 0 {
+		a.direction = Up
+	} else if a.vx > 0 && a.vy == 0 {
+		a.direction = Right
+	} else if a.vx < 0 && a.vy == 0 {
+		a.direction = Left
+	}
+	return a.direction
 }
 
 // OnGround woo

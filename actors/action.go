@@ -93,7 +93,8 @@ func (a *MoveByAction) Process(df types.Frame) bool {
 	a.elapsed += df
 	a.target.vx, a.target.vy = a.vx, a.vy
 	if a.elapsed >= a.duration {
-		a.target.vx, a.target.vy = 0, 0
+		a.target.vx -= a.vx
+		a.target.vy -= a.vy
 		return true
 	}
 	return false
@@ -131,4 +132,30 @@ func (a *JumpAction) Process(df types.Frame) bool {
 		a.target.onGround = false
 	}
 	return true
+}
+
+// DashAction w
+type DashAction struct {
+	BaseAction
+	vx, vy, vz float64
+}
+
+// NewDashAction w
+func NewDashAction(target *Actor, vx, vy float64) *DashAction {
+	return &DashAction{BaseAction{target, 15, 0}, vx, vy, 0.3}
+}
+
+// Process w
+func (a *DashAction) Process(df types.Frame) bool {
+	a.elapsed += df
+	a.target.dashed = true
+
+	dz := a.vz * float64((a.duration-a.elapsed)/a.duration)
+	if dz <= 0.1 {
+		dz = a.target.vz
+	}
+	a.target.SetVel(a.vx, a.vy, dz)
+
+	a.target.controlled = false
+	return a.elapsed >= a.duration && a.target.OnGround()
 }

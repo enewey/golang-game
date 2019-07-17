@@ -65,8 +65,13 @@ func (m *Manager) setActor(id int, a *Actor) {
 // HandleInput - returns "true" if input is captured, disallowing any other
 // 				 manager from handling the input.
 func (m *Manager) HandleInput(state input.Input) bool {
-	if m.actors[0].Controlled() {
+	player := m.actors[0]
+
+	if player.Controlled() {
 		return false
+	}
+	if player.OnGround() {
+		player.SetVel(0, 0, player.vz)
 	}
 	var dx, dy float64
 	if state[ebiten.KeyUp].Pressed() {
@@ -81,14 +86,48 @@ func (m *Manager) HandleInput(state input.Input) bool {
 	if state[ebiten.KeyRight].Pressed() {
 		dx++
 	}
-	m.actors[0].vx, m.actors[0].vy = dx, dy
+	player.vx, player.vy = dx, dy
 	// action := NewMoveByAction(m.actors[0], dx, dy, 0, 1)
 	// m.actions.Add(action)
 	// ev := NewMoveByActorEvent(0, -1, dx, dy, 0, 1)
 	// events.Hub().ActorEvents().Enqueue(ev)
 
-	if state[ebiten.KeySpace].Pressed() && m.actors[0].OnGround() {
-		action := NewJumpAction(m.actors[0], 4.0)
+	if state[ebiten.KeySpace].JustPressed() && player.OnGround() {
+		action := NewJumpAction(player, 4.0)
+		m.actions.Add(action)
+		// ev := NewJumpActorEvent(0, -1, 4.0)
+		// events.Hub().ActorEvents().Enqueue(ev)
+	}
+
+	if state[ebiten.KeyShift].JustPressed() && !player.Dashed() && player.OnGround() {
+		var vx, vy float64
+		switch player.direction {
+		case Up:
+			vy = -1.0
+			break
+		case Down:
+			vy = 1.0
+			break
+		case Right:
+			vx = 1.0
+			break
+		case Left:
+			vx = -1.0
+			break
+		case UpRight:
+			vx, vy = 1.0, -1.0
+			break
+		case UpLeft:
+			vx, vy = -1.0, -1.0
+			break
+		case DownRight:
+			vx, vy = 1.0, 1.0
+			break
+		case DownLeft:
+			vx, vy = -1.0, 1.0
+			break
+		}
+		action := NewDashAction(player, vx*2.5, vy*2.5)
 		m.actions.Add(action)
 		// ev := NewJumpActorEvent(0, -1, 4.0)
 		// events.Hub().ActorEvents().Enqueue(ev)
@@ -101,6 +140,8 @@ func (m *Manager) HandleInput(state input.Input) bool {
 // 		Also alters velocity of actors in the air for gravity.
 func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 	for _, v := range m.actors {
+		// resolve the actor's direction
+		v.CalcDirection()
 		dx, dy, dz := v.Vel()
 		dz = math.Max(dz, -6)
 
@@ -114,19 +155,17 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 			v.onGround = false
 		}
 
+		// if the actor is in a "dashed" state,
+		// make sure it gets cleared when the actor hits the ground
+		if v.dashed {
+			v.dashed = !v.onGround
+		}
+
 		if hitC {
 			v.vz = 0
 		} else if !hitG {
 			v.vz -= 0.3
 		}
-
-		// if v.onGround && dz < -1 && dz >= 0 {
-		// 	v.vz = 0
-		// } else if hitC && dz > 0 && dz <= 0 {
-		// 	v.vz = 0
-		// } else {
-		// 	v.vz -= 0.3
-		// }
 
 		v.shadowZ = scoll.FindFloor(v.Collider())
 	}
