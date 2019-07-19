@@ -148,39 +148,19 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		dx, dy, dz := v.Vel()
 		dz = math.Max(dz, -6)
 
-		hitG, hitC, hitW :=
+		hitG, hitC, hitW, ax, ay, _ :=
 			scoll.PreventCollision(int(dx), int(dy), int(dz), v.Collider())
 
 		// traversing up or down a slope
-		if v.onGround {
+		if v.onGround { // going up
 			if hitW {
-				switch v.Direction() {
-				case Left:
-					if !scoll.WouldCollide(-1, 0, 1, v.Collider()) {
-						scoll.PreventCollision(-1, 0, 1, v.Collider())
-						hitW = false
-					}
-					break
-				case Right:
-					if !scoll.WouldCollide(1, 0, 1, v.Collider()) {
-						scoll.PreventCollision(1, 0, 1, v.Collider())
-						hitW = false
-					}
-					break
-				case Up:
-					if !scoll.WouldCollide(0, -1, 1, v.Collider()) {
-						scoll.PreventCollision(0, -1, 1, v.Collider())
-						hitW = false
-					}
-					break
-				case Down:
-					if !scoll.WouldCollide(0, 1, 1, v.Collider()) {
-						scoll.PreventCollision(0, 1, 1, v.Collider())
-						hitW = false
-					}
-					break
+				vx, vy := DirToVec(v.Direction())
+				if !scoll.WouldCollide(vx-ax, vy-ay, 1, v.Collider()) {
+					scoll.PreventCollision(vx-ax, vy-ay, 1, v.Collider())
+					hitW = false
 				}
-			} else {
+				break
+			} else { // going down
 				if !scoll.WouldCollide(0, 0, -1, v.Collider()) &&
 					scoll.WouldCollide(0, 0, -2, v.Collider()) {
 					scoll.PreventCollision(0, 0, -1, v.Collider())
@@ -192,14 +172,14 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		// glancing collision in X direction
 		if hitW && v.FacingHorizontal() {
 			if v.Direction() == Left {
-				_, _, b :=
+				_, _, b, _, _, _ :=
 					scoll.PreventCollision(-1, 1, 0, v.Collider())
 				if b {
 					fmt.Printf("trying third collision\n")
 					scoll.PreventCollision(-1, -1, 0, v.Collider())
 				}
 			} else {
-				_, _, b :=
+				_, _, b, _, _, _ :=
 					scoll.PreventCollision(1, 1, 0, v.Collider())
 				if b {
 					fmt.Printf("trying third collision\n")
@@ -211,17 +191,15 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		// glancing collision in Y direction
 		if hitW && v.FacingVertical() {
 			if v.Direction() == Up {
-				_, _, b :=
+				_, _, b, _, _, _ :=
 					scoll.PreventCollision(-1, -1, 0, v.Collider())
 				if b {
-					fmt.Printf("trying third collision\n")
 					scoll.PreventCollision(1, -1, 0, v.Collider())
 				}
 			} else {
-				_, _, b :=
+				_, _, b, _, _, _ :=
 					scoll.PreventCollision(-1, 1, 0, v.Collider())
 				if b {
-					fmt.Printf("trying third collision\n")
 					scoll.PreventCollision(1, 1, 0, v.Collider())
 				}
 			}

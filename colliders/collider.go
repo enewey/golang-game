@@ -215,8 +215,9 @@ func (cs Colliders) TestZCollision(dz int, subject Collider) (int, bool, bool) {
 
 // PreventCollision - checks if the subject would collide against the provided colliders.
 //		if a collision would occur, translates the subject collider to prevent the collision.
-//	Returns three booleans: hitGround, hitCeiling, and hitWall.
-func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bool, bool) {
+//	Returns three booleans: hitGround, hitCeiling, and hitWall, and three ints,
+//	x,y,z that describe how far the actor moved.
+func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bool, bool, int, int, int) {
 	var hitGround, hitCeiling, hitWallX, hitWallY bool
 	var ax, ay, az = dx, dy, dz
 
@@ -230,5 +231,5 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bo
 	az, hitGround, hitCeiling = cs.TestZCollision(az, subject)
 	subject.Translate(0, 0, az)
 
-	return hitGround, hitCeiling, hitWall
+	return hitGround, hitCeiling, hitWall, ax, ay, az
 }

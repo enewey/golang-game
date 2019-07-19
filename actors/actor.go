@@ -18,6 +18,29 @@ const (
 	UpLeft
 )
 
+// DirToVec converts a Direction to a 2D vector
+func DirToVec(d int) (int, int) {
+	switch d {
+	case Up:
+		return 0, -1
+	case UpRight:
+		return 1, -1
+	case Right:
+		return 1, 0
+	case DownRight:
+		return 1, 1
+	case Down:
+		return 0, 1
+	case DownLeft:
+		return -1, 1
+	case Left:
+		return -1, 0
+	case UpLeft:
+		return -1, -1
+	}
+	return 0, 0
+}
+
 // Actor woo
 type Actor struct {
 	id        int // unique identifier
