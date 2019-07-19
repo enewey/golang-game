@@ -1,7 +1,6 @@
 package actors
 
 import (
-	"fmt"
 	"math"
 
 	"enewey.com/golang-game/colliders"
@@ -155,18 +154,17 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		if v.onGround { // going up
 			if hitW {
 				vx, vy := DirToVec(v.Direction())
-				if !scoll.WouldCollide(vx-ax, vy-ay, 1, v.Collider()) {
+				if !scoll.WouldCollide(vx-ax, vy-ay, 1, v.Collider()) &&
+					scoll.WouldCollide(vx-ax, vy-ay, 0, v.Collider()) {
 					scoll.PreventCollision(vx-ax, vy-ay, 1, v.Collider())
 					hitW = false
 				}
-				break
 			} else { // going down
 				if !scoll.WouldCollide(0, 0, -1, v.Collider()) &&
 					scoll.WouldCollide(0, 0, -2, v.Collider()) {
 					scoll.PreventCollision(0, 0, -1, v.Collider())
 				}
 			}
-
 		}
 
 		// glancing collision in X direction
@@ -175,14 +173,12 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 				_, _, b, _, _, _ :=
 					scoll.PreventCollision(-1, 1, 0, v.Collider())
 				if b {
-					fmt.Printf("trying third collision\n")
 					scoll.PreventCollision(-1, -1, 0, v.Collider())
 				}
 			} else {
 				_, _, b, _, _, _ :=
 					scoll.PreventCollision(1, 1, 0, v.Collider())
 				if b {
-					fmt.Printf("trying third collision\n")
 					scoll.PreventCollision(1, -1, 0, v.Collider())
 				}
 			}

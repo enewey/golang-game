@@ -198,6 +198,8 @@ func (cs Colliders) TestYCollision(dy int, subject Collider) (int, bool) {
 // TestZCollision returns the resolved z, and if the collision happened. The
 // two booleans represent hitGround and hitCeiling, respectively.
 func (cs Colliders) TestZCollision(dz int, subject Collider) (int, bool, bool) {
+	var rz = dz
+	var hg, hc bool
 	xyfcoll := cs.getCollidingXY(subject)
 
 	for _, v := range xyfcoll {
@@ -205,12 +207,18 @@ func (cs Colliders) TestZCollision(dz int, subject Collider) (int, bool, bool) {
 		resZY := resolv.Resolve(subject.ZYShape(), v.ZYShape(), int32(dz), 0)
 		// z-collision occurred only if *both* shapes collide
 		if resXZ.Colliding() && resZY.Colliding() {
-			return utils.Min(int(resXZ.ResolveY), int(resZY.ResolveX)),
-				dz < 0,
-				dz > 0
+			// things get weird if more than one collision occurs, so keep track
+			// and use the collision that resolves the smallest delta.
+			z := utils.Min(int(resXZ.ResolveY), int(resZY.ResolveX))
+			if utils.Abs(rz) > utils.Abs(z) {
+				rz = z
+				hg = dz < 0
+				hc = dz > 0
+			}
+
 		}
 	}
-	return dz, false, false
+	return rz, hg, hc
 }
 
 // PreventCollision - checks if the subject would collide against the provided colliders.
