@@ -1,6 +1,7 @@
 package actors
 
 import (
+	"fmt"
 	"math"
 
 	"enewey.com/golang-game/colliders"
@@ -147,8 +148,84 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		dx, dy, dz := v.Vel()
 		dz = math.Max(dz, -6)
 
-		hitG, hitC, _ :=
+		hitG, hitC, hitW :=
 			scoll.PreventCollision(int(dx), int(dy), int(dz), v.Collider())
+
+		// traversing up or down a slope
+		if v.onGround {
+			if hitW {
+				switch v.Direction() {
+				case Left:
+					if !scoll.WouldCollide(-1, 0, 1, v.Collider()) {
+						scoll.PreventCollision(-1, 0, 1, v.Collider())
+						hitW = false
+					}
+					break
+				case Right:
+					if !scoll.WouldCollide(1, 0, 1, v.Collider()) {
+						scoll.PreventCollision(1, 0, 1, v.Collider())
+						hitW = false
+					}
+					break
+				case Up:
+					if !scoll.WouldCollide(0, -1, 1, v.Collider()) {
+						scoll.PreventCollision(0, -1, 1, v.Collider())
+						hitW = false
+					}
+					break
+				case Down:
+					if !scoll.WouldCollide(0, 1, 1, v.Collider()) {
+						scoll.PreventCollision(0, 1, 1, v.Collider())
+						hitW = false
+					}
+					break
+				}
+			} else {
+				if !scoll.WouldCollide(0, 0, -1, v.Collider()) &&
+					scoll.WouldCollide(0, 0, -2, v.Collider()) {
+					scoll.PreventCollision(0, 0, -1, v.Collider())
+				}
+			}
+
+		}
+
+		// glancing collision in X direction
+		if hitW && v.FacingHorizontal() {
+			if v.Direction() == Left {
+				_, _, b :=
+					scoll.PreventCollision(-1, 1, 0, v.Collider())
+				if b {
+					fmt.Printf("trying third collision\n")
+					scoll.PreventCollision(-1, -1, 0, v.Collider())
+				}
+			} else {
+				_, _, b :=
+					scoll.PreventCollision(1, 1, 0, v.Collider())
+				if b {
+					fmt.Printf("trying third collision\n")
+					scoll.PreventCollision(1, -1, 0, v.Collider())
+				}
+			}
+		}
+
+		// glancing collision in Y direction
+		if hitW && v.FacingVertical() {
+			if v.Direction() == Up {
+				_, _, b :=
+					scoll.PreventCollision(-1, -1, 0, v.Collider())
+				if b {
+					fmt.Printf("trying third collision\n")
+					scoll.PreventCollision(1, -1, 0, v.Collider())
+				}
+			} else {
+				_, _, b :=
+					scoll.PreventCollision(-1, 1, 0, v.Collider())
+				if b {
+					fmt.Printf("trying third collision\n")
+					scoll.PreventCollision(1, 1, 0, v.Collider())
+				}
+			}
+		}
 
 		if hitG {
 			v.onGround = true

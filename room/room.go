@@ -2,6 +2,7 @@ package room
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -61,7 +62,7 @@ func parseRoomFile(r *csv.Reader) ([]*Layer, colliders.Colliders) {
 			continue
 		} else if strings.HasPrefix(line[0], "collider") {
 			sp := strings.Split(line[0], " ")
-			switch (sp[1]) {
+			switch sp[1] {
 			case "triangle":
 				retBlk = append(retBlk, parseTriangle(line[1:]))
 				break
@@ -132,8 +133,8 @@ func parseBlock(strs []string) *colliders.Block {
 }
 
 func parseTriangle(strs []string) *colliders.Triangle {
-	var rx2,ry2,rx3,ry3,x,y,z,d,axis int
-	var xx2,yy2,xx3,yy3,xx,yy,zz,dd float64
+	var rx2, ry2, rx3, ry3, x, y, z, d, axis int
+	var xx2, yy2, xx3, yy3, xx, yy, zz, dd float64
 	var name string
 	var err error
 	for _, v := range strs {
@@ -142,12 +143,12 @@ func parseTriangle(strs []string) *colliders.Triangle {
 		case "name":
 			name = sp[1]
 		case "axis":
-			if sp[1] == "x" { 
-				axis = colliders.XAxis 
-			} else if sp[1] == "y" { 
-				axis = colliders.YAxis 
-			} else { 
-				axis = colliders.ZAxis 
+			if sp[1] == "x" {
+				axis = colliders.XAxis
+			} else if sp[1] == "y" {
+				axis = colliders.YAxis
+			} else {
+				axis = colliders.ZAxis
 			}
 		case "ry2":
 			yy2, err = strconv.ParseFloat(sp[1], 64)
@@ -184,9 +185,11 @@ func parseTriangle(strs []string) *colliders.Triangle {
 		rx3 = utils.Flint(xx3 * 16)
 		x = utils.Flint(xx * 16)
 		y = utils.Flint(yy * 16)
-		z =  utils.Flint(zz * 16)
-		d =  utils.Flint(dd * 16)
+		z = utils.Flint(zz * 16)
+		d = utils.Flint(dd * 16)
 	}
+
+	fmt.Printf("triangle created %d %d %d %d %d %d %d %d %s\n", x, y, z, rx2, ry2, rx3, ry3, d, name)
 
 	return colliders.
 		NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis, name).(*colliders.Triangle)

@@ -4,8 +4,8 @@ import (
 	"enewey.com/golang-game/actors"
 	"enewey.com/golang-game/input"
 	"enewey.com/golang-game/room"
-	"enewey.com/golang-game/types"
 	"enewey.com/golang-game/sprites"
+	"enewey.com/golang-game/types"
 
 	"github.com/hajimehoshi/ebiten"
 )
@@ -85,7 +85,7 @@ func (s *Scene) RenderRow(img *ebiten.Image, pr, row int) *ebiten.Image {
 		if pr != layer.Priority() {
 			continue
 		}
-		
+
 		mapTiles := layer.TilesRow(row, 10)
 		for col := 0; col < len(mapTiles); col++ {
 			tile := s.tiles.GetSprite(mapTiles[col])

@@ -144,28 +144,27 @@ func (cs Colliders) FindFloor(subject Collider) int {
 	return floorZ
 }
 
-// PreventCollision - checks if the subject would collide against the provided colliders.
-//		if a collision would occur, translates the subject collider to prevent the collision.
-//	Returns three booleans: hitGround, hitCeiling, and hitWall.
-func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bool, bool) {
-	var hitGround, hitCeiling, hitWall bool
-	var ax, ay, az = dx, dy, dz
-
-	// resolve on Y axis
-	xzfcoll := cs.getCollidingXZ(subject)
-
-	for _, v := range xzfcoll {
-		resXY := resolv.Resolve(subject.XYShape(), v.XYShape(), 0, int32(dy))
-		resZY := resolv.Resolve(subject.ZYShape(), v.ZYShape(), 0, int32(dy))
-		// z-collision occurred only if *both* shapes collide
-		if resXY.Colliding() && resZY.Colliding() {
-			ay = utils.Min(int(resXY.ResolveY), int(resZY.ResolveY))
-			hitWall = true
+// WouldCollide tests in what planes the subject WOULD collide if it were moved
+// by the provided deltas.
+func (cs Colliders) WouldCollide(dx, dy, dz int, subject Collider) bool {
+	ret := false
+	for _, v := range cs {
+		if subject.XYShape().WouldBeColliding(v.XYShape(), int32(dx), int32(dy)) &&
+			subject.XZShape().WouldBeColliding(v.XZShape(), int32(dx), int32(dz)) &&
+			subject.ZYShape().WouldBeColliding(v.ZYShape(), int32(dz), int32(dy)) {
+			ret = true
 			break
 		}
 	}
-	subject.Translate(0, ay, 0)
 
+	return ret
+}
+
+// TestXCollision - checks if a movement in the X direction for the subject would
+// collide into the colliders. Returns the resolved dx that is safe, and whether
+// or not the movement actually would collide. Does not translate the subject
+// collider.
+func (cs Colliders) TestXCollision(dx int, subject Collider) (int, bool) {
 	// resolve on X axis
 	zyfcoll := cs.getCollidingZY(subject)
 
@@ -174,14 +173,31 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bo
 		resXZ := resolv.Resolve(subject.XZShape(), v.XZShape(), int32(dx), 0)
 		// z-collision occurred only if *both* shapes collide
 		if resXY.Colliding() && resXZ.Colliding() {
-			ax = utils.Min(int(resXY.ResolveX), int(resXZ.ResolveX))
-			hitWall = true
-			break
+			return utils.Min(int(resXY.ResolveX), int(resXZ.ResolveX)), true
 		}
 	}
-	subject.Translate(ax, 0, 0)
+	return dx, false
+}
 
-	// resolve on z axis
+// TestYCollision returns the resolved y, and if a collision happened.
+func (cs Colliders) TestYCollision(dy int, subject Collider) (int, bool) {
+	// resolve on X axis
+	xzfcoll := cs.getCollidingXZ(subject)
+
+	for _, v := range xzfcoll {
+		resXY := resolv.Resolve(subject.XYShape(), v.XYShape(), 0, int32(dy))
+		resZY := resolv.Resolve(subject.ZYShape(), v.ZYShape(), 0, int32(dy))
+		// z-collision occurred only if *both* shapes collide
+		if resXY.Colliding() && resZY.Colliding() {
+			return utils.Min(int(resXY.ResolveY), int(resZY.ResolveY)), true
+		}
+	}
+	return dy, false
+}
+
+// TestZCollision returns the resolved z, and if the collision happened. The
+// two booleans represent hitGround and hitCeiling, respectively.
+func (cs Colliders) TestZCollision(dz int, subject Collider) (int, bool, bool) {
 	xyfcoll := cs.getCollidingXY(subject)
 
 	for _, v := range xyfcoll {
@@ -189,13 +205,30 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bo
 		resZY := resolv.Resolve(subject.ZYShape(), v.ZYShape(), int32(dz), 0)
 		// z-collision occurred only if *both* shapes collide
 		if resXZ.Colliding() && resZY.Colliding() {
-			az = utils.Min(int(resXZ.ResolveY), int(resZY.ResolveX))
-			hitGround = dz < 0
-			hitCeiling = dz > 0
-			break
+			return utils.Min(int(resXZ.ResolveY), int(resZY.ResolveX)),
+				dz < 0,
+				dz > 0
 		}
 	}
+	return dz, false, false
+}
 
+// PreventCollision - checks if the subject would collide against the provided colliders.
+//		if a collision would occur, translates the subject collider to prevent the collision.
+//	Returns three booleans: hitGround, hitCeiling, and hitWall.
+func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bool, bool) {
+	var hitGround, hitCeiling, hitWallX, hitWallY bool
+	var ax, ay, az = dx, dy, dz
+
+	ax, hitWallX = cs.TestXCollision(ax, subject)
+	subject.Translate(ax, 0, 0)
+
+	ay, hitWallY = cs.TestYCollision(ay, subject)
+	subject.Translate(0, ay, 0)
+
+	hitWall := hitWallX || hitWallY
+	az, hitGround, hitCeiling = cs.TestZCollision(az, subject)
 	subject.Translate(0, 0, az)
+
 	return hitGround, hitCeiling, hitWall
 }

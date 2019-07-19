@@ -52,6 +52,22 @@ func (a *Actor) Direction() int {
 	return a.direction
 }
 
+// FacingVertical returns true if the actor's direction is Up or Down
+func (a *Actor) FacingVertical() bool {
+	return (a.direction == Up || a.direction == Down)
+}
+
+// FacingHorizontal returns true if the actor's direction is Left or Right
+func (a *Actor) FacingHorizontal() bool {
+	return (a.direction == Left || a.direction == Right)
+}
+
+// FacingDiagonal returns true if the actor's direction is diagonal
+func (a *Actor) FacingDiagonal() bool {
+	return (a.direction == UpRight || a.direction == UpLeft ||
+		a.direction == DownRight || a.direction == DownLeft)
+}
+
 // Dashed - get the "dashed" state -- set by the dash action.
 func (a *Actor) Dashed() bool {
 	return a.dashed
