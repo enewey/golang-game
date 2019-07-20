@@ -85,6 +85,11 @@ func (a *Actor) FacingHorizontal() bool {
 	return (a.direction == Left || a.direction == Right)
 }
 
+// Orthogonal returns true if the hero is facing Up, Down, Left or Right
+func (a *Actor) Orthogonal() bool {
+	return a.FacingVertical() || a.FacingHorizontal()
+}
+
 // FacingDiagonal returns true if the actor's direction is diagonal
 func (a *Actor) FacingDiagonal() bool {
 	return (a.direction == UpRight || a.direction == UpLeft ||

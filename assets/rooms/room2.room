@@ -17,7 +17,7 @@ layer 0
 layer 1
 0
 0
-0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,134
 0,0,132,133,133,134
 0,0,0,0,407
 0,0,227
@@ -29,7 +29,7 @@ layer 1
 0,0,0,0,0,468
 layer 2
 0
-0,0,0,13
+0,0,0,13,0,13
 0,0,13,13,13,438,0,0,440
 0,0,0,0,407
 0,288,290
@@ -60,6 +60,7 @@ collider triangle,x 5,y 3,z -0.04,d 1,rx2 0,ry2 1,rx3 1,ry3 0,axis y,name platfo
 collider block,x 3,y 2,z 0,w 1,h 2,d 1,name block
 collider block,x 2,y 3,z 0,w 1,h 1,d 1,name blockl
 collider block,x 4,y 3,z 0,w 1,h 1,d 1,name blockr
+collider block,x 5,y 2,z 0,w 1,h 1,d 1,name blocktop
 collider block,x 5,y 6.5,z 0,w 1,h 0.35,d 0.5,name rock
 collider block,x 7,y 3,z 1.96,w 1,h 1,d 0.1,name platform1
 collider block,x 8,y 3,z 0.96,w 1,h 1,d 0.1,name platform2

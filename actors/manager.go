@@ -168,36 +168,36 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		}
 
 		// glancing collision in X direction
-		if hitW && v.FacingHorizontal() {
-			if v.Direction() == Left {
-				_, _, b, _, _, _ :=
+		if hitW && v.Orthogonal() {
+			switch v.Direction() {
+			case Left:
+				if !scoll.WouldCollide(-1, 1, 0, v.Collider()) {
 					scoll.PreventCollision(-1, 1, 0, v.Collider())
-				if b {
+				} else if !scoll.WouldCollide(-1, -1, 0, v.Collider()) {
 					scoll.PreventCollision(-1, -1, 0, v.Collider())
 				}
-			} else {
-				_, _, b, _, _, _ :=
+				break
+			case Right:
+				if !scoll.WouldCollide(1, 1, 0, v.Collider()) {
 					scoll.PreventCollision(1, 1, 0, v.Collider())
-				if b {
+				} else if !scoll.WouldCollide(1, -1, 0, v.Collider()) {
 					scoll.PreventCollision(1, -1, 0, v.Collider())
 				}
-			}
-		}
-
-		// glancing collision in Y direction
-		if hitW && v.FacingVertical() {
-			if v.Direction() == Up {
-				_, _, b, _, _, _ :=
+				break
+			case Up:
+				if !scoll.WouldCollide(-1, -1, 0, v.Collider()) {
 					scoll.PreventCollision(-1, -1, 0, v.Collider())
-				if b {
+				} else if !scoll.WouldCollide(1, -1, 0, v.Collider()) {
 					scoll.PreventCollision(1, -1, 0, v.Collider())
 				}
-			} else {
-				_, _, b, _, _, _ :=
-					scoll.PreventCollision(-1, 1, 0, v.Collider())
-				if b {
+				break
+			case Down:
+				if !scoll.WouldCollide(1, 1, 0, v.Collider()) {
 					scoll.PreventCollision(1, 1, 0, v.Collider())
+				} else if !scoll.WouldCollide(-1, 1, 0, v.Collider()) {
+					scoll.PreventCollision(-1, 1, 0, v.Collider())
 				}
+				break
 			}
 		}
 
@@ -229,7 +229,7 @@ func (m *Manager) Render(img *ebiten.Image, layer, row int) *ebiten.Image {
 	for _, actor := range m.actors {
 		sx, sy, sz := actor.Pos()
 		sd := actor.Collider().ZDepth(sx, sy)
-		charPr := int(math.Ceil(float64(sz+1) / 8))
+		charPr := int(math.Round(float64(sz+8) / 8))
 		shadowPr := int(math.Floor(float64(actor.shadowZ+sd) / 8))
 		charRow := int(math.Ceil(float64(sy) / 16))
 
