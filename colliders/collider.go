@@ -229,6 +229,9 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bo
 	var hitGround, hitCeiling, hitWallX, hitWallY bool
 	var ax, ay, az = dx, dy, dz
 
+	az, hitGround, hitCeiling = cs.TestZCollision(az, subject)
+	subject.Translate(0, 0, az)
+
 	ax, hitWallX = cs.TestXCollision(ax, subject)
 	subject.Translate(ax, 0, 0)
 
@@ -236,8 +239,6 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bo
 	subject.Translate(0, ay, 0)
 
 	hitWall := hitWallX || hitWallY
-	az, hitGround, hitCeiling = cs.TestZCollision(az, subject)
-	subject.Translate(0, 0, az)
 
 	return hitGround, hitCeiling, hitWall, ax, ay, az
 }

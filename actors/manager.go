@@ -89,50 +89,16 @@ func (m *Manager) HandleInput(state input.Input) bool {
 	}
 	player.vx, player.vy = dx, dy
 	player.CalcDirection()
-	// action := NewMoveByAction(m.actors[0], dx, dy, 0, 1)
-	// m.actions.Add(action)
-	// ev := NewMoveByActorEvent(0, -1, dx, dy, 0, 1)
-	// events.Hub().ActorEvents().Enqueue(ev)
 
 	if state[ebiten.KeySpace].JustPressed() && player.OnGround() {
 		action := NewJumpAction(player, 4.0)
 		m.actions.Add(action)
-		// ev := NewJumpActorEvent(0, -1, 4.0)
-		// events.Hub().ActorEvents().Enqueue(ev)
 	}
 
 	if state[ebiten.KeyShift].JustPressed() && !player.Dashed() && player.OnGround() {
-		var vx, vy float64
-		switch player.direction {
-		case Up:
-			vy = -1.0
-			break
-		case Down:
-			vy = 1.0
-			break
-		case Right:
-			vx = 1.0
-			break
-		case Left:
-			vx = -1.0
-			break
-		case UpRight:
-			vx, vy = 1.0, -1.0
-			break
-		case UpLeft:
-			vx, vy = -1.0, -1.0
-			break
-		case DownRight:
-			vx, vy = 1.0, 1.0
-			break
-		case DownLeft:
-			vx, vy = -1.0, 1.0
-			break
-		}
+		vx, vy := utils.Itof(DirToVec(player.direction))
 		action := NewDashAction(player, vx*2.5, vy*2.5)
 		m.actions.Add(action)
-		// ev := NewJumpActorEvent(0, -1, 4.0)
-		// events.Hub().ActorEvents().Enqueue(ev)
 	}
 	return true
 }

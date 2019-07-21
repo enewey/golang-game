@@ -29,12 +29,12 @@ func New(image *ebiten.Image, dimX, dimY int) *Spritesheet {
 
 // GetSprite woo
 func (ts *Spritesheet) GetSprite(num int) *Sprite {
-	if ts.cache[num] != nil {
-		return ts.cache[num]
+	if ts.cache[num] == nil {
+		x := num % dimX
+		y := int(num / dimY)
+		ts.cache[num] = ts.getSpriteByCoord(x, y)
 	}
-	x := num % dimX
-	y := int(num / dimY)
-	return ts.getSpriteByCoord(x, y)
+	return ts.cache[num]
 }
 
 func (ts *Spritesheet) getSpriteByCoord(x, y int) *Sprite {

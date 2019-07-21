@@ -32,5 +32,10 @@ func Abs(v int) int {
 	return v
 }
 
+// Itof converts two ints to two floats.
+func Itof(a, b int) (float64, float64) {
+	return float64(a), float64(b)
+}
+
 // Flint - floors a float and returns it as an int.
 func Flint(f float64) int { return int(math.Floor(f)) }
