@@ -156,46 +156,49 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 				vx, vy := DirToVec(v.Direction())
 				if !scoll.WouldCollide(vx-ax, vy-ay, 1, v.Collider()) &&
 					scoll.WouldCollide(vx-ax, vy-ay, 0, v.Collider()) {
-					scoll.PreventCollision(vx-ax, vy-ay, 1, v.Collider())
+					v.Collider().Translate(vx-ax, vy-ay, 1)
 					hitW = false
+					hitG = true
 				}
 			} else { // going down
 				if !scoll.WouldCollide(0, 0, -1, v.Collider()) &&
 					scoll.WouldCollide(0, 0, -2, v.Collider()) {
-					scoll.PreventCollision(0, 0, -1, v.Collider())
+					v.Collider().Translate(0, 0, -1)
+					hitG = true
 				}
 			}
 		}
 
-		// glancing collision in X direction
+		// glancing collisions - collisions where only one pixel is the
+		// difference, just force the actor to the side to avoid the collision.
 		if hitW && v.Orthogonal() {
 			switch v.Direction() {
 			case Left:
 				if !scoll.WouldCollide(-1, 1, 0, v.Collider()) {
-					scoll.PreventCollision(-1, 1, 0, v.Collider())
+					v.Collider().Translate(-1, 1, 0)
 				} else if !scoll.WouldCollide(-1, -1, 0, v.Collider()) {
-					scoll.PreventCollision(-1, -1, 0, v.Collider())
+					v.Collider().Translate(-1, -1, 0)
 				}
 				break
 			case Right:
 				if !scoll.WouldCollide(1, 1, 0, v.Collider()) {
-					scoll.PreventCollision(1, 1, 0, v.Collider())
+					v.Collider().Translate(1, 1, 0)
 				} else if !scoll.WouldCollide(1, -1, 0, v.Collider()) {
-					scoll.PreventCollision(1, -1, 0, v.Collider())
+					v.Collider().Translate(1, -1, 0)
 				}
 				break
 			case Up:
 				if !scoll.WouldCollide(-1, -1, 0, v.Collider()) {
-					scoll.PreventCollision(-1, -1, 0, v.Collider())
+					v.Collider().Translate(-1, -1, 0)
 				} else if !scoll.WouldCollide(1, -1, 0, v.Collider()) {
-					scoll.PreventCollision(1, -1, 0, v.Collider())
+					v.Collider().Translate(1, -1, 0)
 				}
 				break
 			case Down:
 				if !scoll.WouldCollide(1, 1, 0, v.Collider()) {
-					scoll.PreventCollision(1, 1, 0, v.Collider())
+					v.Collider().Translate(1, 1, 0)
 				} else if !scoll.WouldCollide(-1, 1, 0, v.Collider()) {
-					scoll.PreventCollision(-1, 1, 0, v.Collider())
+					v.Collider().Translate(-1, 1, 0)
 				}
 				break
 			}
@@ -231,12 +234,13 @@ func (m *Manager) Render(img *ebiten.Image, layer, row int) *ebiten.Image {
 		sd := actor.Collider().ZDepth(sx, sy)
 		charPr := int(math.Round(float64(sz+8) / 8))
 		shadowPr := int(math.Floor(float64(actor.shadowZ+sd) / 8))
-		charRow := int(math.Ceil(float64(sy) / 16))
+		charRow := int(math.Round(float64(sy+8) / 16))
 
 		if shadowPr == layer && utils.Max(charRow-layer, 0) == row {
 			actor.drawShadow(img)
 		}
 		if charPr == layer && utils.Max(charRow-layer, 0) == row {
+			// fmt.Printf("drawing actor, prioritys %d %d rows %d %d\n", layer, charPr, row, charRow)
 			actor.draw(img)
 		}
 	}

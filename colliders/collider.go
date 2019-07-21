@@ -181,7 +181,7 @@ func (cs Colliders) TestXCollision(dx int, subject Collider) (int, bool) {
 
 // TestYCollision returns the resolved y, and if a collision happened.
 func (cs Colliders) TestYCollision(dy int, subject Collider) (int, bool) {
-	// resolve on X axis
+	// resolve on Y axis
 	xzfcoll := cs.getCollidingXZ(subject)
 
 	for _, v := range xzfcoll {
