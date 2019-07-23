@@ -27,3 +27,4 @@ layer 1
 0
 0
 0,0,0,449,449
+collider block,x 0,y 0,z -1,w 20,h 15,d 1,name floor

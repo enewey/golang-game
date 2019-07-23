@@ -53,6 +53,11 @@ func (m *Manager) SetPlayer(a *Actor) {
 	m.setActor(0, a)
 }
 
+// GetPlayer returns a pointer to the actor whom is controlled by the player.
+func (m *Manager) GetPlayer() *Actor {
+	return m.actors[0]
+}
+
 // AddActor - add a new actor to the manager
 func (m *Manager) AddActor(a *Actor) {
 	a.id = len(m.actors) + 1
@@ -194,7 +199,7 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 }
 
 // Render - draw the actors given a priority and row
-func (m *Manager) Render(img *ebiten.Image, layer, row int) *ebiten.Image {
+func (m *Manager) Render(img *ebiten.Image, layer, row, ox, oy int) *ebiten.Image {
 	for _, actor := range m.actors {
 		sx, sy, sz := actor.Pos()
 		sd := actor.Collider().ZDepth(sx, sy)
@@ -203,11 +208,11 @@ func (m *Manager) Render(img *ebiten.Image, layer, row int) *ebiten.Image {
 		charRow := int(math.Round(float64(sy+8) / 16))
 
 		if shadowPr == layer && utils.Max(charRow-layer, 0) == row {
-			actor.drawShadow(img)
+			actor.drawShadow(img, -ox, -oy)
 		}
 		if charPr == layer && utils.Max(charRow-layer, 0) == row {
 			// fmt.Printf("drawing actor, prioritys %d %d rows %d %d\n", layer, charPr, row, charRow)
-			actor.draw(img)
+			actor.draw(img, -ox, -oy)
 		}
 	}
 	return img

@@ -169,12 +169,12 @@ func (a *Actor) Sprite() *sprites.Sprite {
 	return a.sprite
 }
 
-func (a *Actor) draw(img *ebiten.Image) *ebiten.Image {
+func (a *Actor) draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
 	x, y, z := a.Pos()
-	return a.sprite.DrawSprite(x-4, y-z-8, img)
+	return a.sprite.DrawSprite(x-4+offsetX, y-z-8+offsetY, img)
 }
 
-func (a *Actor) drawShadow(img *ebiten.Image) *ebiten.Image {
+func (a *Actor) drawShadow(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
 	x, y, _ := a.Pos()
-	return a.shadow.DrawSprite(x-4, y-a.shadowZ-8, img)
+	return a.shadow.DrawSprite(x-4+offsetX, y-a.shadowZ-8+offsetY, img)
 }

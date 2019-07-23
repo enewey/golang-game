@@ -11,13 +11,15 @@ import (
 	"strings"
 
 	"enewey.com/golang-game/colliders"
+	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/utils"
 )
 
 // Room - encapsulates what is parsed from a .room file.
 type Room struct {
-	layers []*Layer
-	walls  colliders.Colliders
+	layers        []*Layer
+	walls         colliders.Colliders
+	width, height int
 }
 
 // Layers woo
@@ -25,6 +27,12 @@ func (room *Room) Layers() []*Layer { return room.layers }
 
 // Colliders woo
 func (room *Room) Colliders() colliders.Colliders { return room.walls }
+
+// Width is the room width in tiles
+func (room *Room) Width() int { return room.width }
+
+// Height is the room height in tiles
+func (room *Room) Height() int { return room.height }
 
 // NewRoomFromFile woo
 func NewRoomFromFile(source string) *Room {
@@ -35,11 +43,11 @@ func NewRoomFromFile(source string) *Room {
 
 	r := csv.NewReader(file)
 
-	layers, blocks := parseRoomFile(r)
-	return &Room{layers, blocks}
+	layers, blocks, w, h := parseRoomFile(r)
+	return &Room{layers, blocks, w, h}
 }
 
-func parseRoomFile(r *csv.Reader) ([]*Layer, colliders.Colliders) {
+func parseRoomFile(r *csv.Reader) ([]*Layer, colliders.Colliders, int, int) {
 	var retLyr []*Layer
 	var retBlk = make(colliders.Colliders, 0)
 	var curr []string
@@ -85,7 +93,7 @@ func parseRoomFile(r *csv.Reader) ([]*Layer, colliders.Colliders) {
 		}
 	}
 	sort.Sort(ByPriority(retLyr))
-	return retLyr, retBlk
+	return retLyr, retBlk, width, height
 }
 
 func parseBlock(strs []string) *colliders.Block {
@@ -121,12 +129,13 @@ func parseBlock(strs []string) *colliders.Block {
 		if err != nil {
 			log.Fatal(err)
 		}
-		y = utils.Flint(yy * 16)
-		x = utils.Flint(xx * 16)
-		z = utils.Flint(zz * 16)
-		w = utils.Flint(ww * 16)
-		h = utils.Flint(hh * 16)
-		d = utils.Flint(dd * 16)
+		tdx := float64(config.Get().TileDimX)
+		y = utils.Flint(yy * tdx)
+		x = utils.Flint(xx * tdx)
+		z = utils.Flint(zz * tdx)
+		w = utils.Flint(ww * tdx)
+		h = utils.Flint(hh * tdx)
+		d = utils.Flint(dd * tdx)
 	}
 
 	return colliders.NewBlock(x, y, z, w, h, d, name).(*colliders.Block)
@@ -179,14 +188,15 @@ func parseTriangle(strs []string) *colliders.Triangle {
 		if err != nil {
 			log.Fatal(err)
 		}
-		ry2 = utils.Flint(yy2 * 16)
-		rx2 = utils.Flint(xx2 * 16)
-		ry3 = utils.Flint(yy3 * 16)
-		rx3 = utils.Flint(xx3 * 16)
-		x = utils.Flint(xx * 16)
-		y = utils.Flint(yy * 16)
-		z = utils.Flint(zz * 16)
-		d = utils.Flint(dd * 16)
+		tdx := float64(config.Get().TileDimX)
+		ry2 = utils.Flint(yy2 * tdx)
+		rx2 = utils.Flint(xx2 * tdx)
+		ry3 = utils.Flint(yy3 * tdx)
+		rx3 = utils.Flint(xx3 * tdx)
+		x = utils.Flint(xx * tdx)
+		y = utils.Flint(yy * tdx)
+		z = utils.Flint(zz * tdx)
+		d = utils.Flint(dd * tdx)
 	}
 
 	fmt.Printf("triangle created %d %d %d %d %d %d %d %d %s\n", x, y, z, rx2, ry2, rx3, ry3, d, name)

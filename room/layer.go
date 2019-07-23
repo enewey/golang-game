@@ -1,6 +1,8 @@
 package room
 
-import "log"
+import (
+	"log"
+)
 
 // Layer woo
 type Layer struct {
@@ -24,6 +26,7 @@ func (lyr *Layer) TilesRow(row, dimX int) []int {
 		log.Fatal("out of bounds row on getTileRow")
 	}
 
+	// fmt.Printf("tiles row %d %d\n", row, dimX)
 	return lyr.Tiles()[row*dimX : (row+1)*dimX]
 }
 
