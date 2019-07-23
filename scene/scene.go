@@ -32,11 +32,16 @@ func New(
 	player *actors.Actor,
 	room *room.Room,
 	tiles *sprites.Spritesheet,
-	offsetX, offsetY int,
 ) *Scene {
 	mgr := actors.NewManager()
 	mgr.SetPlayer(player)
-	return &Scene{mgr, room, tiles, offsetX, offsetY}
+	px,py,pz := player.Pos()
+	ox,oy := getScrollOffset(
+		room.Width()*cfg.TileDimX, 
+		room.Height()*cfg.TileDimY,
+		0, 0,
+		px,py,pz)
+	return &Scene{mgr, room, tiles, ox, oy}
 }
 
 // Update w
@@ -61,7 +66,12 @@ func (s *Scene) Update(df types.Frame) {
 	// (which may generate more events)
 
 	//At the end of it, get the player's position and adjust the scroll offset
-	s.adjustScroll(s.actorM.GetPlayer().Pos())
+	px,py,pz := s.actorM.GetPlayer().Pos()
+	s.offsetX, s.offsetY = getScrollOffset(
+		s.room.Width()*cfg.TileDimX, 
+		s.room.Height()*cfg.TileDimY,
+		s.offsetX, s.offsetY,
+		px, py, pz)
 }
 
 func (s *Scene) processEvents() {
@@ -80,27 +90,30 @@ func (s *Scene) resolveCollisions() {
 	s.actorM.ResolveCollisions(s.room.Colliders())
 }
 
-func (s *Scene) adjustScroll(px, py, pz int) {
-	w := s.room.Width()*cfg.TileDimX
-	h := s.room.Height()*cfg.TileDimY
-	bu, br, bd, bl := cfg.ScrollBoundaries()
-	ox := s.offsetX
-	oy := s.offsetY
+func getScrollOffset(w, h, ox, oy, px, py, pz int) (int, int) {
+	var retx, rety = ox, oy
+	bu, br, bd, bl := cfg.ScrollBoundaries() // up, right, down, left
 
+	// scroll limits based on screen width and actual room width
 	maxX := w - cfg.ScreenWidth()
 	maxY := h - cfg.ScreenHeight()
 
-	if px - ox > br {
-		s.offsetX = utils.Min(px-br, maxX)
-	} else if px - ox < bl {
-		s.offsetX = utils.Max(px-bl, 0)
+	// x-scroll adjustment
+	if px-ox > br {
+		retx = utils.Min(px-br, maxX)
+	} else if px-ox < bl {
+		retx = utils.Max(px-bl, 0)
 	}
 
-	if py - oy > bd {
-		s.offsetY = utils.Min(py-bd, maxY)
-	} else if py - oy < bu {
-		s.offsetY = utils.Max(py-bu, 0)
+	// y-scroll adjustment
+	y := py-pz // visual y coordinate the sum of actual y and negative z
+	if y - oy > bd {
+		rety = utils.Min(y-bd, maxY)
+	} else if y - oy < bu {
+		rety = utils.Max(y-bu, 0)
 	}
+
+	return retx,rety
 }
 
 // Render - called by main render loop

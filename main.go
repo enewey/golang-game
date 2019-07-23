@@ -16,8 +16,8 @@ import (
 	"enewey.com/golang-game/config"
 )
 
-var cX = 10
-var cY = 10
+var cX = 120
+var cY = 100
 var cZ = 0
 var shadowZ = 0
 var girl *actors.Actor
@@ -35,7 +35,7 @@ func init() {
 	charBlock := colliders.NewBlock(cX+3, cY+8, cZ, 10, 8, 12, "chara")
 	girl = actors.NewActor("player", girlChar, shadowChar, charBlock)
 
-	gameScene = scene.New(girl, cache.Get().LoadRoom("room1"), tiles, 0, 0)
+	gameScene = scene.New(girl, cache.Get().LoadRoom("room1"), tiles)
 	roomImage, _ = ebiten.NewImage(cfg.ScreenWidth()*2, cfg.ScreenHeight()*2, ebiten.FilterDefault)
 }
 
