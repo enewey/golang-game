@@ -35,7 +35,7 @@ func init() {
 	charBlock := colliders.NewBlock(cX+3, cY+8, cZ, 10, 8, 12, "chara")
 	girl = actors.NewActor("player", girlChar, shadowChar, charBlock)
 
-	gameScene = scene.New(girl, cache.Get().LoadRoom("room1"), tiles)
+	gameScene = scene.New(girl, cache.Get().LoadRoom("longboy"), tiles)
 	roomImage, _ = ebiten.NewImage(cfg.ScreenWidth()*2, cfg.ScreenHeight()*2, ebiten.FilterDefault)
 }
 

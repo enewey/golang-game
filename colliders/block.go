@@ -14,7 +14,7 @@ func (b *Block) Width() int { return b.w }
 // Height - y span
 func (b *Block) Height() int { return b.h }
 
-// ZDepth - z span is constant at any x/y
+// ZDepth for Blocks, z span is constant at any x/y
 func (b *Block) ZDepth(x, y int) int { return b.d }
 
 // NewBlock - creates a new 3D rectangle collider.

@@ -139,6 +139,12 @@ func (a *Actor) Pos() (int, int, int) {
 	return a.collider.Pos()
 }
 
+// Bottom returns the "bottom" of the actor's graphic position.
+// TODO: fuck
+func (a *Actor) Bottom() int {
+	return a.collider.Y() + 8
+}
+
 // Vel - get the actor velocity, which is how many pixels the actor will attempt
 //		 to move each frame update
 func (a *Actor) Vel() (float64, float64, float64) {

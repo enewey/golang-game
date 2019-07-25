@@ -65,7 +65,7 @@ func NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis int, name string) Collider
 	return tri
 }
 
-// ZDepth - z span at the given point
+// ZDepth for Triangles is the z span at the given point
 func (b *Triangle) ZDepth(x, y int) int {
 	switch b.axis {
 	case ZAxis:

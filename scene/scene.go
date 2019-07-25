@@ -123,8 +123,8 @@ func (s *Scene) Render(img *ebiten.Image) *ebiten.Image {
 	if rowmax > s.room.Height() {
 		rowmax--
 	}
-	for pr := 0; pr < 10; pr++ {
-		for row := rowOffset; row < rowmax; row++ {
+	for pr := 0; pr < 20; pr++ {
+		for row := rowOffset; row < rowmax; row++ {		
 			s.RenderRow(img, pr, row)
 		}
 	}

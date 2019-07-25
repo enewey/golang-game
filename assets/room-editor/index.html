@@ -1,0 +1,30 @@
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title>Room Editor</title>
+        <link href="src/index.css" type="text/css" rel="stylesheet"/>
+    </head>
+    <body onload="start()">
+        <table>
+            <tr>
+                <td colspan=2>
+                    <button onclick="writeRoom();">Export</button>
+                </td>
+            </tr>
+            <tr>
+                <td id='editcontainer'>
+                    
+                </td>
+                <td>
+                    <div id="layercontainer"></div>
+                    <br>
+                    <canvas id="tileselected" width=48 height=48 style="border: 3px dotted black;"></canvas>
+                    <br>
+                    <canvas id="tilepicker" width=480 height=256></canvas>
+                    <img id="tileset" src="blue-walls.png" style="display:none;"/>
+                </td>
+            </tr>
+        </table>
+        <script type="application/javascript" src="src/index.js"></script>
+    </body>    
+</html>
