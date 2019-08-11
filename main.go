@@ -13,6 +13,7 @@ import (
 	"enewey.com/golang-game/actors"
 	"enewey.com/golang-game/colliders"
 	"enewey.com/golang-game/scene"
+	"enewey.com/golang-game/sprites"
 	"enewey.com/golang-game/config"
 )
 
@@ -30,7 +31,12 @@ func init() {
 
 	tiles := cache.Get().LoadSpritesheet("blue-walls.png", cfg.TileDimX, cfg.TileDimY)
 	charas := cache.Get().LoadSpritesheet("hoodgirl.png", cfg.TileDimX, cfg.TileDimY)
-	girlChar := charas.GetSprite(0)
+	girlChar := sprites.NewCharaSpritemap(
+		charas.GetSprite(0),
+		charas.GetSprite(30),
+		charas.GetSprite(60),
+		charas.GetSprite(90),
+	)
 	shadowChar := charas.GetSprite(1)
 	charBlock := colliders.NewBlock(cX+3, cY+8, cZ, 10, 8, 12, "chara")
 	girl = actors.NewActor("player", girlChar, shadowChar, charBlock)

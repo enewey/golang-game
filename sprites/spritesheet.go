@@ -6,32 +6,33 @@ import (
 	"github.com/hajimehoshi/ebiten"
 )
 
-const dimX = 30
-const dimY = 30
-
 // Spritesheet woo
 type Spritesheet struct {
 	cache   map[int]*Sprite
 	image   *ebiten.Image
 	theight int
 	twidth  int
+	rows    int
+	cols    int
 }
 
 // New woo
-func New(image *ebiten.Image, dimX, dimY int) *Spritesheet {
+func New(image *ebiten.Image, dimX, dimY, rows, cols int) *Spritesheet {
 	return &Spritesheet{
 		make(map[int]*Sprite),
 		image,
 		dimX,
 		dimY,
+		rows,
+		cols,
 	}
 }
 
 // GetSprite woo
 func (ts *Spritesheet) GetSprite(num int) *Sprite {
 	if ts.cache[num] == nil {
-		x := num % dimX
-		y := int(num / dimY)
+		x := num % ts.cols
+		y := int(num / ts.rows)
 		ts.cache[num] = ts.getSpriteByCoord(x, y)
 	}
 	return ts.cache[num]

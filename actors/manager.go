@@ -144,28 +144,28 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		// difference, just force the actor to the side to avoid the collision.
 		if hitW && v.Orthogonal() {
 			switch v.Direction() {
-			case Left:
+			case types.Left:
 				if !scoll.WouldCollide(-1, 1, 0, v.Collider()) {
 					v.Collider().Translate(-1, 1, 0)
 				} else if !scoll.WouldCollide(-1, -1, 0, v.Collider()) {
 					v.Collider().Translate(-1, -1, 0)
 				}
 				break
-			case Right:
+			case types.Right:
 				if !scoll.WouldCollide(1, 1, 0, v.Collider()) {
 					v.Collider().Translate(1, 1, 0)
 				} else if !scoll.WouldCollide(1, -1, 0, v.Collider()) {
 					v.Collider().Translate(1, -1, 0)
 				}
 				break
-			case Up:
+			case types.Up:
 				if !scoll.WouldCollide(-1, -1, 0, v.Collider()) {
 					v.Collider().Translate(-1, -1, 0)
 				} else if !scoll.WouldCollide(1, -1, 0, v.Collider()) {
 					v.Collider().Translate(1, -1, 0)
 				}
 				break
-			case Down:
+			case types.Down:
 				if !scoll.WouldCollide(1, 1, 0, v.Collider()) {
 					v.Collider().Translate(1, 1, 0)
 				} else if !scoll.WouldCollide(-1, 1, 0, v.Collider()) {

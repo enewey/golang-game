@@ -3,39 +3,28 @@ package actors
 import (
 	"enewey.com/golang-game/colliders"
 	"enewey.com/golang-game/sprites"
+	"enewey.com/golang-game/types"
 	"github.com/hajimehoshi/ebiten"
-)
-
-// Directions for the actor 'direction' property
-const (
-	Up = iota
-	UpRight
-	Right
-	DownRight
-	Down
-	DownLeft
-	Left
-	UpLeft
 )
 
 // DirToVec converts a Direction to a 2D vector
 func DirToVec(d int) (int, int) {
 	switch d {
-	case Up:
+	case types.Up:
 		return 0, -1
-	case UpRight:
+	case types.UpRight:
 		return 1, -1
-	case Right:
+	case types.Right:
 		return 1, 0
-	case DownRight:
+	case types.DownRight:
 		return 1, 1
-	case Down:
+	case types.Down:
 		return 0, 1
-	case DownLeft:
+	case types.DownLeft:
 		return -1, 1
-	case Left:
+	case types.Left:
 		return -1, 0
-	case UpLeft:
+	case types.UpLeft:
 		return -1, -1
 	}
 	return 0, 0
@@ -47,9 +36,9 @@ type Actor struct {
 	direction int
 	category  string // denotes the "type" of actor
 
-	sprite   *sprites.Sprite
-	shadow   *sprites.Sprite
-	collider colliders.Collider
+	spritemap *sprites.Spritemap
+	shadow    *sprites.Sprite
+	collider  colliders.Collider
 
 	vx, vy, vz float64
 	shadowZ    int // shadow z-position
@@ -60,12 +49,15 @@ type Actor struct {
 }
 
 // NewActor create a new actor
-func NewActor(category string, sprite, shadow *sprites.Sprite,
+func NewActor(category string, sprite *sprites.Spritemap, shadow *sprites.Sprite,
 	collider colliders.Collider) *Actor {
 
 	return &Actor{
-		-1, Down,
-		category, sprite, shadow, collider,
+		-1, types.Down,
+		category,
+		sprite,
+		shadow,
+		collider,
 		0, 0, 0, 0, false, false, false,
 	}
 }
@@ -77,12 +69,12 @@ func (a *Actor) Direction() int {
 
 // FacingVertical returns true if the actor's direction is Up or Down
 func (a *Actor) FacingVertical() bool {
-	return (a.direction == Up || a.direction == Down)
+	return (a.direction == types.Up || a.direction == types.Down)
 }
 
 // FacingHorizontal returns true if the actor's direction is Left or Right
 func (a *Actor) FacingHorizontal() bool {
-	return (a.direction == Left || a.direction == Right)
+	return (a.direction == types.Left || a.direction == types.Right)
 }
 
 // Orthogonal returns true if the hero is facing Up, Down, Left or Right
@@ -92,8 +84,8 @@ func (a *Actor) Orthogonal() bool {
 
 // FacingDiagonal returns true if the actor's direction is diagonal
 func (a *Actor) FacingDiagonal() bool {
-	return (a.direction == UpRight || a.direction == UpLeft ||
-		a.direction == DownRight || a.direction == DownLeft)
+	return (a.direction == types.UpRight || a.direction == types.UpLeft ||
+		a.direction == types.DownRight || a.direction == types.DownLeft)
 }
 
 // Dashed - get the "dashed" state -- set by the dash action.
@@ -104,21 +96,21 @@ func (a *Actor) Dashed() bool {
 // CalcDirection - resolves the actor's direciton based on its current velocity.
 func (a *Actor) CalcDirection() int {
 	if a.vx < 0 && a.vy < 0 {
-		a.direction = UpLeft
+		a.direction = types.UpLeft
 	} else if a.vx > 0 && a.vy < 0 {
-		a.direction = UpRight
+		a.direction = types.UpRight
 	} else if a.vx > 0 && a.vy > 0 {
-		a.direction = DownRight
+		a.direction = types.DownRight
 	} else if a.vx < 0 && a.vy > 0 {
-		a.direction = DownLeft
+		a.direction = types.DownLeft
 	} else if a.vx == 0 && a.vy > 0 {
-		a.direction = Down
+		a.direction = types.Down
 	} else if a.vx == 0 && a.vy < 0 {
-		a.direction = Up
+		a.direction = types.Up
 	} else if a.vx > 0 && a.vy == 0 {
-		a.direction = Right
+		a.direction = types.Right
 	} else if a.vx < 0 && a.vy == 0 {
-		a.direction = Left
+		a.direction = types.Left
 	}
 	return a.direction
 }
@@ -172,12 +164,12 @@ func (a *Actor) Collider() colliders.Collider {
 
 // Sprite woo
 func (a *Actor) Sprite() *sprites.Sprite {
-	return a.sprite
+	return (*a.spritemap)[a.direction]
 }
 
 func (a *Actor) draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
 	x, y, z := a.Pos()
-	return a.sprite.DrawSprite(x-4+offsetX, y-z-8+offsetY, img)
+	return a.spritemap.DrawSprite(a.direction, x-4+offsetX, y-z-8+offsetY, img)
 }
 
 func (a *Actor) drawShadow(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {

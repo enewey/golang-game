@@ -10,3 +10,15 @@ type Point struct {
 
 // NewPoint returns a pointer to a new Point struct
 func NewPoint(x, y int) *Point { return &Point{x, y} }
+
+// Directions for the actor 'direction' property
+const (
+	Up = iota
+	UpRight
+	Right
+	DownRight
+	Down
+	DownLeft
+	Left
+	UpLeft
+)

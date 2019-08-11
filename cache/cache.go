@@ -36,7 +36,10 @@ func Get() *Cache {
 
 // LoadSpritesheet woo
 func (c *Cache) LoadSpritesheet(src string, th, tw int) *sprites.Spritesheet {
-	return sprites.New(c.LoadImage(src), th, tw)
+	if (c.sheets[src] == nil) {
+		c.sheets[src] = sprites.New(c.LoadImage(src), th, tw, 30, 30)
+	}
+	return c.sheets[src]
 }
 
 // LoadImage woo
