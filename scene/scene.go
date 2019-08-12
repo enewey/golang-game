@@ -151,7 +151,7 @@ func (s *Scene) RenderRow(img *ebiten.Image, pr, row int) *ebiten.Image {
 		}
 		for col := 0; col < len(mapTiles); col++ {
 			tile := s.tiles.GetSprite(mapTiles[col])
-			tile.DrawSprite(
+			tile.Draw(
 				(col*cfg.TileDimX)-xPixelOffset,
 				((row - rowOffset)*cfg.TileDimY)-yPixelOffset,
 				img)
