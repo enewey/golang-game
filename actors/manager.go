@@ -191,7 +191,7 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		if hitC {
 			v.vz = 0
 		} else if !hitG {
-			v.vz -= 0.3
+			v.vz -= 0.25
 		}
 
 		v.shadowZ = scoll.FindFloor(v.Collider())
