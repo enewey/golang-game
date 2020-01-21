@@ -119,6 +119,13 @@ func (m *Manager) HandleInput(state input.Input) bool {
 //		the provided Colliders.
 // 		Also alters velocity of actors in the air for gravity.
 func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
+	var mcolls colliders.Colliders = scoll[:]
+	for _, ac := range m.actors {
+		if ac.CanCollide() {
+			mcolls = append(mcolls, ac.Collider())
+		}
+	}
+
 	for _, ac := range m.actors {
 		if _, ok := ac.(CanMove); !ok {
 			continue
@@ -130,22 +137,24 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		dx, dy, dz := v.Vel()
 		dz = math.Max(dz, -6)
 
+		colliderCtx := mcolls.Remove(v.Collider())
+
 		hitG, hitC, hitW, ax, ay, _ :=
-			scoll.PreventCollision(int(dx), int(dy), int(dz), v.Collider())
+			colliderCtx.PreventCollision(int(dx), int(dy), int(dz), v.Collider())
 
 		// traversing up or down a slope
 		if v.OnGround() { // going up
 			if hitW {
 				vx, vy := DirToVec(v.Direction())
-				if !scoll.WouldCollide(vx-ax, vy-ay, 1, v.Collider()) &&
-					scoll.WouldCollide(vx-ax, vy-ay, 0, v.Collider()) {
+				if !colliderCtx.WouldCollide(vx-ax, vy-ay, 1, v.Collider()) &&
+					colliderCtx.WouldCollide(vx-ax, vy-ay, 0, v.Collider()) {
 					v.Collider().Translate(vx-ax, vy-ay, 1)
 					hitW = false
 					hitG = true
 				}
 			} else { // going down
-				if !scoll.WouldCollide(0, 0, -1, v.Collider()) &&
-					scoll.WouldCollide(0, 0, -2, v.Collider()) {
+				if !colliderCtx.WouldCollide(0, 0, -1, v.Collider()) &&
+					colliderCtx.WouldCollide(0, 0, -2, v.Collider()) {
 					v.Collider().Translate(0, 0, -1)
 					hitG = true
 				}
@@ -157,30 +166,30 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		if hitW && v.Orthogonal() {
 			switch v.Direction() {
 			case types.Left:
-				if !scoll.WouldCollide(-1, 1, 0, v.Collider()) {
+				if !colliderCtx.WouldCollide(-1, 1, 0, v.Collider()) {
 					v.Collider().Translate(-1, 1, 0)
-				} else if !scoll.WouldCollide(-1, -1, 0, v.Collider()) {
+				} else if !colliderCtx.WouldCollide(-1, -1, 0, v.Collider()) {
 					v.Collider().Translate(-1, -1, 0)
 				}
 				break
 			case types.Right:
-				if !scoll.WouldCollide(1, 1, 0, v.Collider()) {
+				if !colliderCtx.WouldCollide(1, 1, 0, v.Collider()) {
 					v.Collider().Translate(1, 1, 0)
-				} else if !scoll.WouldCollide(1, -1, 0, v.Collider()) {
+				} else if !colliderCtx.WouldCollide(1, -1, 0, v.Collider()) {
 					v.Collider().Translate(1, -1, 0)
 				}
 				break
 			case types.Up:
-				if !scoll.WouldCollide(-1, -1, 0, v.Collider()) {
+				if !colliderCtx.WouldCollide(-1, -1, 0, v.Collider()) {
 					v.Collider().Translate(-1, -1, 0)
-				} else if !scoll.WouldCollide(1, -1, 0, v.Collider()) {
+				} else if !colliderCtx.WouldCollide(1, -1, 0, v.Collider()) {
 					v.Collider().Translate(1, -1, 0)
 				}
 				break
 			case types.Down:
-				if !scoll.WouldCollide(1, 1, 0, v.Collider()) {
+				if !colliderCtx.WouldCollide(1, 1, 0, v.Collider()) {
 					v.Collider().Translate(1, 1, 0)
-				} else if !scoll.WouldCollide(-1, 1, 0, v.Collider()) {
+				} else if !colliderCtx.WouldCollide(-1, 1, 0, v.Collider()) {
 					v.Collider().Translate(-1, 1, 0)
 				}
 				break

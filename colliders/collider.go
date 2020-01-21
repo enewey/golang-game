@@ -243,3 +243,17 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bo
 
 	return hitGround, hitCeiling, hitWall, ax, ay, az
 }
+
+// Remove - return a new array excluding the given collider
+func (cs Colliders) Remove(test Collider) (ret Colliders) {
+	for i, v := range cs {
+		if test.Name() == v.Name() {
+			if i == len(cs)-1 {
+				return cs[:len(cs)-1]
+			}
+			return append(cs[:i], cs[i+1:]...)
+
+		}
+	}
+	return cs
+}

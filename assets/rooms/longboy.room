@@ -52,7 +52,7 @@ layer 1
 0,0,132,133,133,0,0,0,0,0,132,133,0,0,0
 0,0,0,0,407,0,0,0,0,0,0,0,132,134,132
 0,0,227,0,0,0,0,0,0,0,0,0,0,0,0
-0,132,315,0,0,441,0,0,0,0,0,0,0,0,0
+0,132,315,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -245,7 +245,6 @@ collider block,x 3,y 5,z 0,w 1,h 2,d 1,name block
 collider block,x 2,y 6,z 0,w 1,h 1,d 1,name blockl
 collider block,x 4,y 6,z 0,w 1,h 1,d 1,name blockr
 collider block,x 5,y 5,z 0,w 1,h 1,d 1,name blocktop
-collider block,x 5.1,y 9.4,z 0,w 0.8,h 0.45,d 0.5,name rock
 collider block,x 7,y 6,z 1.96,w 1,h 1,d 0.1,name platform1
 collider block,x 8,y 6,z 0.96,w 1,h 1,d 0.1,name platform2
 collider block,x 11,y 7,z 1.96,w 1,h 1,d 0.1,name platform3

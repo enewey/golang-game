@@ -84,14 +84,14 @@ func roomToActors(rm *room.Room, tiles *sprites.Spritesheet, px, dimX int) []act
 			z := (lyr.Priority() / 2) * px
 
 			if isWalls {
-				ret = append(ret, actors.NewStaticActor(
+				ret = append(ret, actors.NewSpriteActor(
 					"wall",
 					sprites.NewStaticSpritemap(tiles.GetSprite(tile)),
 					colliders.NewBlock(x, y, z, px, 0, px, fmt.Sprintf("wall-%d-%d", lyrNum, i)),
 					0, -px,
 				))
 			} else {
-				ret = append(ret, actors.NewStaticActor(
+				ret = append(ret, actors.NewSpriteActor(
 					"floor",
 					sprites.NewStaticSpritemap(tiles.GetSprite(tile)),
 					colliders.NewBlock(x, y, z, px, px, 0, fmt.Sprintf("floor-%d-%d", lyrNum, i)),
@@ -102,6 +102,11 @@ func roomToActors(rm *room.Room, tiles *sprites.Spritesheet, px, dimX int) []act
 	}
 
 	return ret
+}
+
+// AddActor adds an actor to the scene
+func (s *Scene) AddActor(actor actors.Actor) {
+	s.actorM.AddActor(actor)
 }
 
 // Update w

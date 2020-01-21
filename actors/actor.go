@@ -1,6 +1,7 @@
 package actors
 
 import (
+	"fmt"
 	"math"
 
 	"enewey.com/golang-game/colliders"
@@ -67,6 +68,7 @@ type Actor interface {
 	SetID(int)
 	Pos() (int, int, int)
 	Collider() colliders.Collider
+	CanCollide() bool
 	Category() string
 	IsBehind(Actor) bool
 }
@@ -90,6 +92,8 @@ func (a *baseActor) Pos() (int, int, int) { return a.collider.Pos() }
 
 // Collider - returns the raw collider for the actor
 func (a *baseActor) Collider() colliders.Collider { return a.collider }
+
+func (a *baseActor) CanCollide() bool { return false }
 
 // Category - returns the designated category metadata of the actor
 func (a *baseActor) Category() string { return a.category }
@@ -115,9 +119,17 @@ func (a *baseActor) IsBehind(b Actor) bool {
 		if a.Category() == b.Category() {
 			if a.Category() == "wall" {
 				return defaultToID((ay + alen) - (by + blen))
-			} else {
-				return defaultToID((az + ad) - (bz + bd))
 			}
+
+			return defaultToID((az + ad) - (bz + bd))
+		}
+
+		if int(math.Abs(float64((ay+alen)-(by+blen)))) < int(math.Abs(float64(alen-blen))) {
+			return defaultToID((az + ad) - (bz + bd))
+		}
+
+		if int(math.Abs(float64((az+ad)-(bz+bd)))) < int(math.Abs(float64(ad-bd))) {
+			return defaultToID((ay + alen) - (by + blen))
 		}
 
 		return defaultToID((az + ad + ay + alen) - (bz + bd + by + blen))
@@ -129,6 +141,9 @@ func (a *baseActor) IsBehind(b Actor) bool {
 	switch a.category {
 	case "wall":
 		val := (ay + alen) - (by + blen)
+		if a.ID() == 370 && b.ID() == 0 {
+			fmt.Printf("player and rock compared %d\n", val)
+		}
 		if int(math.Abs(float64(val))) < int(math.Abs(float64(alen-blen))) {
 			return defaultToID((az + ad) - (bz + bd))
 		}
@@ -144,11 +159,44 @@ func (a *baseActor) IsBehind(b Actor) bool {
 	}
 }
 
-// StaticActor s
-type StaticActor struct {
+// SpriteActor s
+type SpriteActor struct {
 	baseActor
 	// drawn offset
 	ox, oy int
+}
+
+// NewSpriteActor s
+func NewSpriteActor(
+	category string,
+	sprite sprites.Spritemap,
+	collider colliders.Collider,
+	ox, oy int,
+) *SpriteActor {
+
+	return &SpriteActor{
+		baseActor{-1, category, sprite, collider},
+		ox, oy,
+	}
+}
+
+// Sprite woo
+func (a *SpriteActor) Sprite() *sprites.Sprite {
+	return a.spritemap.Sprite(0)
+}
+
+// TODO: Create "drawPos" function that provides offsets based on type of actor
+func (a *SpriteActor) draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
+	x, y, z := a.Pos()
+	return a.spritemap.Sprite(0).Draw(x+a.ox+offsetX, y-z+a.oy+offsetY, img)
+}
+
+// DrawOffset s
+func (a *SpriteActor) DrawOffset() (int, int) { return a.ox, a.oy }
+
+// StaticActor - actor that has collision.
+type StaticActor struct {
+	SpriteActor
 }
 
 // NewStaticActor s
@@ -160,24 +208,12 @@ func NewStaticActor(
 ) *StaticActor {
 
 	return &StaticActor{
-		baseActor{-1, category, sprite, collider},
-		ox, oy,
+		*NewSpriteActor(category, sprite, collider, ox, oy),
 	}
 }
 
-// Sprite woo
-func (a *StaticActor) Sprite() *sprites.Sprite {
-	return a.spritemap.Sprite(0)
-}
-
-// TODO: Create "drawPos" function that provides offsets based on type of actor
-func (a *StaticActor) draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
-	x, y, z := a.Pos()
-	return a.spritemap.Sprite(0).Draw(x+a.ox+offsetX, y-z+a.oy+offsetY, img)
-}
-
-// DrawOffset s
-func (a *StaticActor) DrawOffset() (int, int) { return a.ox, a.oy }
+// CanCollide - for static actors, yes.
+func (a *StaticActor) CanCollide() bool { return true }
 
 // CharActor woo
 type CharActor struct {
@@ -321,3 +357,6 @@ func (a *CharActor) drawShadow(img *ebiten.Image, offsetX, offsetY int) *ebiten.
 
 // DrawOffset s
 func (a *CharActor) DrawOffset() (int, int) { return a.ox, a.oy }
+
+// CanCollide - for char actors, yes.
+func (a *CharActor) CanCollide() bool { return true }
