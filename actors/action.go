@@ -9,7 +9,7 @@ import (
 
 // Action - something that happens to a target Actor over a number of frames.
 type Action interface {
-	Target() *Actor
+	Target() Actor
 	Elapsed() types.Frame
 	Process(types.Frame) bool // return value denotes completion.
 	// A completed Action is to be discarded.
@@ -31,13 +31,13 @@ func (acts Actions) Add(a Action) {
 
 // BaseAction woo
 type BaseAction struct {
-	target   *Actor
+	target   Actor
 	duration types.Frame // frames
 	elapsed  types.Frame // frames
 }
 
 // Target woo
-func (b *BaseAction) Target() *Actor { return b.target }
+func (b *BaseAction) Target() Actor { return b.target }
 
 // Elapsed woo
 func (b *BaseAction) Elapsed() types.Frame { return b.elapsed }
@@ -53,15 +53,16 @@ type MoveToAction struct {
 // Process woo
 func (a *MoveToAction) Process(df int) bool {
 	x, y, z := a.target.Pos()
+	target := a.target.(CanMove)
 	a.elapsed += df
 	if (x == a.tx && y == a.ty && z == a.tz) || a.elapsed > a.duration {
-		a.target.SetVel(0, 0, 0)
+		target.SetVel(0, 0, 0)
 		return true
 	}
 	vx := calcMoveToVel(a.sx, a.tx, x, a.speed, a.elapsed)
 	vy := calcMoveToVel(a.sy, a.ty, y, a.speed, a.elapsed)
 	vz := calcMoveToVel(a.sz, a.tz, z, a.speed, a.elapsed)
-	a.target.SetVel(vx, vy, vz)
+	target.SetVel(vx, vy, vz)
 	return false
 }
 
@@ -73,7 +74,7 @@ type MoveByAction struct {
 }
 
 // NewMoveByAction woo
-func NewMoveByAction(target *Actor, dx, dy, dz int, duration types.Frame) *MoveByAction {
+func NewMoveByAction(target Actor, dx, dy, dz int, duration types.Frame) *MoveByAction {
 	return &MoveByAction{
 		BaseAction{
 			target,
@@ -89,12 +90,15 @@ func NewMoveByAction(target *Actor, dx, dy, dz int, duration types.Frame) *MoveB
 
 // Process w
 func (a *MoveByAction) Process(df types.Frame) bool {
+	target := a.target.(CanMove)
+	vx, vy, vz := target.Vel()
 	fmt.Printf("Process dx %d dy %d dz %d\nvx %f vy %f vz %f\n duration %d elapsed %d\n", a.dx, a.dy, a.dz, a.vx, a.vy, a.vz, a.duration, a.elapsed)
 	a.elapsed += df
-	a.target.vx, a.target.vy = a.vx, a.vy
+	target.SetVel(vx, vy, vz)
+	// a.target.vx, a.target.vy = a.vx, a.vy
 	if a.elapsed >= a.duration {
-		a.target.vx -= a.vx
-		a.target.vy -= a.vy
+		target.SetVelX(vx - a.vx)
+		target.SetVelY(vy - a.vy)
 		return true
 	}
 	return false
@@ -120,16 +124,17 @@ type JumpAction struct {
 }
 
 // NewJumpAction w
-func NewJumpAction(target *Actor, v float64) *JumpAction {
+func NewJumpAction(target Actor, v float64) *JumpAction {
 	return &JumpAction{BaseAction{target, 0, 0}, v}
 }
 
 // Process w
 func (a *JumpAction) Process(df types.Frame) bool {
-	if a.target.OnGround() {
-		vx, vy, _ := a.target.Vel()
-		a.target.SetVel(vx, vy, a.v)
-		a.target.onGround = false
+	target := a.target.(CanMove)
+	if target.OnGround() {
+		vx, vy, _ := target.Vel()
+		target.SetVel(vx, vy, a.v)
+		target.SetOnGround(false)
 	}
 	return true
 }
@@ -141,17 +146,19 @@ type DashAction struct {
 }
 
 // NewDashAction w
-func NewDashAction(target *Actor, vx, vy float64) *DashAction {
+func NewDashAction(target Actor, vx, vy float64) *DashAction {
 	return &DashAction{BaseAction{target, 15, 0}, vx, vy, 0.3}
 }
 
 // Process w
 func (a *DashAction) Process(df types.Frame) bool {
-	a.target.dashed = true
-	a.target.controlled = false
+	target := a.target.(CanMove)
+	target.SetDashed(true)
+	target.SetControlled(false)
+	_, _, vz := target.Vel()
 
-	a.target.SetVel(a.vx, a.vy, a.target.vz)
+	target.SetVel(a.vx, a.vy, vz)
 
 	a.elapsed += df
-	return a.elapsed >= a.duration && a.target.OnGround()
+	return a.elapsed >= a.duration && target.OnGround()
 }

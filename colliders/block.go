@@ -17,6 +17,9 @@ func (b *Block) Height() int { return b.h }
 // ZDepth for Blocks, z span is constant at any x/y
 func (b *Block) ZDepth(x, y int) int { return b.d }
 
+// YDepth for Blocks, y span is constant at any x/z
+func (b *Block) YDepth(x, y int) int { return b.h }
+
 // NewBlock - creates a new 3D rectangle collider.
 func NewBlock(x, y, z, w, h, d int, name string) Collider {
 	b := &Block{w: w, h: h, d: d}

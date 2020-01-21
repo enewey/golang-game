@@ -138,3 +138,9 @@ func (b *Triangle) ZDepth(x, y int) int {
 	}
 	return b.d
 }
+
+// YDepth for Triangles is the YSpan at a given x/z point
+func (b *Triangle) YDepth(x, z int) int {
+	// TODO: parse that fucking math above, jesus how did i do that
+	return b.d
+}

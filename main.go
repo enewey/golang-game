@@ -1,27 +1,27 @@
 package main
 
 import (
+	"fmt"
 	_ "image/png"
 	"log"
-	"fmt"
-	
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/inpututil"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
 
-	"enewey.com/golang-game/cache"
+	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/inpututil"
+
 	"enewey.com/golang-game/actors"
+	"enewey.com/golang-game/cache"
 	"enewey.com/golang-game/colliders"
+	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/scene"
 	"enewey.com/golang-game/sprites"
-	"enewey.com/golang-game/config"
 )
 
 var cX = 120
 var cY = 100
 var cZ = 0
 var shadowZ = 0
-var girl *actors.Actor
+var girl actors.Actor
 var gameScene *scene.Scene
 var roomImage *ebiten.Image
 var cfg *config.Config
@@ -39,7 +39,7 @@ func init() {
 	)
 	shadowChar := charas.GetSprite(1)
 	charBlock := colliders.NewBlock(cX+3, cY+8, cZ, 10, 8, 12, "chara")
-	girl = actors.NewActor("player", girlChar, shadowChar, charBlock)
+	girl = actors.NewCharActor("player", girlChar, shadowChar, charBlock, -4, -8)
 
 	gameScene = scene.New(girl, cache.Get().LoadRoom("longboy"), tiles)
 	roomImage, _ = ebiten.NewImage(cfg.ScreenWidth()*2, cfg.ScreenHeight()*2, ebiten.FilterDefault)
@@ -47,6 +47,7 @@ func init() {
 
 var debug bool
 var slownum int
+
 func update(screen *ebiten.Image) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
@@ -55,18 +56,20 @@ func update(screen *ebiten.Image) error {
 		debug = !debug
 		slownum = 0
 	}
-	if debug { slownum++ }
-	if slownum % 4 == 0 {
+	if debug {
+		slownum++
+	}
+	if slownum%4 == 0 {
 		slownum = 0
 		gameScene.Update(1)
 	}
-	
+
 	if ebiten.IsDrawingSkipped() {
 		return nil
 	}
-	
+
 	rm := gameScene.Render(roomImage)
-	x,y,z := girl.Pos()
+	x, y, z := girl.Pos()
 
 	opt := &ebiten.DrawImageOptions{}
 	opt.GeoM.Scale(3, 3)
@@ -74,7 +77,7 @@ func update(screen *ebiten.Image) error {
 	if debug {
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("x: %d\ny: %d\nz: %d", x, y, z))
 	}
-		
+
 	return nil
 }
 

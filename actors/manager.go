@@ -1,7 +1,9 @@
 package actors
 
 import (
+	"fmt"
 	"math"
+	"sort"
 
 	"enewey.com/golang-game/colliders"
 	"enewey.com/golang-game/input"
@@ -12,28 +14,27 @@ import (
 
 // Manager - manages a group of actors (all actors in a scene)
 type Manager struct {
-	actors  map[int]*Actor // actor 0 is always the player-controller actor
-	actions Actions
-
-	playerDrawn bool
+	actors       map[int]Actor // actor 0 is always the player-controller actor
+	sortedActors []Actor
+	actions      Actions
 }
 
 // NewManager create a new actor manager
 func NewManager() *Manager {
 	return &Manager{
-		make(map[int]*Actor),
+		make(map[int]Actor),
+		[]Actor{},
 		make([]Action, 5),
-		false,
 	}
 }
 
 // Actors w
-func (m *Manager) Actors() map[int]*Actor { return m.actors }
+func (m *Manager) Actors() map[int]Actor { return m.actors }
 
 // Actions w
 func (m *Manager) Actions() Actions { return m.actions }
 
-// Act w
+// Act - process all queued actions, then sort the actors by position
 func (m *Manager) Act(df types.Frame) {
 	i := 0
 	for i < len(m.actions) {
@@ -48,36 +49,41 @@ func (m *Manager) Act(df types.Frame) {
 }
 
 // SetPlayer - set the player-controlled actor
-func (m *Manager) SetPlayer(a *Actor) {
-	a.id = 0
+func (m *Manager) SetPlayer(a Actor) {
+	a.SetID(0)
 	m.setActor(0, a)
 }
 
 // GetPlayer returns a pointer to the actor whom is controlled by the player.
-func (m *Manager) GetPlayer() *Actor {
+func (m *Manager) GetPlayer() Actor {
 	return m.actors[0]
 }
 
 // AddActor - add a new actor to the manager
-func (m *Manager) AddActor(a *Actor) {
-	a.id = len(m.actors) + 1
-	m.setActor(a.id, a)
+func (m *Manager) AddActor(a Actor) {
+	a.SetID(len(m.actors) + 1)
+	m.setActor(a.ID(), a)
 }
 
-func (m *Manager) setActor(id int, a *Actor) {
+func (m *Manager) setActor(id int, a Actor) {
+	x, y, z := a.Pos()
+	fmt.Printf("actor set %d %s %d %d %d\n", id, a.Category(), x, y, z)
 	m.actors[id] = a
+	m.sortedActors = append(m.sortedActors, a)
 }
 
 // HandleInput - returns "true" if input is captured, disallowing any other
 // 				 manager from handling the input.
 func (m *Manager) HandleInput(state input.Input) bool {
-	player := m.actors[0]
+	playerActor := m.actors[0]
+	player := playerActor.(CanMove)
 
 	if player.Controlled() {
 		return false
 	}
 	if player.OnGround() {
-		player.SetVel(0, 0, player.vz)
+		_, _, vz := player.Vel()
+		player.SetVel(0, 0, vz)
 	}
 	var dx, dy float64
 	if state[ebiten.KeyUp].Pressed() {
@@ -92,17 +98,18 @@ func (m *Manager) HandleInput(state input.Input) bool {
 	if state[ebiten.KeyRight].Pressed() {
 		dx++
 	}
-	player.vx, player.vy = dx, dy
+	player.SetVelX(dx)
+	player.SetVelY(dy)
 	player.CalcDirection()
 
 	if state[ebiten.KeySpace].JustPressed() && player.OnGround() {
-		action := NewJumpAction(player, 4.0)
+		action := NewJumpAction(playerActor, 4.0)
 		m.actions.Add(action)
 	}
 
 	if state[ebiten.KeyShift].JustPressed() && !player.Dashed() && player.OnGround() {
-		vx, vy := utils.Itof(DirToVec(player.direction))
-		action := NewDashAction(player, vx*2.5, vy*2.5)
+		vx, vy := utils.Itof(DirToVec(player.Direction()))
+		action := NewDashAction(playerActor, vx*2.5, vy*2.5)
 		m.actions.Add(action)
 	}
 	return true
@@ -112,7 +119,12 @@ func (m *Manager) HandleInput(state input.Input) bool {
 //		the provided Colliders.
 // 		Also alters velocity of actors in the air for gravity.
 func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
-	for _, v := range m.actors {
+	for _, ac := range m.actors {
+		if _, ok := ac.(CanMove); !ok {
+			continue
+		}
+
+		var v CanMove = ac.(CanMove)
 		// resolve the actor's direction
 		v.CalcDirection()
 		dx, dy, dz := v.Vel()
@@ -122,7 +134,7 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 			scoll.PreventCollision(int(dx), int(dy), int(dz), v.Collider())
 
 		// traversing up or down a slope
-		if v.onGround { // going up
+		if v.OnGround() { // going up
 			if hitW {
 				vx, vy := DirToVec(v.Direction())
 				if !scoll.WouldCollide(vx-ax, vy-ay, 1, v.Collider()) &&
@@ -176,44 +188,49 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		}
 
 		if hitG {
-			v.onGround = true
-			v.vz = 0
+			v.SetOnGround(true)
+			v.SetVelZ(0)
 		} else if math.Abs(dz) >= 1 {
-			v.onGround = false
+			v.SetOnGround(false)
 		}
 
 		// if the actor is in a "dashed" state,
 		// make sure it gets cleared when the actor hits the ground
-		if v.dashed {
-			v.dashed = !v.onGround
+		if v.Dashed() {
+			v.SetDashed(!v.OnGround())
 		}
 
 		if hitC {
-			v.vz = 0
+			v.SetVelZ(0)
 		} else if !hitG {
-			v.vz -= 0.25
+			_, _, vz := v.Vel()
+			v.SetVelZ(vz - 0.25)
 		}
 
-		v.shadowZ = scoll.FindFloor(v.Collider())
+		// v.shadowZ = scoll.FindFloor(v.Collider())
 	}
 }
 
-// Render - draw the actors given a priority and row
-func (m *Manager) Render(img *ebiten.Image, layer, row, ox, oy int) *ebiten.Image {
-	for _, actor := range m.actors {
-		_, sy, sz := actor.Pos()
-		// sb := actor.Bottom()
-		// sd := actor.Collider().ZDepth(sx, sy)
-		charPr := int(math.Round(float64(sz+4) / 8))
-		shadowPr := int((actor.shadowZ + 8) / 8)
-		charRow := (sy - sz) / 16
+var onetime bool = true
 
-		if shadowPr == layer && charRow == row {
-			actor.drawShadow(img, -ox, -oy)
-		}
-		if charPr == layer && (charRow) == row {
-			actor.draw(img, -ox, -oy)
-		}
+// Render - draw the actors given a priority and row
+func (m *Manager) Render(img *ebiten.Image, ox, oy int) *ebiten.Image {
+	m.drawSort()
+	for _, actor := range m.sortedActors {
+		drawable := actor.(Drawable)
+		drawable.draw(img, -ox, -oy)
 	}
 	return img
+}
+
+func (m *Manager) drawSort() {
+	sort.Slice(m.sortedActors, func(i, j int) bool {
+		return m.sortedActors[i].IsBehind(m.sortedActors[j])
+	})
+	if onetime {
+		for _, v := range m.sortedActors {
+			fmt.Printf("%d %s\n", v.ID(), v.Category())
+		}
+		onetime = false
+	}
 }

@@ -1,12 +1,15 @@
 package scene
 
 import (
+	"fmt"
+
 	"enewey.com/golang-game/actors"
+	"enewey.com/golang-game/colliders"
+	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/input"
 	"enewey.com/golang-game/room"
 	"enewey.com/golang-game/sprites"
 	"enewey.com/golang-game/types"
-	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/utils"
 
 	"github.com/hajimehoshi/ebiten"
@@ -16,42 +19,100 @@ import (
 // 			processes inputs, delegates queued events, triggers actions, and
 //			resolves collisions.
 type Scene struct {
-	actorM *actors.Manager
-	room   *room.Room
-	tiles  *sprites.Spritesheet
-	offsetX, offsetY int  // room rendering offsets
+	actorM           *actors.Manager
+	room             *room.Room
+	tiles            *sprites.Spritesheet
+	offsetX, offsetY int // room rendering offsets
 }
 
 var cfg *config.Config
+
 func init() {
 	cfg = config.Get()
 }
 
 // New w
 func New(
-	player *actors.Actor,
+	player actors.Actor,
 	room *room.Room,
 	tiles *sprites.Spritesheet,
 ) *Scene {
 	mgr := actors.NewManager()
 	mgr.SetPlayer(player)
-	px,py,pz := player.Pos()
-	ox,oy := getScrollOffset(
-		room.Width()*cfg.TileDimX, 
+	for _, actor := range roomToActors(room, tiles, 16, room.Width()) {
+		mgr.AddActor(actor)
+	}
+
+	px, py, pz := player.Pos()
+	ox, oy := getScrollOffset(
+		room.Width()*cfg.TileDimX,
 		room.Height()*cfg.TileDimY,
 		0, 0,
-		px,py,pz)
+		px, py, pz)
 	return &Scene{mgr, room, tiles, ox, oy}
+}
+
+func roomToActors(rm *room.Room, tiles *sprites.Spritesheet, px, dimX int) []actors.Actor {
+	// the current room situation is such that tiles on an even priority are floors,
+	// and tiles on an odd priority are walls.
+	// Floor xyz calculation:
+	//		x = column * px
+	//		y = (row + (priority/2)) * px
+	//		z = (priority/2) * px
+	// Wall xyz calculation:
+	//		x = column * px
+	//		y = (row + 1 + (priority/2)) * px
+	//		z = (priority/2) * px
+	//
+	// note the only difference is adding 1 to the Y when dealing with a wall
+	// which only happens on an odd-numbered priority
+	ret := []actors.Actor{}
+
+	for lyrNum, lyr := range rm.Layers() {
+		yFactor := lyr.Priority() % 2
+		isWalls := yFactor == 1
+
+		for i, tile := range lyr.Tiles() {
+			if tile == 0 {
+				continue
+			}
+			r := i / dimX
+			c := i % dimX
+
+			x := c * px
+			y := (r + yFactor + (lyr.Priority() / 2)) * px
+			z := (lyr.Priority() / 2) * px
+
+			if isWalls {
+				ret = append(ret, actors.NewStaticActor(
+					"wall",
+					sprites.NewStaticSpritemap(tiles.GetSprite(tile)),
+					colliders.NewBlock(x, y, z, px, 0, px, fmt.Sprintf("wall-%d-%d", lyrNum, i)),
+					0, -px,
+				))
+			} else {
+				ret = append(ret, actors.NewStaticActor(
+					"floor",
+					sprites.NewStaticSpritemap(tiles.GetSprite(tile)),
+					colliders.NewBlock(x, y, z, px, px, 0, fmt.Sprintf("floor-%d-%d", lyrNum, i)),
+					0, 0,
+				))
+			}
+		}
+	}
+
+	return ret
 }
 
 // Update w
 func (s *Scene) Update(df types.Frame) {
 	// first process inputs
 	state := input.State().Tick(df)
-	blocked := false
-	if !blocked {
-		blocked = s.actorM.HandleInput(state)
-	}
+	// blocked := false
+	// if !blocked {
+	/* blocked = */
+	s.actorM.HandleInput(state)
+	// }
 
 	// then process/delegate events
 	s.processEvents()
@@ -66,9 +127,9 @@ func (s *Scene) Update(df types.Frame) {
 	// (which may generate more events)
 
 	//At the end of it, get the player's position and adjust the scroll offset
-	px,py,pz := s.actorM.GetPlayer().Pos()
+	px, py, pz := s.actorM.GetPlayer().Pos()
 	s.offsetX, s.offsetY = getScrollOffset(
-		s.room.Width()*cfg.TileDimX, 
+		s.room.Width()*cfg.TileDimX,
 		s.room.Height()*cfg.TileDimY,
 		s.offsetX, s.offsetY,
 		px, py, pz)
@@ -106,59 +167,19 @@ func getScrollOffset(w, h, ox, oy, px, py, pz int) (int, int) {
 	}
 
 	// y-scroll adjustment
-	y := py-pz // visual y coordinate the sum of actual y and negative z
-	if y - oy > bd {
+	y := py - pz // visual y coordinate the sum of actual y and negative z
+	if y-oy > bd {
 		rety = utils.Min(y-bd, maxY)
-	} else if y - oy < bu {
+	} else if y-oy < bu {
 		rety = utils.Max(y-bu, 0)
 	}
 
-	return retx,rety
+	return retx, rety
 }
 
 // Render - called by main render loop
 func (s *Scene) Render(img *ebiten.Image) *ebiten.Image {
-	rowOffset := s.offsetY / 16
-	rowmax := rowOffset+cfg.TilesY+1
-	if rowmax > s.room.Height() {
-		rowmax--
-	}
-	for pr := 0; pr < 20; pr++ {
-		for row := rowOffset; row < rowmax; row++ {		
-			s.RenderRow(img, pr, row)
-		}
-	}
-
-	return img
-}
-
-// RenderRow - render a single row
-func (s *Scene) RenderRow(img *ebiten.Image, pr, row int) *ebiten.Image {
-	colOffset := s.offsetX / 16
-	rowOffset := s.offsetY / 16
-	xPixelOffset := s.offsetX % 16
-	yPixelOffset := s.offsetY % 16
-	for _, layer := range s.room.Layers() {
-		if pr != layer.Priority() {
-			continue
-		}
-
-		mapTiles := layer.TilesRow(row, s.room.Width())
-		if colOffset+cfg.TilesX < len(mapTiles) {
-			mapTiles = mapTiles[colOffset:colOffset+cfg.TilesX+1]
-		} else {
-			mapTiles = mapTiles[colOffset:colOffset+cfg.TilesX]
-		}
-		for col := 0; col < len(mapTiles); col++ {
-			tile := s.tiles.GetSprite(mapTiles[col])
-			tile.Draw(
-				(col*cfg.TileDimX)-xPixelOffset,
-				((row - rowOffset)*cfg.TileDimY)-yPixelOffset,
-				img)
-		}
-	}
-
-	s.actorM.Render(img, pr, row, s.offsetX, s.offsetY)
+	s.actorM.Render(img, s.offsetX, s.offsetY)
 
 	return img
 }

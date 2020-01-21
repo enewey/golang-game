@@ -1,6 +1,8 @@
 package actors
 
 import (
+	"math"
+
 	"enewey.com/golang-game/colliders"
 	"enewey.com/golang-game/sprites"
 	"enewey.com/golang-game/types"
@@ -30,15 +32,161 @@ func DirToVec(d int) (int, int) {
 	return 0, 0
 }
 
-// Actor woo
-type Actor struct {
-	id        int // unique identifier
-	direction int
-	category  string // denotes the "type" of actor
+// CanMove is an interface for entities which can be moved and/or controlled.
+type CanMove interface {
+	Direction() int
+	FacingVertical() bool
+	FacingHorizontal() bool
+	Orthogonal() bool
+	FacingDiagonal() bool
+	Dashed() bool
+	SetDashed(bool)
+	CalcDirection() int
+	OnGround() bool
+	SetOnGround(bool)
+	Controlled() bool
+	SetControlled(bool)
+	Vel() (float64, float64, float64)
+	SetVel(x, y, z float64)
+	SetVelX(x float64)
+	SetVelY(y float64)
+	SetVelZ(z float64)
+	Collider() colliders.Collider
+}
 
-	spritemap *sprites.Spritemap
-	shadow    *sprites.Sprite
+// Drawable is an interface for entities which can be drawn on the screen
+type Drawable interface {
+	DrawOffset() (int, int)
+	Sprite() *sprites.Sprite
+	draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image
+}
+
+// Actor interface
+type Actor interface {
+	ID() int
+	SetID(int)
+	Pos() (int, int, int)
+	Collider() colliders.Collider
+	Category() string
+	IsBehind(Actor) bool
+}
+
+type baseActor struct {
+	id       int
+	category string // denotes the "type" of actor
+
+	spritemap sprites.Spritemap
 	collider  colliders.Collider
+}
+
+// ID - unique id for actor
+func (a *baseActor) ID() int { return a.id }
+
+// SetID - set the unique ID
+func (a *baseActor) SetID(id int) { a.id = id }
+
+// Pos - returns an x,y,z tuple of the actor position
+func (a *baseActor) Pos() (int, int, int) { return a.collider.Pos() }
+
+// Collider - returns the raw collider for the actor
+func (a *baseActor) Collider() colliders.Collider { return a.collider }
+
+// Category - returns the designated category metadata of the actor
+func (a *baseActor) Category() string { return a.category }
+
+// IsBehind s
+func (a *baseActor) IsBehind(b Actor) bool {
+	isFlat := func(aa Actor) bool { return aa.Category() == "wall" || aa.Category() == "floor" }
+	defaultToID := func(compVal int) bool {
+		if compVal == 0 {
+			return a.ID() < b.ID()
+		}
+		return compVal < 0
+	}
+
+	ax, ay, az := a.Pos()
+	bx, by, bz := b.Pos()
+	ad := a.Collider().ZDepth(ax, ay)
+	alen := a.Collider().YDepth(ax, az)
+	bd := b.Collider().ZDepth(bx, by)
+	blen := b.Collider().YDepth(bx, bz)
+
+	if (isFlat(a) && isFlat(b)) || (!isFlat(a) && !isFlat(b)) {
+		if a.Category() == b.Category() {
+			if a.Category() == "wall" {
+				return defaultToID((ay + alen) - (by + blen))
+			} else {
+				return defaultToID((az + ad) - (bz + bd))
+			}
+		}
+
+		return defaultToID((az + ad + ay + alen) - (bz + bd + by + blen))
+	}
+
+	if !isFlat(a) && isFlat(b) {
+		return !b.IsBehind(a)
+	}
+	switch a.category {
+	case "wall":
+		val := (ay + alen) - (by + blen)
+		if int(math.Abs(float64(val))) < int(math.Abs(float64(alen-blen))) {
+			return defaultToID((az + ad) - (bz + bd))
+		}
+		return defaultToID(val)
+	case "floor":
+		val := (az + ad) - (bz + bd)
+		if int(math.Abs(float64(val))) < int(math.Abs(float64(ad-bd))) {
+			return defaultToID((ay + alen) - (by + blen))
+		}
+		return defaultToID(val)
+	default:
+		return false
+	}
+}
+
+// StaticActor s
+type StaticActor struct {
+	baseActor
+	// drawn offset
+	ox, oy int
+}
+
+// NewStaticActor s
+func NewStaticActor(
+	category string,
+	sprite sprites.Spritemap,
+	collider colliders.Collider,
+	ox, oy int,
+) *StaticActor {
+
+	return &StaticActor{
+		baseActor{-1, category, sprite, collider},
+		ox, oy,
+	}
+}
+
+// Sprite woo
+func (a *StaticActor) Sprite() *sprites.Sprite {
+	return a.spritemap.Sprite(0)
+}
+
+// TODO: Create "drawPos" function that provides offsets based on type of actor
+func (a *StaticActor) draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
+	x, y, z := a.Pos()
+	return a.spritemap.Sprite(0).Draw(x+a.ox+offsetX, y-z+a.oy+offsetY, img)
+}
+
+// DrawOffset s
+func (a *StaticActor) DrawOffset() (int, int) { return a.ox, a.oy }
+
+// CharActor woo
+type CharActor struct {
+	baseActor
+	// drawn offset
+	ox, oy int
+
+	direction int
+	shadow    *sprites.Sprite
 
 	vx, vy, vz float64
 	shadowZ    int // shadow z-position
@@ -48,53 +196,56 @@ type Actor struct {
 	dashed     bool
 }
 
-// NewActor create a new actor
-func NewActor(category string, sprite *sprites.Spritemap, shadow *sprites.Sprite,
-	collider colliders.Collider) *Actor {
+// NewCharActor create a new char actor
+func NewCharActor(
+	category string,
+	sprite sprites.Spritemap,
+	shadow *sprites.Sprite,
+	collider colliders.Collider,
+	ox, oy int,
+) Actor {
 
-	return &Actor{
-		-1, types.Down,
-		category,
-		sprite,
+	return &CharActor{
+		baseActor{-1, category, sprite, collider},
+		ox, oy,
+		types.Down,
 		shadow,
-		collider,
 		0, 0, 0, 0, false, false, false,
 	}
 }
 
 // Direction - gets the last calculated direction for this actor
-func (a *Actor) Direction() int {
-	return a.direction
-}
+func (a *CharActor) Direction() int { return a.direction }
 
 // FacingVertical returns true if the actor's direction is Up or Down
-func (a *Actor) FacingVertical() bool {
+func (a *CharActor) FacingVertical() bool {
 	return (a.direction == types.Up || a.direction == types.Down)
 }
 
 // FacingHorizontal returns true if the actor's direction is Left or Right
-func (a *Actor) FacingHorizontal() bool {
+func (a *CharActor) FacingHorizontal() bool {
 	return (a.direction == types.Left || a.direction == types.Right)
 }
 
 // Orthogonal returns true if the hero is facing Up, Down, Left or Right
-func (a *Actor) Orthogonal() bool {
+func (a *CharActor) Orthogonal() bool {
 	return a.FacingVertical() || a.FacingHorizontal()
 }
 
 // FacingDiagonal returns true if the actor's direction is diagonal
-func (a *Actor) FacingDiagonal() bool {
+func (a *CharActor) FacingDiagonal() bool {
 	return (a.direction == types.UpRight || a.direction == types.UpLeft ||
 		a.direction == types.DownRight || a.direction == types.DownLeft)
 }
 
 // Dashed - get the "dashed" state -- set by the dash action.
-func (a *Actor) Dashed() bool {
-	return a.dashed
-}
+func (a *CharActor) Dashed() bool { return a.dashed }
+
+// SetDashed woow
+func (a *CharActor) SetDashed(b bool) { a.dashed = b }
 
 // CalcDirection - resolves the actor's direciton based on its current velocity.
-func (a *Actor) CalcDirection() int {
+func (a *CharActor) CalcDirection() int {
 	if a.vx < 0 && a.vy < 0 {
 		a.direction = types.UpLeft
 	} else if a.vx > 0 && a.vy < 0 {
@@ -116,63 +267,57 @@ func (a *Actor) CalcDirection() int {
 }
 
 // OnGround woo
-func (a *Actor) OnGround() bool {
-	return a.onGround
+func (a *CharActor) OnGround() bool { return a.onGround }
+
+// SetOnGround woo
+func (a *CharActor) SetOnGround(b bool) { a.onGround = b }
+
+// IsStatic - a static actor does not move, and does not need collision checks
+func (a *CharActor) IsStatic() bool {
+	return a.category == "static"
 }
 
-// Controlled - this actor is being controlled by actions and cannot respond to
-// input
-func (a *Actor) Controlled() bool {
-	return a.controlled
-}
+// Controlled - this actor is being controlled by actions and cannot respond to input
+func (a *CharActor) Controlled() bool { return a.controlled }
 
-// Pos woo
-func (a *Actor) Pos() (int, int, int) {
-	return a.collider.Pos()
-}
-
-// Bottom returns the "bottom" of the actor's graphic position.
-// TODO: fuck
-func (a *Actor) Bottom() int {
-	return a.collider.Y() + 8
-}
+// SetControlled - this actor is being controlled by actions and cannot respond to input
+func (a *CharActor) SetControlled(b bool) { a.controlled = b }
 
 // Vel - get the actor velocity, which is how many pixels the actor will attempt
 //		 to move each frame update
-func (a *Actor) Vel() (float64, float64, float64) {
+func (a *CharActor) Vel() (float64, float64, float64) {
 	return a.vx, a.vy, a.vz
 }
 
 // SetVel woo
-func (a *Actor) SetVel(x, y, z float64) {
+func (a *CharActor) SetVel(x, y, z float64) {
 	a.vx, a.vy, a.vz = x, y, z
 }
 
 // SetVelX w
-func (a *Actor) SetVelX(x float64) { a.vx = x }
+func (a *CharActor) SetVelX(x float64) { a.vx = x }
 
 // SetVelY y
-func (a *Actor) SetVelY(y float64) { a.vy = y }
+func (a *CharActor) SetVelY(y float64) { a.vy = y }
 
 // SetVelZ z
-func (a *Actor) SetVelZ(z float64) { a.vz = z }
-
-// Collider woo
-func (a *Actor) Collider() colliders.Collider {
-	return a.collider
-}
+func (a *CharActor) SetVelZ(z float64) { a.vz = z }
 
 // Sprite woo
-func (a *Actor) Sprite() *sprites.Sprite {
-	return (*a.spritemap)[a.direction]
+func (a *CharActor) Sprite() *sprites.Sprite {
+	return a.spritemap.Sprite(a.direction)
 }
 
-func (a *Actor) draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
+// TODO: Create "drawPos" function that provides offsets based on type of actor
+func (a *CharActor) draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
 	x, y, z := a.Pos()
-	return a.spritemap.Sprite(a.direction).Draw(x-4+offsetX, y-z-8+offsetY, img)
+	return a.spritemap.Sprite(a.direction).Draw(x+a.ox+offsetX, y-z+a.oy+offsetY, img)
 }
 
-func (a *Actor) drawShadow(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
+func (a *CharActor) drawShadow(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
 	x, y, _ := a.Pos()
 	return a.shadow.Draw(x-4+offsetX, y-a.shadowZ-8+offsetY, img)
 }
+
+// DrawOffset s
+func (a *CharActor) DrawOffset() (int, int) { return a.ox, a.oy }

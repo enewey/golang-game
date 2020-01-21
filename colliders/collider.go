@@ -13,6 +13,7 @@ type Collider interface {
 	Y() int
 	Z() int
 	ZDepth(int, int) int
+	YDepth(int, int) int
 	Pos() (int, int, int)
 	SetPos(int, int, int)
 	Translate(int, int, int)
