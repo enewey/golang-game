@@ -33,7 +33,19 @@ layer 0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,468,0,307,307,0,0,0,0,0,0
-0,0,0,0,0,0,0,0,0,0,0,0,307
+0,0,0,0,0,0,0,0,0,0,0,307,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,255,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 layer 1
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -44,7 +56,17 @@ layer 1
 0,0,132,133,133,0,0,0,0,0,132,133,0,0,0
 0,0,0,0,407,0,0,0,0,0,0,0,132,134,132
 0,0,227,0,0,0,0,0,0,0,0,0,0,0,0
-0,132,315,0,0,441,0,0,0,0,0,0,0,0,0
+0,132,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 layer 1
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -53,6 +75,18 @@ layer 1
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,438,0,0,0,0,0,0,0,0,0
 0,0,0,0,407,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 layer 2
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -64,6 +98,17 @@ layer 2
 0,0,0,0,0,0,0,0,0,0,0,0,42,44,0
 0,288,290,0,0,0,0,0,0,0,0,0,0,0,0
 0,42,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 layer 3
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -72,6 +117,19 @@ layer 3
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,102,103,103,103,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,102
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 layer 4
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -79,6 +137,20 @@ layer 4
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,440,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,440,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 layer 5
 0,0,0,0,0,0,0,0,0,0,102,103,103,103,104
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -86,21 +158,83 @@ layer 5
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,102,103,103,103,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,72
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 layer 6
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,45
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 layer 7
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-0,0,0,0,0,0,0,0,0,0,102,73,73,73,74
+0,0,0,0,0,0,0,0,0,0,72,73,73,73,74
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 layer 8
 0,0,0,0,0,0,0,0,0,0,288,289,289,289,290
 0,0,0,0,0,0,0,0,0,0,12,13,13,13,14
 0,0,0,0,0,0,0,0,0,0,42,43,43,43,44
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 collider block,x 0,y 0,z -1,w 15,h 20,d 1,name floor
 collider block,x -1,y -1,z 0,w 1,h 22,d 10,name leftwall
 collider block,x 15,y -1,z 0,w 1,h 22,d 10,name rightwall
@@ -138,11 +272,11 @@ function write(room) {
         if (tiles.length <= w) {
             join.push(tiles.map(t => t ? t : '0').join(','))
         } else {
-            for (let i=0; i<tiles.length; i++) {
-                if (i === tiles.length-1) {
-                    join.push(tiles.slice(i-w+1, i+1).map(t => t ? t : '0').join(','))
-                } else if (i%w === 0 && i !== 0) {
-                    join.push(tiles.slice(i-w, i).map(t => t ? t : '0').join(','))
+            for (let i = 0; i < tiles.length; i++) {
+                if (i === tiles.length - 1) {
+                    join.push(tiles.slice(i - w + 1, i + 1).map(t => t ? t : '0').join(','))
+                } else if (i % w === 0 && i !== 0) {
+                    join.push(tiles.slice(i - w, i).map(t => t ? t : '0').join(','))
                 }
             }
         }
@@ -154,20 +288,20 @@ function write(room) {
             .map(k => `${k === 'type' ? 'collider' : k} ${col[k]}`)
             .join(',')
     }).join('\n')
-    console.log({file})
+    console.log({ file })
     return file
 }
 
 function parse(file) {
     function padArray(arr, len) {
-        let n = Array(len-arr.length).fill('0')
+        let n = Array(len - arr.length).fill('0')
         return arr.concat(n)
     }
 
     function createLayer(tiles, priority) {
         return {
             tiles: tiles.map(t => parseInt(t))
-                .concat(Array((room.width*room.height)-tiles.length).fill(0)),
+                .concat(Array((room.width * room.height) - tiles.length).fill(0)),
             priority
         }
     }
@@ -176,7 +310,7 @@ function parse(file) {
     let curr = []
     let currPr = 0
     let split = file.split('\n')
-    for (let i=0; i<split.length; i++) {
+    for (let i = 0; i < split.length; i++) {
         if (split[i].trim() === "") {
             continue
         }
@@ -216,8 +350,8 @@ function drawRoom(room) {
         ctx.msImageSmoothingEnabled = false
         ctx.imageSmoothingEnabled = false
 
-        ctx.clearRect(0,0,roomW*scale*tileDimX, roomH*scale*tileDimY)
-        
+        ctx.clearRect(0, 0, roomW * scale * tileDimX, roomH * scale * tileDimY)
+
         for (let i = 0; i < room.layers.length; i++) {
             if (i === selectedLayer()) {
                 ctx.globalAlpha = 1.0
@@ -225,19 +359,19 @@ function drawRoom(room) {
                 ctx.globalAlpha = 0.25
             }
             let tiles = room.layers[i].tiles
-            for (let j=0; j<tiles.length; j++) {
+            for (let j = 0; j < tiles.length; j++) {
                 let tile = tiles[j]
-                let sx = (tile%30)*16
-                let sy = Math.floor(tile/30)*16
+                let sx = (tile % 30) * 16
+                let sy = Math.floor(tile / 30) * 16
 
                 ctx.drawImage(document.getElementById('tileset'),
-                    sx, sy, tileDimX, tileDimY, 
-                    ((j%roomW)*16)*scale, (Math.floor(j/roomW)*16)*scale,
-                    tileDimX*scale, tileDimY*scale)
+                    sx, sy, tileDimX, tileDimY,
+                    ((j % roomW) * 16) * scale, (Math.floor(j / roomW) * 16) * scale,
+                    tileDimX * scale, tileDimY * scale)
             }
         }
 
-        
+
     }
 }
 
@@ -286,8 +420,8 @@ function loadCanvas(room) {
     }
     let canv = document.createElement('canvas')
     canv.id = 'editor'
-    canv.width = room.width*tileDimX*scale
-    canv.height = room.height*tileDimY*scale
+    canv.width = room.width * tileDimX * scale
+    canv.height = room.height * tileDimY * scale
     canv.addEventListener('click', editorClick)
     canv.addEventListener('contextmenu', editorRightClick)
     document.getElementById('editcontainer').appendChild(canv)
@@ -298,8 +432,8 @@ function loadPick(picked) {
     let row = Math.floor(picked / COLS),
         col = picked % COLS
 
-    let x = col*tileDimX,
-        y = row*tileDimY
+    let x = col * tileDimX,
+        y = row * tileDimY
 
     let picker = document.getElementById('tilepicker')
     if (picker.getContext) {
@@ -308,18 +442,18 @@ function loadPick(picked) {
         ctx.msImageSmoothingEnabled = false
         ctx.imageSmoothingEnabled = false
 
-        ctx.clearRect(0,0,480,250)
+        ctx.clearRect(0, 0, 480, 250)
 
         ctx.drawImage(document.getElementById('tileset'), 0, 0, 480, 256)
 
         ctx.strokeStyle = 'yellow'
         ctx.lineWidth = 3
-        ctx.strokeRect(x+0.5, y+0.5, tileDimX, tileDimY)
+        ctx.strokeRect(x + 0.5, y + 0.5, tileDimX, tileDimY)
 
         ctx.strokeStyle = 'black'
         ctx.lineWidth = 1
-        ctx.strokeRect(x-1.5, y-1.5, tileDimX+3, tileDimY+3)
-        ctx.strokeRect(x+1.5, y+1.5, tileDimX-3, tileDimY-3)
+        ctx.strokeRect(x - 1.5, y - 1.5, tileDimX + 3, tileDimY + 3)
+        ctx.strokeRect(x + 1.5, y + 1.5, tileDimX - 3, tileDimY - 3)
     }
 
     let selected = document.getElementById('tileselected')
@@ -329,11 +463,11 @@ function loadPick(picked) {
         ctx.msImageSmoothingEnabled = false
         ctx.imageSmoothingEnabled = false
 
-        ctx.clearRect(0,0,16*scale,16*scale)
+        ctx.clearRect(0, 0, 16 * scale, 16 * scale)
 
         ctx.drawImage(document.getElementById('tileset'),
             x, y, tileDimX, tileDimY,
-            0, 0, tileDimX*scale, tileDimY*scale)
+            0, 0, tileDimX * scale, tileDimY * scale)
     }
 }
 
@@ -351,21 +485,21 @@ function pickClick(ev) {
 function selectedTile() {
     return window.selected_tile
 }
-function setSelectedTile(tile) { 
-    window.selected_tile = tile 
+function setSelectedTile(tile) {
+    window.selected_tile = tile
     loadPick(tile)
 }
 
 function buildLayersList(room) {
     // empty layers
     document.getElementById('layercontainer').innerHTML = ""
-    
-    for (let i=0; i<room.layers.length; i++) {
+
+    for (let i = 0; i < room.layers.length; i++) {
         let optwrapper = document.createElement('div')
         let opt = document.createElement('input')
-        opt.name="layers"
-        opt.type="radio"
-        opt.id=`layer-${i}`
+        opt.name = "layers"
+        opt.type = "radio"
+        opt.id = `layer-${i}`
         opt.value = i
         if (i === 0) {
             opt.setAttribute('checked', true)
@@ -378,8 +512,8 @@ function buildLayersList(room) {
     }
 }
 
-function selectedLayer() { 
-    return parseInt(document.querySelector('input[name="layers"]:checked').value) 
+function selectedLayer() {
+    return parseInt(document.querySelector('input[name="layers"]:checked').value)
 }
 function onLayerSelect() {
     drawRoom(window.room)
