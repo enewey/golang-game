@@ -1,7 +1,6 @@
 package actors
 
 import (
-	"fmt"
 	"math"
 	"sort"
 
@@ -66,8 +65,6 @@ func (m *Manager) AddActor(a Actor) {
 }
 
 func (m *Manager) setActor(id int, a Actor) {
-	x, y, z := a.Pos()
-	fmt.Printf("actor set %d %s %d %d %d\n", id, a.Category(), x, y, z)
 	m.actors[id] = a
 	m.sortedActors = append(m.sortedActors, a)
 }
@@ -220,8 +217,6 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 	}
 }
 
-var onetime bool = true
-
 // Render - draw the actors given a priority and row
 func (m *Manager) Render(img *ebiten.Image, ox, oy int) *ebiten.Image {
 	m.drawSort()
@@ -236,10 +231,4 @@ func (m *Manager) drawSort() {
 	sort.Slice(m.sortedActors, func(i, j int) bool {
 		return m.sortedActors[i].IsBehind(m.sortedActors[j])
 	})
-	if onetime {
-		for _, v := range m.sortedActors {
-			fmt.Printf("%d %s\n", v.ID(), v.Category())
-		}
-		onetime = false
-	}
 }
