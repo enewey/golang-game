@@ -96,7 +96,7 @@ func parseRoomFile(r *csv.Reader) ([]*Layer, colliders.Colliders, int, int) {
 	return retLyr, retBlk, width, height
 }
 
-func parseBlock(strs []string) *colliders.Block {
+func parseBlock(strs []string) colliders.Collider {
 	var y, x, z, w, h, d int
 	var yy, xx, zz, ww, hh, dd float64
 	var name string
@@ -138,10 +138,10 @@ func parseBlock(strs []string) *colliders.Block {
 		d = utils.Flint(dd * tdx)
 	}
 
-	return colliders.NewBlock(x, y, z, w, h, d, name).(*colliders.Block)
+	return colliders.NewBlock(x, y, z, w, h, d, 1, name)
 }
 
-func parseTriangle(strs []string) *colliders.Triangle {
+func parseTriangle(strs []string) colliders.Collider {
 	var rx2, ry2, rx3, ry3, x, y, z, d, axis int
 	var xx2, yy2, xx3, yy3, xx, yy, zz, dd float64
 	var name string
@@ -202,7 +202,7 @@ func parseTriangle(strs []string) *colliders.Triangle {
 	fmt.Printf("triangle created %d %d %d %d %d %d %d %d %s\n", x, y, z, rx2, ry2, rx3, ry3, d, name)
 
 	return colliders.
-		NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis, name).(*colliders.Triangle)
+		NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis, 1, name)
 }
 
 func parseLayer(strs []string) []int {

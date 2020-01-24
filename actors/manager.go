@@ -33,12 +33,13 @@ func (m *Manager) Actors() map[int]Actor { return m.actors }
 // Actions w
 func (m *Manager) Actions() Actions { return m.actions }
 
-// Act - process all queued actions, then sort the actors by position
+// Act - process all queued actions
 func (m *Manager) Act(df types.Frame) {
 	i := 0
 	for i < len(m.actions) {
 		action := m.actions[i]
 		if action != nil {
+			// when an action returns true, it is done processing
 			if action.Process(df) {
 				m.actions[i] = nil
 			}
@@ -66,6 +67,7 @@ func (m *Manager) AddActor(a Actor) {
 
 func (m *Manager) setActor(id int, a Actor) {
 	m.actors[id] = a
+	a.Collider().SetRef(id)
 	m.sortedActors = append(m.sortedActors, a)
 }
 
@@ -112,7 +114,7 @@ func (m *Manager) HandleInput(state input.Input) bool {
 	return true
 }
 
-// ResolveCollisions - every actor being managed will check collision against
+// ResolveCollisions - every CanMove actor being managed will check collision against
 //		the provided Colliders.
 // 		Also alters velocity of actors in the air for gravity.
 func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
@@ -128,93 +130,102 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 			continue
 		}
 
-		var v CanMove = ac.(CanMove)
-		// resolve the actor's direction
-		v.CalcDirection()
-		dx, dy, dz := v.Vel()
-		dz = math.Max(dz, -6)
+		// First, check collision against blocking colliders
+		// and prevent the collisions.
 
-		colliderCtx := mcolls.Remove(v.Collider())
+		colliderCtx := mcolls.Remove(ac.Collider())
 
-		hitG, hitC, hitW, ax, ay, _ :=
-			colliderCtx.PreventCollision(int(dx), int(dy), int(dz), v.Collider())
+		handleBlockingCollisions(ac.(CanMove), colliderCtx.GetBlocking())
 
-		// traversing up or down a slope
-		if v.OnGround() { // going up
-			if hitW {
-				vx, vy := DirToVec(v.Direction())
-				if !colliderCtx.WouldCollide(vx-ax, vy-ay, 1, v.Collider()) &&
-					colliderCtx.WouldCollide(vx-ax, vy-ay, 0, v.Collider()) {
-					v.Collider().Translate(vx-ax, vy-ay, 1)
-					hitW = false
-					hitG = true
-				}
-			} else { // going down
-				if !colliderCtx.WouldCollide(0, 0, -1, v.Collider()) &&
-					colliderCtx.WouldCollide(0, 0, -2, v.Collider()) {
-					v.Collider().Translate(0, 0, -1)
-					hitG = true
-				}
-			}
-		}
+		// Next, check against colliders with special behavior
 
-		// glancing collisions - collisions where only one pixel is the
-		// difference, just force the actor to the side to avoid the collision.
-		if hitW && v.Orthogonal() {
-			switch v.Direction() {
-			case types.Left:
-				if !colliderCtx.WouldCollide(-1, 1, 0, v.Collider()) {
-					v.Collider().Translate(-1, 1, 0)
-				} else if !colliderCtx.WouldCollide(-1, -1, 0, v.Collider()) {
-					v.Collider().Translate(-1, -1, 0)
-				}
-				break
-			case types.Right:
-				if !colliderCtx.WouldCollide(1, 1, 0, v.Collider()) {
-					v.Collider().Translate(1, 1, 0)
-				} else if !colliderCtx.WouldCollide(1, -1, 0, v.Collider()) {
-					v.Collider().Translate(1, -1, 0)
-				}
-				break
-			case types.Up:
-				if !colliderCtx.WouldCollide(-1, -1, 0, v.Collider()) {
-					v.Collider().Translate(-1, -1, 0)
-				} else if !colliderCtx.WouldCollide(1, -1, 0, v.Collider()) {
-					v.Collider().Translate(1, -1, 0)
-				}
-				break
-			case types.Down:
-				if !colliderCtx.WouldCollide(1, 1, 0, v.Collider()) {
-					v.Collider().Translate(1, 1, 0)
-				} else if !colliderCtx.WouldCollide(-1, 1, 0, v.Collider()) {
-					v.Collider().Translate(-1, 1, 0)
-				}
-				break
-			}
-		}
-
-		if hitG {
-			v.SetOnGround(true)
-			v.SetVelZ(0)
-		} else if math.Abs(dz) >= 1 {
-			v.SetOnGround(false)
-		}
-
-		// if the actor is in a "dashed" state,
-		// make sure it gets cleared when the actor hits the ground
-		if v.Dashed() {
-			v.SetDashed(!v.OnGround())
-		}
-
-		if hitC {
-			v.SetVelZ(0)
-		} else if !hitG {
-			_, _, vz := v.Vel()
-			v.SetVelZ(vz - 0.25)
-		}
-
-		// v.shadowZ = scoll.FindFloor(v.Collider())
 	}
+}
+
+func handleBlockingCollisions(v CanMove, colliderCtx colliders.Colliders) {
+	// resolve the actor's direction
+	v.CalcDirection()
+	dx, dy, dz := v.Vel()
+	dz = math.Max(dz, -6)
+
+	hitG, hitC, hitW, ax, ay, _ :=
+		colliderCtx.PreventCollision(int(dx), int(dy), int(dz), v.Collider())
+
+	// traversing up or down a slope
+	if v.OnGround() { // going up
+		if hitW {
+			vx, vy := DirToVec(v.Direction())
+			if !colliderCtx.WouldCollide(vx-ax, vy-ay, 1, v.Collider()) &&
+				colliderCtx.WouldCollide(vx-ax, vy-ay, 0, v.Collider()) {
+				v.Collider().Translate(vx-ax, vy-ay, 1)
+				hitW = false
+				hitG = true
+			}
+		} else { // going down
+			if !colliderCtx.WouldCollide(0, 0, -1, v.Collider()) &&
+				colliderCtx.WouldCollide(0, 0, -2, v.Collider()) {
+				v.Collider().Translate(0, 0, -1)
+				hitG = true
+			}
+		}
+	}
+
+	// glancing collisions - collisions where only one pixel is the
+	// difference, just force the actor to the side to avoid the collision.
+	if hitW && v.Orthogonal() {
+		switch v.Direction() {
+		case types.Left:
+			if !colliderCtx.WouldCollide(-1, 1, 0, v.Collider()) {
+				v.Collider().Translate(-1, 1, 0)
+			} else if !colliderCtx.WouldCollide(-1, -1, 0, v.Collider()) {
+				v.Collider().Translate(-1, -1, 0)
+			}
+			break
+		case types.Right:
+			if !colliderCtx.WouldCollide(1, 1, 0, v.Collider()) {
+				v.Collider().Translate(1, 1, 0)
+			} else if !colliderCtx.WouldCollide(1, -1, 0, v.Collider()) {
+				v.Collider().Translate(1, -1, 0)
+			}
+			break
+		case types.Up:
+			if !colliderCtx.WouldCollide(-1, -1, 0, v.Collider()) {
+				v.Collider().Translate(-1, -1, 0)
+			} else if !colliderCtx.WouldCollide(1, -1, 0, v.Collider()) {
+				v.Collider().Translate(1, -1, 0)
+			}
+			break
+		case types.Down:
+			if !colliderCtx.WouldCollide(1, 1, 0, v.Collider()) {
+				v.Collider().Translate(1, 1, 0)
+			} else if !colliderCtx.WouldCollide(-1, 1, 0, v.Collider()) {
+				v.Collider().Translate(-1, 1, 0)
+			}
+			break
+		}
+	}
+
+	if hitG {
+		v.SetOnGround(true)
+		v.SetVelZ(0)
+	} else if math.Abs(dz) >= 1 {
+		v.SetOnGround(false)
+	}
+
+	// if the actor is in a "dashed" state,
+	// make sure it gets cleared when the actor hits the ground
+	if v.Dashed() {
+		v.SetDashed(!v.OnGround())
+	}
+
+	if hitC {
+		v.SetVelZ(0)
+	} else if !hitG {
+		_, _, vz := v.Vel()
+		v.SetVelZ(vz - 0.25)
+	}
+
+	// v.shadowZ = scoll.FindFloor(v.Collider())
 }
 
 // Render - draw the actors given a priority and row

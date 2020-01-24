@@ -1,8 +1,15 @@
 package colliders
 
 import (
+	"enewey.com/golang-game/types"
 	"enewey.com/golang-game/utils"
 	"github.com/enewey/resolv/resolv"
+)
+
+const (
+	passthrough = iota
+	blocking
+	reactive
 )
 
 // Collider - BaseZ gets the "root" Z level of the collider.
@@ -21,15 +28,24 @@ type Collider interface {
 	XZShape() resolv.Shape
 	ZYShape() resolv.Shape
 	Name() string
+	Ref() int
+	SetRef(int)
+	IsBlocking() bool
+	IsPassthrough() bool
+	IsReactive() bool
+	SetReaction(types.Reaction)
 }
 
 // BaseCollider is an anonymous struct included in each Collider
 type BaseCollider struct {
-	xyshape resolv.Shape
-	xzshape resolv.Shape
-	zyshape resolv.Shape
-	name    string
-	x, y, z int
+	xyshape  resolv.Shape
+	xzshape  resolv.Shape
+	zyshape  resolv.Shape
+	name     string
+	x, y, z  int
+	ref      int
+	bodyType int
+	reaction types.Reaction
 }
 
 // X returns the root x position of this Collider
@@ -56,6 +72,31 @@ func (b *BaseCollider) Name() string { return b.name }
 // Pos - get the x,y,z position
 func (b *BaseCollider) Pos() (int, int, int) {
 	return b.x, b.y, b.z
+}
+
+// Ref - reference identifier for this collider; typically matches an actor ID
+func (b *BaseCollider) Ref() int {
+	return b.ref
+}
+
+// SetRef - set the reference identifier for this collider. Used when registering an actor with an ID.
+func (b *BaseCollider) SetRef(ref int) {
+	b.ref = ref
+}
+
+// IsPassthrough - indicates collision for this collider should be mostly ignored, ie. has no side effects.
+func (b *BaseCollider) IsPassthrough() bool {
+	return b.bodyType == passthrough
+}
+
+// IsBlocking - tells whether this is a blocking collider or not.
+func (b *BaseCollider) IsBlocking() bool {
+	return b.bodyType == blocking
+}
+
+// IsReactive - indicates the collision behavior for this collider is custom.
+func (b *BaseCollider) IsReactive() bool {
+	return b.bodyType == reactive
 }
 
 //x, y, z, w, h, d int
@@ -91,6 +132,24 @@ func (b *BaseCollider) Translate(dx, dy, dz int) {
 	b.setY(dy + int(cy))
 	b.setZ(dz + int(cz))
 }
+
+// Reaction - retrieves the reaction for this collider
+func (b *BaseCollider) Reaction() types.Reaction {
+	return b.reaction
+}
+
+// SetReaction - sets a function to be called when collision occurs,
+// but only if this collider bodyType is set to "special".
+// Note, colliders do not invoke this function. Managers must do so.
+func (b *BaseCollider) SetReaction(f types.Reaction) {
+	b.reaction = f
+}
+
+//
+// ==========================================================
+// ======== Colliders =======================================
+// ==========================================================
+//
 
 // Colliders woo
 type Colliders []Collider
@@ -172,7 +231,7 @@ func (cs Colliders) TestXCollision(dx int, subject Collider) (int, bool) {
 	for _, v := range zyfcoll {
 		resXY := resolv.Resolve(subject.XYShape(), v.XYShape(), int32(dx), 0)
 		resXZ := resolv.Resolve(subject.XZShape(), v.XZShape(), int32(dx), 0)
-		// z-collision occurred only if *both* shapes collide
+		// x-collision occurred only if *both* shapes collide
 		if resXY.Colliding() && resXZ.Colliding() {
 			return utils.Min(int(resXY.ResolveX), int(resXZ.ResolveX)), true
 		}
@@ -180,7 +239,7 @@ func (cs Colliders) TestXCollision(dx int, subject Collider) (int, bool) {
 	return dx, false
 }
 
-// TestYCollision returns the resolved y, and if a collision happened.
+// TestYCollision returns the resolved y, whether a collision happened, and.
 func (cs Colliders) TestYCollision(dy int, subject Collider) (int, bool) {
 	// resolve on Y axis
 	xzfcoll := cs.getCollidingXZ(subject)
@@ -188,7 +247,7 @@ func (cs Colliders) TestYCollision(dy int, subject Collider) (int, bool) {
 	for _, v := range xzfcoll {
 		resXY := resolv.Resolve(subject.XYShape(), v.XYShape(), 0, int32(dy))
 		resZY := resolv.Resolve(subject.ZYShape(), v.ZYShape(), 0, int32(dy))
-		// z-collision occurred only if *both* shapes collide
+		// y-collision occurred only if *both* shapes collide
 		if resXY.Colliding() && resZY.Colliding() {
 			return utils.Min(int(resXY.ResolveY), int(resZY.ResolveY)), true
 		}
@@ -245,15 +304,42 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bo
 }
 
 // Remove - return a new array excluding the given collider
-func (cs Colliders) Remove(test Collider) (ret Colliders) {
+func (cs Colliders) Remove(test Collider) Colliders {
 	for i, v := range cs {
 		if test.Name() == v.Name() {
 			if i == len(cs)-1 {
 				return cs[:len(cs)-1]
 			}
 			return append(cs[:i], cs[i+1:]...)
-
 		}
 	}
 	return cs
+}
+
+// Filter - filter func for Colliders.
+// Returns a new slice where all the colliders return true for the test function.
+func (cs Colliders) Filter(test func(Collider, int) bool) Colliders {
+	ret := make([]Collider, len(cs))
+	it := 0
+	for i, v := range cs {
+		if test(v, i) {
+			ret[it] = v
+			it++
+		}
+	}
+	return ret[:it]
+}
+
+// GetBlocking - returns a new slice of colliders which are blocking
+func (cs Colliders) GetBlocking() Colliders {
+	return cs.Filter(func(c Collider, i int) bool {
+		return c.IsBlocking()
+	})
+}
+
+// GetReactive - returns a new slice of colliders which are reactive
+func (cs Colliders) GetReactive() Colliders {
+	return cs.Filter(func(c Collider, i int) bool {
+		return c.IsReactive()
+	})
 }

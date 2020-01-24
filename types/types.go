@@ -3,6 +3,10 @@ package types
 // Frame represents a number of update cycles
 type Frame = int
 
+// Reaction is an adhoc function where the params passed in
+// will have their state modified
+type Reaction = func(...interface{})
+
 // Point is a simple xy point
 type Point struct {
 	X, Y int

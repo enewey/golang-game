@@ -87,14 +87,14 @@ func roomToActors(rm *room.Room, tiles *sprites.Spritesheet, px, dimX int) []act
 				ret = append(ret, actors.NewSpriteActor(
 					"wall",
 					sprites.NewStaticSpritemap(tiles.GetSprite(tile)),
-					colliders.NewBlock(x, y, z, px, 0, px, fmt.Sprintf("wall-%d-%d", lyrNum, i)),
+					colliders.NewBlock(x, y, z, px, 0, px, 0, fmt.Sprintf("wall-%d-%d", lyrNum, i)),
 					0, -px,
 				))
 			} else {
 				ret = append(ret, actors.NewSpriteActor(
 					"floor",
 					sprites.NewStaticSpritemap(tiles.GetSprite(tile)),
-					colliders.NewBlock(x, y, z, px, px, 0, fmt.Sprintf("floor-%d-%d", lyrNum, i)),
+					colliders.NewBlock(x, y, z, px, px, 0, 0, fmt.Sprintf("floor-%d-%d", lyrNum, i)),
 					0, 0,
 				))
 			}
