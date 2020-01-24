@@ -6,11 +6,10 @@ import (
 	"github.com/enewey/resolv/resolv"
 )
 
-const (
-	passthrough = iota
-	blocking
-	reactive
-)
+// BodyType - set of flags to describe the physical body of the collider
+type BodyType struct {
+	blocking, reactive bool
+}
 
 // Collider - BaseZ gets the "root" Z level of the collider.
 //            Depth is how many Z levels it spans.
@@ -31,7 +30,6 @@ type Collider interface {
 	Ref() int
 	SetRef(int)
 	IsBlocking() bool
-	IsPassthrough() bool
 	IsReactive() bool
 	Reaction() types.Reaction
 	SetReaction(types.Reaction)
@@ -45,7 +43,7 @@ type BaseCollider struct {
 	name     string
 	x, y, z  int
 	ref      int
-	bodyType int
+	bodyType *BodyType
 	reaction types.Reaction
 }
 
@@ -85,19 +83,14 @@ func (b *BaseCollider) SetRef(ref int) {
 	b.ref = ref
 }
 
-// IsPassthrough - indicates collision for this collider should be mostly ignored, ie. has no side effects.
-func (b *BaseCollider) IsPassthrough() bool {
-	return b.bodyType == passthrough
-}
-
 // IsBlocking - tells whether this is a blocking collider or not.
 func (b *BaseCollider) IsBlocking() bool {
-	return b.bodyType == blocking
+	return b.bodyType.blocking
 }
 
 // IsReactive - indicates the collision behavior for this collider is custom.
 func (b *BaseCollider) IsReactive() bool {
-	return b.bodyType == reactive
+	return b.bodyType.reactive
 }
 
 //x, y, z, w, h, d int
@@ -191,14 +184,15 @@ func (cs Colliders) getCollidingZY(subject Collider) Colliders {
 	return ret[:i]
 }
 
-// GetColliding - get all the colliders currently colliding with the subject
-func (cs Colliders) GetColliding(subject Collider) Colliders {
+// GetColliding - get all the colliders that would collide with the subject
+// if the subject were to move by the specified deltas
+func (cs Colliders) GetColliding(dx, dy, dz int, subject Collider) Colliders {
 	var ret = make(Colliders, len(cs))
 	i := 0
 	for _, v := range cs {
-		if v.XYShape().IsColliding(subject.XYShape()) &&
-			v.XZShape().IsColliding(subject.XZShape()) &&
-			v.ZYShape().IsColliding(subject.ZYShape()) {
+		if subject.XYShape().WouldBeColliding(v.XYShape(), int32(dx), int32(dy)) &&
+			subject.XZShape().WouldBeColliding(v.XZShape(), int32(dx), int32(dz)) &&
+			subject.ZYShape().WouldBeColliding(v.ZYShape(), int32(dz), int32(dy)) {
 			ret[i] = v
 			i++
 		}

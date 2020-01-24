@@ -38,7 +38,7 @@ func init() {
 		charas.GetSprite(90),
 	)
 	shadowChar := charas.GetSprite(1)
-	charBlock := colliders.NewBlock(cX, cY, cZ, 10, 10, 14, 1, "chara")
+	charBlock := colliders.NewBlock(cX, cY, cZ, 10, 10, 14, true, false, "chara")
 	girl = actors.NewCharActor("player", girlChar, shadowChar, charBlock, -4, -8)
 
 	gameScene = scene.New(girl, cache.Get().LoadRoom("longboy"), tiles)
@@ -46,10 +46,14 @@ func init() {
 	rock := actors.NewStaticActor(
 		"wall",
 		sprites.NewStaticSpritemap(tiles.GetSprite(441)),
-		colliders.NewBlock(81, 150, 0, 12, 8, 8, 2, fmt.Sprintf("manual-rock")),
+		colliders.NewBlock(81, 150, 0, 12, 8, 8, true, true, fmt.Sprintf("manual-rock")),
 		-2, -8,
 	)
-	reaction := func(args ...interface{}) { fmt.Printf("Reaction triggered: %v\n", args) }
+	reaction := func(args ...interface{}) {
+		fmt.Printf("%d says hello to %d!\n",
+			args[0].(actors.Actor).ID(),
+			args[1].(actors.Actor).ID())
+	}
 	rock.Collider().SetReaction(reaction)
 	gameScene.AddActor(rock)
 	roomImage, _ = ebiten.NewImage(cfg.ScreenWidth()*2, cfg.ScreenHeight()*2, ebiten.FilterDefault)

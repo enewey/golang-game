@@ -138,7 +138,7 @@ func parseBlock(strs []string) colliders.Collider {
 		d = utils.Flint(dd * tdx)
 	}
 
-	return colliders.NewBlock(x, y, z, w, h, d, 1, name)
+	return colliders.NewBlock(x, y, z, w, h, d, true, false, name)
 }
 
 func parseTriangle(strs []string) colliders.Collider {
@@ -202,7 +202,7 @@ func parseTriangle(strs []string) colliders.Collider {
 	fmt.Printf("triangle created %d %d %d %d %d %d %d %d %s\n", x, y, z, rx2, ry2, rx3, ry3, d, name)
 
 	return colliders.
-		NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis, 1, name)
+		NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis, true, false, name)
 }
 
 func parseLayer(strs []string) []int {
