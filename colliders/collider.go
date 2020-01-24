@@ -33,6 +33,7 @@ type Collider interface {
 	IsBlocking() bool
 	IsPassthrough() bool
 	IsReactive() bool
+	Reaction() types.Reaction
 	SetReaction(types.Reaction)
 }
 
@@ -183,6 +184,21 @@ func (cs Colliders) getCollidingZY(subject Collider) Colliders {
 	i := 0
 	for _, v := range cs {
 		if v.ZYShape().IsColliding(subject.ZYShape()) {
+			ret[i] = v
+			i++
+		}
+	}
+	return ret[:i]
+}
+
+// GetColliding - get all the colliders currently colliding with the subject
+func (cs Colliders) GetColliding(subject Collider) Colliders {
+	var ret = make(Colliders, len(cs))
+	i := 0
+	for _, v := range cs {
+		if v.XYShape().IsColliding(subject.XYShape()) &&
+			v.XZShape().IsColliding(subject.XZShape()) &&
+			v.ZYShape().IsColliding(subject.ZYShape()) {
 			ret[i] = v
 			i++
 		}

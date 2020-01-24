@@ -125,20 +125,22 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		}
 	}
 
-	for _, ac := range m.actors {
-		if _, ok := ac.(CanMove); !ok {
+	for _, subject := range m.actors {
+		if _, ok := subject.(CanMove); !ok {
 			continue
 		}
 
-		// First, check collision against blocking colliders
-		// and prevent the collisions.
+		// Exclude the subject actor
+		colliderCtx := mcolls.Remove(subject.Collider())
 
-		colliderCtx := mcolls.Remove(ac.Collider())
+		// First, run subject against colliders with custom behavior (reactive colliders)
+		reactors := colliderCtx.GetReactive().GetColliding(subject.Collider())
+		for _, r := range reactors {
+			r.Reaction()(subject, r)
+		}
 
-		handleBlockingCollisions(ac.(CanMove), colliderCtx.GetBlocking())
-
-		// Next, check against colliders with special behavior
-
+		// Second, check collision against blocking colliders and prevent the collisions.
+		handleBlockingCollisions(subject.(CanMove), colliderCtx.GetBlocking())
 	}
 }
 

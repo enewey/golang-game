@@ -43,12 +43,15 @@ func init() {
 
 	gameScene = scene.New(girl, cache.Get().LoadRoom("longboy"), tiles)
 
-	gameScene.AddActor(actors.NewStaticActor(
+	rock := actors.NewStaticActor(
 		"wall",
 		sprites.NewStaticSpritemap(tiles.GetSprite(441)),
-		colliders.NewBlock(81, 150, 0, 12, 8, 8, 1, fmt.Sprintf("manual-rock")),
+		colliders.NewBlock(81, 150, 0, 12, 8, 8, 2, fmt.Sprintf("manual-rock")),
 		-2, -8,
-	))
+	)
+	reaction := func(args ...interface{}) { fmt.Printf("Reaction triggered: %v\n", args) }
+	rock.Collider().SetReaction(reaction)
+	gameScene.AddActor(rock)
 	roomImage, _ = ebiten.NewImage(cfg.ScreenWidth()*2, cfg.ScreenHeight()*2, ebiten.FilterDefault)
 }
 
