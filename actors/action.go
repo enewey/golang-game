@@ -95,7 +95,6 @@ func (a *MoveByAction) Process(df types.Frame) bool {
 	fmt.Printf("Process dx %d dy %d dz %d\nvx %f vy %f vz %f\n duration %d elapsed %d\n", a.dx, a.dy, a.dz, a.vx, a.vy, a.vz, a.duration, a.elapsed)
 	a.elapsed += df
 	target.SetVel(vx, vy, vz)
-	// a.target.vx, a.target.vy = a.vx, a.vy
 	if a.elapsed >= a.duration {
 		target.SetVelX(vx - a.vx)
 		target.SetVelY(vy - a.vy)
