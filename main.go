@@ -72,13 +72,14 @@ func update(screen *ebiten.Image) error {
 	}
 
 	rm := gameScene.Render(roomImage)
-	x, y, z := girl.Pos()
 
 	opt := &ebiten.DrawImageOptions{}
 	opt.GeoM.Scale(3, 3)
 	screen.DrawImage(rm, opt)
 	if debug {
-		ebitenutil.DebugPrint(screen, fmt.Sprintf("x: %d\ny: %d\nz: %d", x, y, z))
+		x, y, z := girl.Pos()
+		vx, vy, vz := girl.(actors.CanMove).Vel()
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("x: %d - %f\ny: %d - %f\nz: %d - %f", x, vx, y, vy, z, vz))
 	}
 
 	return nil

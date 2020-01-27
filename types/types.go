@@ -38,6 +38,15 @@ type AxisMap struct {
 	X, Y, Z int
 }
 
+// IsX - convenience method tells if the axis map is flagged for the X axis
+func (a *AxisMap) IsX() bool { return a.X != 0 }
+
+// IsY - convenience method tells if the axis map is flagged for the Y axis
+func (a *AxisMap) IsY() bool { return a.Y != 0 }
+
+// IsZ - convenience method tells if the axis map is flagged for the Z axis
+func (a *AxisMap) IsZ() bool { return a.Z != 0 }
+
 // VecToAxisMap - converts a vector to an AxisMap. The highest value(s)
 // of the vector will be non-zero in the axis map.
 func VecToAxisMap(x, y, z float64) *AxisMap {
@@ -70,4 +79,11 @@ func VecToAxisMap(x, y, z float64) *AxisMap {
 // e.g. if AxisMap.Y is 0, then the returned vy will be what was passed in
 func (m *AxisMap) FilterVec(vx, vy, vz float64) (float64, float64, float64) {
 	return utils.Pass(m.X, vx), utils.Pass(m.Y, vy), utils.Pass(m.Z, vz)
+}
+
+// RejectVec - takes in a vector and returns zeroes for every axis of the AxisMap that isn't zero.
+// e.g. if AxisMap.X is -1, then vx will always be 0.
+// e.g. if AxisMap.Y is 0, then vy will pass through as vy.
+func (m *AxisMap) RejectVec(vx, vy, vz float64) (float64, float64, float64) {
+	return utils.Unpass(m.X, vx), utils.Unpass(m.Y, vy), utils.Unpass(m.Z, vz)
 }

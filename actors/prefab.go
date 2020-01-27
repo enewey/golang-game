@@ -20,12 +20,15 @@ func NewTrampoline(x, y, z int, sprite sprites.Spritemap) Actor {
 		subject := args[0].(CanMove)
 		object := args[1].(Actor)
 
-		_, _, vz := subject.Vel()
+		vx, vy, vz := subject.Vel()
 		_, _, sz := subject.Collider().Pos()
 		ox, oy, oz := object.Collider().Pos()
 		od := object.Collider().ZDepth(ox, oy)
+		fmt.Printf("Trampoline reaction, vz: %f\n", vz)
 		if sz >= oz+od && vz < 0 {
-			events.Enqueue(events.New(1, 3, []interface{}{subject, 0.0, 0.0, 2.5}))
+			subject.SetVel(vx, vy, 0)
+			subject.SetOnGround(false)
+			events.Enqueue(events.New(1, 3, []interface{}{subject, 0.0, 0.0, vz * -1.0}))
 		}
 	}
 	rock.Collider().SetReaction(reaction)

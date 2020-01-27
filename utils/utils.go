@@ -81,5 +81,13 @@ func Pass(a int, b float64) float64 {
 	return b
 }
 
+// Unpass returns b if and only if a is 0
+func Unpass(a int, b float64) float64 {
+	if a != 0 {
+		return 0
+	}
+	return b
+}
+
 // Flint - floors a float and returns it as an int.
 func Flint(f float64) int { return int(math.Floor(f)) }

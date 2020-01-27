@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"enewey.com/golang-game/colliders"
+	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/input"
 	"enewey.com/golang-game/types"
 	"enewey.com/golang-game/utils"
@@ -142,6 +143,8 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 			r.Reaction()(ac, m.actors[r.Ref()])
 		}
 
+		dx, dy, dz = subject.Vel()
+
 		// Second, check collision against blocking colliders and prevent the collisions.
 		handleBlockingCollisions(dx, dy, dz, subject, colliderCtx.GetBlocking())
 	}
@@ -230,7 +233,7 @@ func handleBlockingCollisions(dx, dy, dz float64, v CanMove, colliderCtx collide
 		v.SetVelZ(0)
 	} else if !hitG && !v.OnGround() {
 		_, _, vz := v.Vel()
-		v.SetVelZ(vz - 0.25)
+		v.SetVelZ(math.Max(vz+config.Get().Gravity(), -6.0))
 	}
 
 	// v.shadowZ = scoll.FindFloor(v.Collider())

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/types"
 	"enewey.com/golang-game/utils"
@@ -172,14 +173,13 @@ type DashAction struct {
 	BaseAction
 	vx, vy, vz float64
 	axes       *types.AxisMap
-	jumpFrame  int
 }
 
 // NewDashAction w
 func NewDashAction(target Actor, vx, vy, vz float64) *DashAction {
 	axes := types.VecToAxisMap(utils.Normalize3(vx, vy, vz))
 	fmt.Printf("Axis map: %d %d %d\n", axes.X, axes.Y, axes.Z)
-	return &DashAction{BaseAction{target, 15, 0}, vx, vy, vz, axes, -1}
+	return &DashAction{BaseAction{target, 15, 0}, vx, vy, vz, axes}
 }
 
 // Process w
@@ -188,19 +188,19 @@ func (a *DashAction) Process(df types.Frame) bool {
 	target.SetDashed(true)
 	target.SetControlled(false)
 
-	vx, vy, vz := a.axes.FilterVec(target.Vel())
-	if vz > 0 && a.jumpFrame == -1 {
-		a.vz += vz
-		a.jumpFrame = a.elapsed
+	vx, vy, vz := a.axes.RejectVec(target.Vel())
+	if a.axes.IsZ() {
+		a.vz += config.Get().Gravity()
 	}
 
+	fmt.Printf("Axis map: %d %d %d  :: ", a.axes.X, a.axes.Y, a.axes.Z)
 	fmt.Printf("After filter: %f %f %f :: Action vel %f %f %f\n", vx, vy, vz, a.vx, a.vy, a.vz)
 	target.SetVel(
 		a.vx+vx,
 		a.vy+vy,
-		a.vz-(float64(a.elapsed-utils.Max(a.jumpFrame, 0))*0.25),
+		a.vz+vz,
 	)
 
 	a.elapsed += df
-	return a.elapsed >= a.duration && target.OnGround()
+	return a.elapsed >= a.duration && (target.OnGround() || a.axes.IsZ())
 }
