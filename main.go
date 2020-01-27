@@ -43,18 +43,7 @@ func init() {
 
 	gameScene = scene.New(girl, cache.Get().LoadRoom("longboy"), tiles)
 
-	rock := actors.NewStaticActor(
-		"wall",
-		sprites.NewStaticSpritemap(tiles.GetSprite(441)),
-		colliders.NewBlock(81, 150, 0, 12, 8, 8, true, true, fmt.Sprintf("manual-rock")),
-		-2, -8,
-	)
-	reaction := func(args ...interface{}) {
-		fmt.Printf("%d says hello to %d!\n",
-			args[0].(actors.Actor).ID(),
-			args[1].(actors.Actor).ID())
-	}
-	rock.Collider().SetReaction(reaction)
+	rock := actors.NewTrampoline(81, 150, 0, sprites.NewStaticSpritemap(tiles.GetSprite(441)))
 	gameScene.AddActor(rock)
 	roomImage, _ = ebiten.NewImage(cfg.ScreenWidth()*2, cfg.ScreenHeight()*2, ebiten.FilterDefault)
 }

@@ -6,6 +6,7 @@ import (
 	"enewey.com/golang-game/actors"
 	"enewey.com/golang-game/colliders"
 	"enewey.com/golang-game/config"
+	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/input"
 	"enewey.com/golang-game/room"
 	"enewey.com/golang-game/sprites"
@@ -141,11 +142,17 @@ func (s *Scene) Update(df types.Frame) {
 }
 
 func (s *Scene) processEvents() {
-	// queue := events.Hub().ActorEvents()
-	// for queue.HasNext() {
-	// 	ev := queue.Read()
-	// 	ev.Process(s.actorM)
-	// }
+	for events.HasNext() {
+		ev := events.Read()
+		fmt.Printf("processing events %d :: ", ev.Code())
+		switch ev.Scope() {
+		case events.Actor:
+			s.actorM.Actions().Add(actors.InterpretEvent(ev))
+		default:
+			fmt.Printf("unknown event scope %d\n", ev.Scope())
+			continue
+		}
+	}
 }
 
 func (s *Scene) act(df int) {

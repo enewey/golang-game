@@ -107,8 +107,8 @@ func (m *Manager) HandleInput(state input.Input) bool {
 	}
 
 	if state[ebiten.KeyShift].JustPressed() && !player.Dashed() && player.OnGround() {
-		vx, vy := utils.Itof(DirToVec(player.Direction()))
-		action := NewDashAction(playerActor, vx*2.5, vy*2.5)
+		vx, vy := utils.Normalize2(utils.Itof(DirToVec(player.Direction())))
+		action := NewDashAction(playerActor, vx*2.5, vy*2.5, 0.0)
 		m.actions.Add(action)
 	}
 	return true
@@ -139,7 +139,7 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		// First, run subject against colliders with custom behavior (reactive colliders)
 		reactors := colliderCtx.GetReactive()
 		for _, r := range reactors.GetColliding(int(dx), int(dy), int(dz), subject.Collider()) {
-			r.Reaction()(subject, m.actors[r.Ref()])
+			r.Reaction()(ac, m.actors[r.Ref()])
 		}
 
 		// Second, check collision against blocking colliders and prevent the collisions.
@@ -209,6 +209,10 @@ func handleBlockingCollisions(dx, dy, dz float64, v CanMove, colliderCtx collide
 		}
 	}
 
+	if !colliderCtx.WouldCollide(0, 0, -1, v.Collider()) {
+		v.SetOnGround(false)
+	}
+
 	if hitG {
 		v.SetOnGround(true)
 		v.SetVelZ(0)
@@ -224,7 +228,7 @@ func handleBlockingCollisions(dx, dy, dz float64, v CanMove, colliderCtx collide
 
 	if hitC {
 		v.SetVelZ(0)
-	} else if !hitG {
+	} else if !hitG && !v.OnGround() {
 		_, _, vz := v.Vel()
 		v.SetVelZ(vz - 0.25)
 	}

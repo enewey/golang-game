@@ -1,59 +1,67 @@
 package events
 
-// import (
-// 	"enewey.com/golang-game/actors"
-// )
+// Event Scope categories
+const (
+	Global = iota
+	Actor
+	Window
+)
 
-// // Event types
-// const (
-// 	Global = iota
-// 	Actor
-// 	Window
-// )
+// Event - generic event that can originate from anywhere
+type Event struct {
+	// scope is the Global/Actor/Window iota
+	scope int
+	// command is specific to the scope
+	code int
+	// payload contains the parameters required of the command
+	payload []interface{}
+}
 
-// var hub *EventHub
+// New - create a new event struct
+func New(scope, code int, payload []interface{}) *Event {
+	return &Event{scope, code, payload}
+}
 
-// func init() {
-// 	hub = &EventHub{
-// 		[]ActorEv{},
-// 	}
-// }
+// Scope - Global (0), Actor (1) or Window (2)
+func (e *Event) Scope() int { return e.scope }
 
-// // Hub w
-// func Hub() *EventHub { return hub }
+// Code - Coded event identifier, describing what happened based on the scope
+func (e *Event) Code() int { return e.code }
 
-// // EventHub wo
-// type EventHub struct {
-// 	actorQ ActorEventQueue
-// 	// globalQ []*GlobalEv
-// 	// windowQ []*WindowEv
-// }
+// Payload - parameters/arguments for the event
+func (e *Event) Payload() []interface{} { return e.payload }
 
-// // ActorEvents a
-// func (h *EventHub) ActorEvents() ActorEventQueue { return h.actorQ }
+var bus []*Event
 
-// // Flush - clear out all events from the event hub
-// func (h *EventHub) Flush() {
-// 	h.actorQ = []ActorEv{}
-// }
+func init() {
+	bus = []*Event{}
+}
 
-// // ActorEventQueue w
-// type ActorEventQueue []actors.ActorEv
+// Bus w
+func Bus() EventBus { return bus }
 
-// // Enqueue - queue up an event to be processed on the next tick
-// func (aq ActorEventQueue) Enqueue(a ActorEv) {
-// 	aq = append(aq, a)
-// }
+// EventBus wo
+type EventBus []*Event
 
-// // Read - reads the next event in the queue
-// func (aq ActorEventQueue) Read() ActorEv {
-// 	if len(aq) == 0 {
-// 		return nil
-// 	}
-// 	pop := aq[0]
-// 	aq = aq[1:]
-// 	return pop
-// }
+// Flush - clear out all events from the event hub
+func Flush() {
+	bus = []*Event{}
+}
 
-// // HasNext - bool
-// func (aq ActorEventQueue) HasNext() bool { return len(aq) > 0 }
+// Enqueue - queue up an event to be processed on the next tick
+func Enqueue(ev *Event) {
+	bus = append(bus, ev)
+}
+
+// Read - reads the next event in the queue
+func Read() *Event {
+	if len(bus) == 0 {
+		return nil
+	}
+	pop := bus[0]
+	bus = bus[1:]
+	return pop
+}
+
+// HasNext - bool
+func HasNext() bool { return len(bus) > 0 }

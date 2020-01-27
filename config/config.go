@@ -3,6 +3,7 @@ package config
 // Config provides global configurations for the game, primarily related to graphics.
 type Config struct {
 	TileDimX, TileDimY, TilesX, TilesY int
+	gravity                            float64
 }
 
 var singer *Config
@@ -11,7 +12,7 @@ var singer *Config
 func Get() *Config {
 	if singer == nil {
 		singer = &Config{
-			16, 16, 10, 8,
+			16, 16, 10, 8, -0.25,
 		}
 	}
 	return singer
@@ -43,4 +44,9 @@ func (c *Config) ScrollBoundaries() (int, int, int, int) {
 		c.scrollBoundUpperX(),
 		c.scrollBoundUpperY(),
 		c.scrollBoundLowerX()
+}
+
+// Gravity - the gravity coefficient in game
+func (c *Config) Gravity() float64 {
+	return c.gravity
 }

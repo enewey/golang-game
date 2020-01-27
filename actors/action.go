@@ -4,8 +4,37 @@ import (
 	"fmt"
 	"math"
 
+	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/types"
+	"enewey.com/golang-game/utils"
 )
+
+// Action types, expressed from an Event.command
+const (
+	MoveTo = iota
+	MoveBy
+	Jump
+	Dash
+)
+
+// InterpretEvent - translate an event into an action
+func InterpretEvent(ev *events.Event) Action {
+	fmt.Printf("interpreting event %d :: ", ev.Code())
+	p := ev.Payload()
+	switch ev.Code() {
+	case MoveTo:
+	case MoveBy:
+		return NewMoveByAction(p[0].(Actor), p[1].(int), p[2].(int), p[3].(int), p[4].(int))
+	case Jump:
+	case Dash:
+		fmt.Printf("dash action interpreted %v :: ", ev.Payload())
+		return NewDashAction(p[0].(Actor), p[1].(float64), p[2].(float64), p[3].(float64))
+	default:
+		fmt.Printf("unknown actor event code %d\n", ev.Code())
+	}
+
+	return nil
+}
 
 // Action - something that happens to a target Actor over a number of frames.
 type Action interface {
@@ -143,11 +172,15 @@ func (a *JumpAction) Process(df types.Frame) bool {
 type DashAction struct {
 	BaseAction
 	vx, vy, vz float64
+	axes       *types.AxisMap
+	jumpFrame  int
 }
 
 // NewDashAction w
-func NewDashAction(target Actor, vx, vy float64) *DashAction {
-	return &DashAction{BaseAction{target, 15, 0}, vx, vy, 0.3}
+func NewDashAction(target Actor, vx, vy, vz float64) *DashAction {
+	axes := types.VecToAxisMap(utils.Normalize3(vx, vy, vz))
+	fmt.Printf("Axis map: %d %d %d\n", axes.X, axes.Y, axes.Z)
+	return &DashAction{BaseAction{target, 15, 0}, vx, vy, vz, axes, -1}
 }
 
 // Process w
@@ -155,9 +188,19 @@ func (a *DashAction) Process(df types.Frame) bool {
 	target := a.target.(CanMove)
 	target.SetDashed(true)
 	target.SetControlled(false)
-	_, _, vz := target.Vel()
 
-	target.SetVel(a.vx, a.vy, vz)
+	vx, vy, vz := a.axes.FilterVec(target.Vel())
+	if vz > 0 && a.jumpFrame == -1 {
+		a.vz += vz
+		a.jumpFrame = a.elapsed
+	}
+
+	fmt.Printf("After filter: %f %f %f :: Action vel %f %f %f\n", vx, vy, vz, a.vx, a.vy, a.vz)
+	target.SetVel(
+		a.vx+vx,
+		a.vy+vy,
+		a.vz-(float64(a.elapsed-utils.Max(a.jumpFrame, 0))*0.25),
+	)
 
 	a.elapsed += df
 	return a.elapsed >= a.duration && target.OnGround()
