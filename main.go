@@ -11,6 +11,7 @@ import (
 
 	"enewey.com/golang-game/actors"
 	"enewey.com/golang-game/cache"
+	"enewey.com/golang-game/clock"
 	"enewey.com/golang-game/colliders"
 	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/scene"
@@ -67,6 +68,7 @@ func update(screen *ebiten.Image) error {
 	}
 	if slownum%4 == 0 {
 		slownum = 0
+		clock.Inc(1)
 		gameScene.Update(1)
 	}
 

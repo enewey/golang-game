@@ -148,7 +148,7 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		// First, run subject against colliders with custom behavior (reactive colliders)
 		reactors := colliderCtx.GetReactive()
 		for _, r := range reactors.GetColliding(int(dx), int(dy), int(dz), subject.Collider()) {
-			r.Reaction()(ac, m.actors[r.Ref()])
+			r.Reaction().Tap(ac, m.actors[r.Ref()])
 		}
 
 		dx, dy, dz = subject.Vel()

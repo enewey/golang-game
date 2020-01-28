@@ -17,7 +17,7 @@ func NewTrampoline(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 		colliders.NewBlock(x, y, z, 12, 8, 8, true, true, fmt.Sprintf("manual-trampoline")),
 		-2, -8,
 	)
-	reaction := func(args ...interface{}) {
+	reaction := events.NewReaction(func(args ...interface{}) {
 		subject := args[0].(actors.CanMove)
 		object := args[1].(actors.Actor)
 
@@ -30,7 +30,7 @@ func NewTrampoline(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 			subject.SetOnGround(false)
 			events.Enqueue(events.New(1, actors.Dash, []interface{}{subject, 0.0, 0.0, (vz * -1.0)}))
 		}
-	}
+	})
 	rock.Collider().SetReaction(reaction)
 	return rock
 }
@@ -40,8 +40,7 @@ func CreateShadow(subject actors.Actor, shadowSprite *sprites.Sprite) (actors.Ac
 	x, y, z := subject.Pos()
 	w := subject.Collider().XDepth(y, z)
 	h := subject.Collider().YDepth(x, z)
-	// d := subject.Collider().ZDepth(x, y)
-	collider := colliders.NewBlock(x, y, z, w, h, 4, false, false, fmt.Sprintf("%s-shadow", subject.Collider().Name()))
+	collider := colliders.NewBlock(x, y, z, w, h, 9, false, false, fmt.Sprintf("%s-shadow", subject.Collider().Name()))
 	ox, oy := subject.(actors.Drawable).DrawOffset()
 	shadow := actors.NewStaticActor("shadow", sprites.NewStaticSpritemap(shadowSprite), collider, ox, oy+4)
 

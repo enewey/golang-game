@@ -1,7 +1,7 @@
 package colliders
 
 import (
-	"enewey.com/golang-game/types"
+	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/utils"
 	"github.com/enewey/resolv/resolv"
 )
@@ -32,8 +32,8 @@ type Collider interface {
 	SetRef(int)
 	IsBlocking() bool
 	IsReactive() bool
-	Reaction() types.Reaction
-	SetReaction(types.Reaction)
+	Reaction() events.Reaction
+	SetReaction(events.Reaction)
 }
 
 // BaseCollider is an anonymous struct included in each Collider
@@ -45,7 +45,7 @@ type BaseCollider struct {
 	x, y, z  int
 	ref      int
 	bodyType *BodyType
-	reaction types.Reaction
+	reaction events.Reaction
 }
 
 // X returns the root x position of this Collider
@@ -129,14 +129,14 @@ func (b *BaseCollider) Translate(dx, dy, dz int) {
 }
 
 // Reaction - retrieves the reaction for this collider
-func (b *BaseCollider) Reaction() types.Reaction {
+func (b *BaseCollider) Reaction() events.Reaction {
 	return b.reaction
 }
 
 // SetReaction - sets a function to be called when collision occurs,
 // but only if this collider bodyType is set to "special".
 // Note, colliders do not invoke this function. Managers must do so.
-func (b *BaseCollider) SetReaction(f types.Reaction) {
+func (b *BaseCollider) SetReaction(f events.Reaction) {
 	b.reaction = f
 }
 
