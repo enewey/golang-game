@@ -42,8 +42,11 @@ func init() {
 	girl = actors.NewCharActor("player", girlChar, shadowChar, charBlock, -4, -8)
 
 	gameScene = scene.New(girl, cache.Get().LoadRoom("longboy"), tiles)
+	shadow, hook := scene.CreateShadow(girl, shadowChar)
+	gameScene.AddActor(shadow)
+	gameScene.ActorM.AddHook(hook)
 
-	rock := actors.NewTrampoline(81, 150, 0, sprites.NewStaticSpritemap(tiles.GetSprite(441)))
+	rock := scene.NewTrampoline(81, 150, 0, sprites.NewStaticSpritemap(tiles.GetSprite(441)))
 	gameScene.AddActor(rock)
 	roomImage, _ = ebiten.NewImage(cfg.ScreenWidth()*2, cfg.ScreenHeight()*2, ebiten.FilterDefault)
 }

@@ -138,11 +138,13 @@ func (a *SpriteActor) DrawOffset() (int, int) { return a.ox, a.oy }
 
 // IsBehind s
 func (a *SpriteActor) IsBehind(b Actor) bool {
-	defaultToID := func(compVal int) bool {
-		if compVal == 0 {
-			return a.ID() < b.ID()
+	defaultToID := func(args ...int) bool {
+		for _, v := range args {
+			if v != 0 {
+				return v < 0
+			}
 		}
-		return compVal < 0
+		return a.ID() < b.ID()
 	}
 
 	ax, ay, az := a.Pos()
@@ -159,9 +161,9 @@ func (a *SpriteActor) IsBehind(b Actor) bool {
 	// sort by the higher Y or Z position
 	// (i.e. sort by the non-intersecting plane)
 	if yIntersects && !zIntersects {
-		return defaultToID((az + ad) - (bz + bd))
+		return defaultToID((az+ad)-(bz+bd), (ay+alen)-(by+blen), (az+ad+ay+alen)-(bz+bd+by+blen))
 	} else if zIntersects && !yIntersects {
-		return defaultToID((ay + alen) - (by + blen))
+		return defaultToID((ay+alen)-(by+blen), (az+ad)-(bz+bd), (az+ad+ay+alen)-(bz+bd+by+blen))
 	}
 	return defaultToID((az + ad + ay + alen) - (bz + bd + by + blen))
 }
@@ -322,11 +324,6 @@ func (a *CharActor) DrawPos() (int, int) {
 func (a *CharActor) draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
 	x, y, z := a.Pos()
 	return a.spritemap.Sprite(a.direction).Draw(x+a.ox+offsetX, y-z+a.oy+offsetY, img)
-}
-
-func (a *CharActor) drawShadow(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
-	x, y, _ := a.Pos()
-	return a.shadow.Draw(x-4+offsetX, y-a.shadowZ-8+offsetY, img)
 }
 
 // DrawOffset s

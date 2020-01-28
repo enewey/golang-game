@@ -17,6 +17,7 @@ type Manager struct {
 	actors       map[int]Actor // actor 0 is always the player-controller actor
 	sortedActors []Actor
 	actions      Actions
+	hooks        *Hooks
 }
 
 // NewManager create a new actor manager
@@ -25,6 +26,7 @@ func NewManager() *Manager {
 		make(map[int]Actor),
 		[]Actor{},
 		make([]Action, 5),
+		&Hooks{[]PostCollisionHook{}},
 	}
 }
 
@@ -47,6 +49,12 @@ func (m *Manager) Act(df types.Frame) {
 		}
 		i++
 	}
+}
+
+// AddHook - add a hook to be processed by the manager
+func (m *Manager) AddHook(hook Hook) {
+	hook.SetManager(m)
+	m.hooks.AddHook(hook)
 }
 
 // SetPlayer - set the player-controlled actor
@@ -147,6 +155,10 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 
 		// Second, check collision against blocking colliders and prevent the collisions.
 		handleBlockingCollisions(dx, dy, dz, subject, colliderCtx.GetBlocking())
+
+		for _, hook := range m.hooks.PostCollision {
+			hook.Tap(colliderCtx)
+		}
 	}
 }
 

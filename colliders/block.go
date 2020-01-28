@@ -14,6 +14,9 @@ func (b *Block) Width() int { return b.w }
 // Height - y span
 func (b *Block) Height() int { return b.h }
 
+// XDepth for Blocks, x span constant at any y/z
+func (b *Block) XDepth(y, z int) int { return b.w }
+
 // ZDepth for Blocks, z span is constant at any x/y
 func (b *Block) ZDepth(x, y int) int { return b.d }
 

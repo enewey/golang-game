@@ -20,9 +20,9 @@ import (
 // 			processes inputs, delegates queued events, triggers actions, and
 //			resolves collisions.
 type Scene struct {
-	actorM           *actors.Manager
-	room             *room.Room
-	tiles            *sprites.Spritesheet
+	ActorM           *actors.Manager
+	Room             *room.Room
+	Tiles            *sprites.Spritesheet
 	offsetX, offsetY int // room rendering offsets
 }
 
@@ -107,7 +107,7 @@ func roomToActors(rm *room.Room, tiles *sprites.Spritesheet, px, dimX int) []act
 
 // AddActor adds an actor to the scene
 func (s *Scene) AddActor(actor actors.Actor) {
-	s.actorM.AddActor(actor)
+	s.ActorM.AddActor(actor)
 }
 
 // Update w
@@ -117,7 +117,7 @@ func (s *Scene) Update(df types.Frame) {
 	// blocked := false
 	// if !blocked {
 	/* blocked = */
-	s.actorM.HandleInput(state)
+	s.ActorM.HandleInput(state)
 	// }
 
 	// then process/delegate events
@@ -133,10 +133,10 @@ func (s *Scene) Update(df types.Frame) {
 	// (which may generate more events)
 
 	//At the end of it, get the player's position and adjust the scroll offset
-	px, py, pz := s.actorM.GetPlayer().Pos()
+	px, py, pz := s.ActorM.GetPlayer().Pos()
 	s.offsetX, s.offsetY = getScrollOffset(
-		s.room.Width()*cfg.TileDimX,
-		s.room.Height()*cfg.TileDimY,
+		s.Room.Width()*cfg.TileDimX,
+		s.Room.Height()*cfg.TileDimY,
 		s.offsetX, s.offsetY,
 		px, py, pz)
 }
@@ -147,7 +147,7 @@ func (s *Scene) processEvents() {
 		fmt.Printf("processing events %d :: ", ev.Code())
 		switch ev.Scope() {
 		case events.Actor:
-			s.actorM.Actions().Add(actors.InterpretEvent(ev))
+			s.ActorM.Actions().Add(actors.InterpretEvent(ev))
 		default:
 			fmt.Printf("unknown event scope %d\n", ev.Scope())
 			continue
@@ -156,11 +156,11 @@ func (s *Scene) processEvents() {
 }
 
 func (s *Scene) act(df int) {
-	s.actorM.Act(df)
+	s.ActorM.Act(df)
 }
 
 func (s *Scene) resolveCollisions() {
-	s.actorM.ResolveCollisions(s.room.Colliders())
+	s.ActorM.ResolveCollisions(s.Room.Colliders())
 }
 
 func getScrollOffset(w, h, ox, oy, px, py, pz int) (int, int) {
@@ -191,7 +191,7 @@ func getScrollOffset(w, h, ox, oy, px, py, pz int) (int, int) {
 
 // Render - called by main render loop
 func (s *Scene) Render(img *ebiten.Image) *ebiten.Image {
-	s.actorM.Render(img, s.offsetX, s.offsetY)
+	s.ActorM.Render(img, s.offsetX, s.offsetY)
 
 	return img
 }

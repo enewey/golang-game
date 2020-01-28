@@ -16,6 +16,7 @@ const (
 	MoveBy
 	Jump
 	Dash
+	ChangePos
 )
 
 // InterpretEvent - translate an event into an action
@@ -30,6 +31,8 @@ func InterpretEvent(ev *events.Event) Action {
 	case Dash:
 		fmt.Printf("dash action interpreted %v :: ", ev.Payload())
 		return NewDashAction(p[0].(Actor), p[1].(float64), p[2].(float64), p[3].(float64))
+	case ChangePos:
+
 	default:
 		fmt.Printf("unknown actor event code %d\n", ev.Code())
 	}
@@ -203,4 +206,23 @@ func (a *DashAction) Process(df types.Frame) bool {
 
 	a.elapsed += df
 	return a.elapsed >= a.duration && (target.OnGround() || a.axes.IsZ())
+}
+
+// ChangePosAction will change the position of the target actor immediately.
+type ChangePosAction struct {
+	BaseAction
+	x, y, z int
+}
+
+// NewChangePosAction creates a new change pos action.
+// 'Persists' says that this action will continue to change
+func NewChangePosAction(target Actor, x, y, z int) *ChangePosAction {
+	return &ChangePosAction{BaseAction{target, 0, 0}, x, y, z}
+}
+
+// Process function for the ChangePosAction
+func (a *ChangePosAction) Process(df types.Frame) bool {
+	target := a.target.(CanMove)
+	target.Collider().SetPos(a.x, a.y, a.z)
+	return true
 }
