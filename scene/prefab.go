@@ -58,12 +58,14 @@ func NewPushBlock(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 	)
 	reaction := events.NewAfterConsecutiveReaction(
 		func(args ...interface{}) {
+			fmt.Printf("reaction triggered\n")
 			subject := args[0].(actors.CanMove)
-			dx, dy := actors.DirToVec(subject.Direction())
+			dx, dy := actors.DirToVec(subject.Direction()) // TODO: create a "cast" function to create a vector between two colliders
 			object := args[1].(actors.CanMove)
-			events.Enqueue(events.New(events.Actor, actors.MoveBy, []interface{}{object, dx, dy, 0}))
+			events.Enqueue(events.New(events.Actor, actors.MoveBy, []interface{}{object, dx * 16, dy * 16, 0, 16}))
 		},
 		func(args ...interface{}) bool {
+			fmt.Printf("reaction tested\n")
 			return true
 		},
 		16,

@@ -487,6 +487,7 @@ function selectedTile() {
 }
 function setSelectedTile(tile) {
     window.selected_tile = tile
+    document.getElementById('selected-tile-no').innerHTML = tile
     loadPick(tile)
 }
 

@@ -100,6 +100,7 @@ func (a *baseActor) Pos() (int, int, int) { return a.collider.Pos() }
 // Collider - returns the raw collider for the actor
 func (a *baseActor) Collider() colliders.Collider { return a.collider }
 
+// CanCollide tells wheter this actor can resolve collisions.
 func (a *baseActor) CanCollide() bool { return false }
 
 // Category - returns the designated category metadata of the actor
@@ -198,12 +199,15 @@ func NewStaticActor(
 // CanCollide - for static actors, yes.
 func (a *StaticActor) CanCollide() bool { return true }
 
+// MovingActor is like a static actor, but can move.
 type MovingActor struct {
-	SpriteActor
+	StaticActor
 	vx, vy, vz float64
+	direction  int
 	onGround   bool
 }
 
+// NewMovingActor creates a new MovingActor, which is like a static actor that can move.
 func NewMovingActor(
 	category string,
 	sprite sprites.Spritemap,
@@ -212,8 +216,8 @@ func NewMovingActor(
 	onGround bool,
 ) Actor {
 	return &MovingActor{
-		*NewSpriteActor(category, sprite, collider, ox, oy),
-		0, 0, 0,
+		*NewStaticActor(category, sprite, collider, ox, oy),
+		0, 0, 0, types.Down,
 		true,
 	}
 }
@@ -238,60 +242,32 @@ func (a *MovingActor) SetVelY(y float64) { a.vy = y }
 // SetVelZ z
 func (a *MovingActor) SetVelZ(z float64) { a.vz = z }
 
-// CharActor woo
-type CharActor struct {
-	MovingActor
-
-	direction  int
-	controlled bool
-	dashed     bool
-}
-
-// NewCharActor create a new char actor
-func NewCharActor(
-	category string,
-	sprite sprites.Spritemap,
-	collider colliders.Collider,
-	ox, oy int,
-) Actor {
-	return &CharActor{
-		*NewMovingActor(category, sprite, collider, ox, oy, true).(*MovingActor),
-		types.Down, false, false,
-	}
-}
-
 // Direction - gets the last calculated direction for this actor
-func (a *CharActor) Direction() int { return a.direction }
+func (a *MovingActor) Direction() int { return a.direction }
 
 // FacingVertical returns true if the actor's direction is Up or Down
-func (a *CharActor) FacingVertical() bool {
+func (a *MovingActor) FacingVertical() bool {
 	return (a.direction == types.Up || a.direction == types.Down)
 }
 
 // FacingHorizontal returns true if the actor's direction is Left or Right
-func (a *CharActor) FacingHorizontal() bool {
+func (a *MovingActor) FacingHorizontal() bool {
 	return (a.direction == types.Left || a.direction == types.Right)
 }
 
 // Orthogonal returns true if the hero is facing Up, Down, Left or Right
-func (a *CharActor) Orthogonal() bool {
+func (a *MovingActor) Orthogonal() bool {
 	return a.FacingVertical() || a.FacingHorizontal()
 }
 
 // FacingDiagonal returns true if the actor's direction is diagonal
-func (a *CharActor) FacingDiagonal() bool {
+func (a *MovingActor) FacingDiagonal() bool {
 	return (a.direction == types.UpRight || a.direction == types.UpLeft ||
 		a.direction == types.DownRight || a.direction == types.DownLeft)
 }
 
-// Dashed - get the "dashed" state -- set by the dash action.
-func (a *CharActor) Dashed() bool { return a.dashed }
-
-// SetDashed woow
-func (a *CharActor) SetDashed(b bool) { a.dashed = b }
-
 // CalcDirection - resolves the actor's direciton based on its current velocity.
-func (a *CharActor) CalcDirection() int {
+func (a *MovingActor) CalcDirection() int {
 	if a.vx < 0 && a.vy < 0 {
 		a.direction = types.UpLeft
 	} else if a.vx > 0 && a.vy < 0 {
@@ -313,10 +289,37 @@ func (a *CharActor) CalcDirection() int {
 }
 
 // OnGround woo
-func (a *CharActor) OnGround() bool { return a.onGround }
+func (a *MovingActor) OnGround() bool { return a.onGround }
 
 // SetOnGround woo
-func (a *CharActor) SetOnGround(b bool) { a.onGround = b }
+func (a *MovingActor) SetOnGround(b bool) { a.onGround = b }
+
+// CharActor woo
+type CharActor struct {
+	MovingActor
+
+	controlled bool
+	dashed     bool
+}
+
+// NewCharActor create a new char actor
+func NewCharActor(
+	category string,
+	sprite sprites.Spritemap,
+	collider colliders.Collider,
+	ox, oy int,
+) Actor {
+	return &CharActor{
+		*NewMovingActor(category, sprite, collider, ox, oy, true).(*MovingActor),
+		false, false,
+	}
+}
+
+// Dashed - get the "dashed" state -- set by the dash action.
+func (a *CharActor) Dashed() bool { return a.dashed }
+
+// SetDashed woow
+func (a *CharActor) SetDashed(b bool) { a.dashed = b }
 
 // Controlled - this actor is being controlled by actions and cannot respond to input
 func (a *CharActor) Controlled() bool { return a.controlled }

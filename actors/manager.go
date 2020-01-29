@@ -141,12 +141,13 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		subject := ac.(CanMove)
 
 		// Exclude the subject actor
-		colliderCtx := mcolls.Remove(subject.Collider())
+		colliderCtx := mcolls.ExcludeByCollider(subject.Collider())
 
 		dx, dy, dz := subject.Vel()
 
 		// First, run subject against colliders with custom behavior (reactive colliders)
 		reactors := colliderCtx.GetReactive()
+
 		for _, r := range reactors.GetColliding(int(dx), int(dy), int(dz), subject.Collider()) {
 			r.Reaction().Tap(ac, m.actors[r.Ref()])
 		}

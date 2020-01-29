@@ -1,6 +1,8 @@
 package sprites
 
-import "github.com/hajimehoshi/ebiten"
+import (
+	"github.com/hajimehoshi/ebiten"
+)
 
 // Sprite woo
 type Sprite struct {
@@ -32,17 +34,17 @@ func NewCompoundSprite(sprites []*Sprite, rows, cols, tilex, tiley int) *Sprite 
 	if rows*cols != len(sprites) {
 		panic("tried to create compound sprite with improper tile dimensions")
 	}
-	img, err := ebiten.NewImage(rows*tiley, cols*tilex, ebiten.FilterDefault)
+	img, err := ebiten.NewImage(cols*tilex, rows*tiley, ebiten.FilterDefault)
 	if err != nil {
 		panic(err)
 	}
 
 	for i, v := range sprites {
-		row := i / rows
+		row := i / cols
 		col := i % cols
 
 		opt := &ebiten.DrawImageOptions{}
-		opt.GeoM.Translate(float64(row*tiley), float64(col*tilex))
+		opt.GeoM.Translate(float64(col*tilex), float64(row*tiley))
 
 		img.DrawImage(v.Img(), opt)
 	}

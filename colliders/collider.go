@@ -314,19 +314,6 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bo
 	return hitGround, hitCeiling, hitWall, ax, ay, az
 }
 
-// Remove - return a new array excluding the given collider
-func (cs Colliders) Remove(test Collider) Colliders {
-	for i, v := range cs {
-		if test.Name() == v.Name() {
-			if i == len(cs)-1 {
-				return cs[:len(cs)-1]
-			}
-			return append(cs[:i], cs[i+1:]...)
-		}
-	}
-	return cs
-}
-
 // Filter - filter func for Colliders.
 // Returns a new slice where all the colliders return true for the test function.
 func (cs Colliders) Filter(test func(Collider, int) bool) Colliders {
@@ -341,6 +328,13 @@ func (cs Colliders) Filter(test func(Collider, int) bool) Colliders {
 	return ret[:it]
 }
 
+// ExcludeByCollider - return a new array excluding the given collider
+func (cs Colliders) ExcludeByCollider(test Collider) Colliders {
+	return cs.Filter(func(c Collider, i int) bool {
+		return c.Name() != test.Name()
+	})
+}
+
 // GetBlocking - returns a new slice of colliders which are blocking
 func (cs Colliders) GetBlocking() Colliders {
 	return cs.Filter(func(c Collider, i int) bool {
@@ -352,5 +346,12 @@ func (cs Colliders) GetBlocking() Colliders {
 func (cs Colliders) GetReactive() Colliders {
 	return cs.Filter(func(c Collider, i int) bool {
 		return c.IsReactive()
+	})
+}
+
+// ExcludeByRef - returns a new slice of colliders without the selected ref
+func (cs Colliders) ExcludeByRef(ref int) Colliders {
+	return cs.Filter(func(c Collider, i int) bool {
+		return c.Ref() != ref
 	})
 }

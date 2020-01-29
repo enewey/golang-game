@@ -28,7 +28,13 @@ var roomImage *ebiten.Image
 var cfg *config.Config
 
 func init() {
+
+	// game initialization
+
 	cfg = config.Get()
+	roomImage, _ = ebiten.NewImage(cfg.ScreenWidth()*2, cfg.ScreenHeight()*2, ebiten.FilterDefault)
+
+	// begin scene initialization
 
 	tiles := cache.Get().LoadSpritesheet("blue-walls.png", cfg.TileDimX, cfg.TileDimY)
 	charas := cache.Get().LoadSpritesheet("hoodgirl.png", cfg.TileDimX, cfg.TileDimY)
@@ -47,9 +53,15 @@ func init() {
 	gameScene.AddActor(shadow)
 	gameScene.ActorM.AddHook(hook)
 
+	// end scene initialization
+
+	// adding extraneous actors
+
 	rock := scene.NewTrampoline(81, 150, 0, sprites.NewStaticSpritemap(tiles.GetSprite(441)))
 	gameScene.AddActor(rock)
-	roomImage, _ = ebiten.NewImage(cfg.ScreenWidth()*2, cfg.ScreenHeight()*2, ebiten.FilterDefault)
+
+	pushy := scene.NewPushBlock(120, 140, 0, sprites.Create2by1Block(tiles.GetSprite(366), tiles.GetSprite(133)))
+	gameScene.AddActor(pushy)
 }
 
 var debug bool
