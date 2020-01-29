@@ -38,11 +38,11 @@ func init() {
 		charas.GetSprite(60),
 		charas.GetSprite(90),
 	)
-	shadowChar := charas.GetSprite(1)
 	charBlock := colliders.NewBlock(cX, cY, cZ, 10, 10, 14, true, false, "chara")
-	girl = actors.NewCharActor("player", girlChar, shadowChar, charBlock, -4, -8)
-
+	girl = actors.NewCharActor("player", girlChar, charBlock, -4, -8)
 	gameScene = scene.New(girl, cache.Get().LoadRoom("longboy"), tiles)
+
+	shadowChar := charas.GetSprite(1)
 	shadow, hook := scene.CreateShadow(girl, shadowChar)
 	gameScene.AddActor(shadow)
 	gameScene.ActorM.AddHook(hook)

@@ -32,24 +32,33 @@ func DirToVec(d int) (int, int) {
 
 // CanMove is an interface for entities which can be moved and/or controlled.
 type CanMove interface {
-	Direction() int
-	FacingVertical() bool
-	FacingHorizontal() bool
-	Orthogonal() bool
-	FacingDiagonal() bool
-	Dashed() bool
-	SetDashed(bool)
-	CalcDirection() int
 	OnGround() bool
 	SetOnGround(bool)
-	Controlled() bool
-	SetControlled(bool)
 	Vel() (float64, float64, float64)
 	SetVel(x, y, z float64)
 	SetVelX(x float64)
 	SetVelY(y float64)
 	SetVelZ(z float64)
 	Collider() colliders.Collider
+
+	Direction() int
+	FacingVertical() bool
+	FacingHorizontal() bool
+	Orthogonal() bool
+	FacingDiagonal() bool
+	CalcDirection() int
+}
+
+// Controllable w
+type Controllable interface {
+	Controlled() bool
+	SetControlled(bool)
+}
+
+// CanDash w
+type CanDash interface {
+	Dashed() bool
+	SetDashed(bool)
 }
 
 // Drawable is an interface for entities which can be drawn on the screen
@@ -189,17 +198,51 @@ func NewStaticActor(
 // CanCollide - for static actors, yes.
 func (a *StaticActor) CanCollide() bool { return true }
 
+type MovingActor struct {
+	SpriteActor
+	vx, vy, vz float64
+	onGround   bool
+}
+
+func NewMovingActor(
+	category string,
+	sprite sprites.Spritemap,
+	collider colliders.Collider,
+	ox, oy int,
+	onGround bool,
+) Actor {
+	return &MovingActor{
+		*NewSpriteActor(category, sprite, collider, ox, oy),
+		0, 0, 0,
+		true,
+	}
+}
+
+// Vel - get the actor velocity, which is how many pixels the actor will attempt
+//		 to move each frame update
+func (a *MovingActor) Vel() (float64, float64, float64) {
+	return a.vx, a.vy, a.vz
+}
+
+// SetVel woo
+func (a *MovingActor) SetVel(x, y, z float64) {
+	a.vx, a.vy, a.vz = x, y, z
+}
+
+// SetVelX w
+func (a *MovingActor) SetVelX(x float64) { a.vx = x }
+
+// SetVelY y
+func (a *MovingActor) SetVelY(y float64) { a.vy = y }
+
+// SetVelZ z
+func (a *MovingActor) SetVelZ(z float64) { a.vz = z }
+
 // CharActor woo
 type CharActor struct {
-	SpriteActor
+	MovingActor
 
-	direction int
-	shadow    *sprites.Sprite
-
-	vx, vy, vz float64
-	shadowZ    int // shadow z-position
-
-	onGround   bool
+	direction  int
 	controlled bool
 	dashed     bool
 }
@@ -208,16 +251,12 @@ type CharActor struct {
 func NewCharActor(
 	category string,
 	sprite sprites.Spritemap,
-	shadow *sprites.Sprite,
 	collider colliders.Collider,
 	ox, oy int,
 ) Actor {
-
 	return &CharActor{
-		*NewSpriteActor(category, sprite, collider, ox, oy),
-		types.Down,
-		shadow,
-		0, 0, 0, 0, false, false, false,
+		*NewMovingActor(category, sprite, collider, ox, oy, true).(*MovingActor),
+		types.Down, false, false,
 	}
 }
 
@@ -279,36 +318,11 @@ func (a *CharActor) OnGround() bool { return a.onGround }
 // SetOnGround woo
 func (a *CharActor) SetOnGround(b bool) { a.onGround = b }
 
-// IsStatic - a static actor does not move, and does not need collision checks
-func (a *CharActor) IsStatic() bool {
-	return a.category == "static"
-}
-
 // Controlled - this actor is being controlled by actions and cannot respond to input
 func (a *CharActor) Controlled() bool { return a.controlled }
 
 // SetControlled - this actor is being controlled by actions and cannot respond to input
 func (a *CharActor) SetControlled(b bool) { a.controlled = b }
-
-// Vel - get the actor velocity, which is how many pixels the actor will attempt
-//		 to move each frame update
-func (a *CharActor) Vel() (float64, float64, float64) {
-	return a.vx, a.vy, a.vz
-}
-
-// SetVel woo
-func (a *CharActor) SetVel(x, y, z float64) {
-	a.vx, a.vy, a.vz = x, y, z
-}
-
-// SetVelX w
-func (a *CharActor) SetVelX(x float64) { a.vx = x }
-
-// SetVelY y
-func (a *CharActor) SetVelY(y float64) { a.vy = y }
-
-// SetVelZ z
-func (a *CharActor) SetVelZ(z float64) { a.vz = z }
 
 // Sprite woo
 func (a *CharActor) Sprite() *sprites.Sprite {

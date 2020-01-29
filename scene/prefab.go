@@ -47,3 +47,28 @@ func CreateShadow(subject actors.Actor, shadowSprite *sprites.Sprite) (actors.Ac
 	hook := actors.NewShadowHook(shadow, subject)
 	return shadow, hook
 }
+
+// NewPushBlock - a block that can be pushed!
+func NewPushBlock(x, y, z int, sprite sprites.Spritemap) actors.Actor {
+	block := actors.NewMovingActor(
+		"block",
+		sprite,
+		colliders.NewBlock(x, y, z, 16, 16, 16, true, true, "push-block-boi"),
+		0, -16, true,
+	)
+	reaction := events.NewAfterConsecutiveReaction(
+		func(args ...interface{}) {
+			subject := args[0].(actors.CanMove)
+			dx, dy := actors.DirToVec(subject.Direction())
+			object := args[1].(actors.CanMove)
+			events.Enqueue(events.New(events.Actor, actors.MoveBy, []interface{}{object, dx, dy, 0}))
+		},
+		func(args ...interface{}) bool {
+			return true
+		},
+		16,
+		48,
+	)
+	block.Collider().SetReaction(reaction)
+	return block
+}

@@ -188,8 +188,13 @@ func NewDashAction(target Actor, vx, vy, vz float64) *DashAction {
 // Process w
 func (a *DashAction) Process(df types.Frame) bool {
 	target := a.target.(CanMove)
-	target.SetDashed(true)
-	target.SetControlled(false)
+	if dasher, ok := target.(CanDash); ok {
+		dasher.SetDashed(true)
+	} else {
+		return true
+	}
+
+	// target.SetControlled(false)
 
 	vx, vy, vz := a.axes.RejectVec(target.Vel())
 	if a.axes.IsZ() {

@@ -86,7 +86,7 @@ func (m *Manager) HandleInput(state input.Input) bool {
 	playerActor := m.actors[0]
 	player := playerActor.(CanMove)
 
-	if player.Controlled() {
+	if player.(Controllable).Controlled() {
 		return false
 	}
 	if player.OnGround() {
@@ -115,7 +115,7 @@ func (m *Manager) HandleInput(state input.Input) bool {
 		m.actions.Add(action)
 	}
 
-	if state[ebiten.KeyShift].JustPressed() && !player.Dashed() && player.OnGround() {
+	if state[ebiten.KeyShift].JustPressed() && !player.(CanDash).Dashed() && player.OnGround() {
 		vx, vy := utils.Normalize2(utils.Itof(DirToVec(player.Direction())))
 		action := NewDashAction(playerActor, vx*2.5, vy*2.5, 0.0)
 		m.actions.Add(action)
@@ -237,8 +237,8 @@ func handleBlockingCollisions(dx, dy, dz float64, v CanMove, colliderCtx collide
 
 	// if the actor is in a "dashed" state,
 	// make sure it gets cleared when the actor hits the ground
-	if v.Dashed() {
-		v.SetDashed(!v.OnGround())
+	if dasher, ok := v.(CanDash); ok && dasher.Dashed() {
+		dasher.SetDashed(!v.OnGround())
 	}
 
 	if hitC {
