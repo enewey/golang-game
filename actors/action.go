@@ -104,6 +104,7 @@ type MoveByAction struct {
 	BaseAction
 	dx, dy, dz int // delta x/y/z
 	vx, vy, vz float64
+	cx, cy, cz float64 // carry-over values between frames
 }
 
 // NewMoveByAction woo
@@ -118,21 +119,22 @@ func NewMoveByAction(target Actor, dx, dy, dz int, duration types.Frame) *MoveBy
 		float64(dx) / float64(duration),
 		float64(dy) / float64(duration),
 		float64(dz) / float64(duration),
+		0.0, 0.0, 0.0,
 	}
 }
 
 // Process w
 func (a *MoveByAction) Process(df types.Frame) bool {
-	target := a.target.(CanMove)
-	vx, vy, vz := target.Vel()
-	fmt.Printf("Process dx %d dy %d dz %d\nvx %f vy %f vz %f\n duration %d elapsed %d\n", a.dx, a.dy, a.dz, a.vx, a.vy, a.vz, a.duration, a.elapsed)
+	// _, _, vz := target.Vel()
 	a.elapsed += df
-	target.SetVel(vx, vy, vz)
-	if a.elapsed >= a.duration {
-		target.SetVelX(vx - a.vx)
-		target.SetVelY(vy - a.vy)
+	fmt.Printf("Process dx %d dy %d dz %d\nvx %f vy %f vz %f\n duration %d elapsed %d\n", a.dx, a.dy, a.dz, a.vx, a.vy, a.vz, a.duration, a.elapsed)
+	target := a.target.(CanMove)
+	if a.elapsed > a.duration {
+		target.SetVel(0, 0, 0)
 		return true
 	}
+	target.SetVel(a.vx+a.cx, a.vy+a.cy, a.vz+a.cz)
+	a.cx, a.cy, a.cz = utils.Carry(a.vx+a.cx, a.vy+a.cy, a.vz+a.cz)
 	return false
 }
 

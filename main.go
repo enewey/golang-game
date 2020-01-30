@@ -60,7 +60,7 @@ func init() {
 	rock := scene.NewTrampoline(81, 150, 0, sprites.NewStaticSpritemap(tiles.GetSprite(441)))
 	gameScene.AddActor(rock)
 
-	pushy := scene.NewPushBlock(120, 140, 0, sprites.Create2by1Block(tiles.GetSprite(366), tiles.GetSprite(133)))
+	pushy := scene.NewPushBlock(120, 140, 32, sprites.Create2by1Block(tiles.GetSprite(366), tiles.GetSprite(133)))
 	gameScene.AddActor(pushy)
 }
 

@@ -54,7 +54,7 @@ func NewPushBlock(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 	block := actors.NewMovingActor(
 		"block",
 		sprite,
-		colliders.NewBlock(x, y, z, 16, 16, 16, true, true, "push-block-boi"),
+		colliders.NewBlock(x, y, z, 16, 16, 15, true, true, "push-block-boi"),
 		0, -16, true,
 	)
 	reaction := events.NewAfterConsecutiveReaction(
@@ -63,8 +63,8 @@ func NewPushBlock(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 			subject := args[0].(actors.CanMove)
 			object := args[1].(actors.CanMove)
 
-			x1, y1, z1 := subject.Collider().Center()
-			x2, y2, z2 := object.Collider().Pos()
+			x1, y1, z1 := object.Collider().Center()
+			x2, y2, z2 := subject.Collider().Center()
 
 			dx, dy, _ := utils.DominantAxis(utils.Cast(
 				float64(x1), float64(y1), float64(z1),
@@ -72,16 +72,20 @@ func NewPushBlock(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 			))
 			events.Enqueue(
 				events.New(
-					events.Actor, actors.MoveBy, []interface{}{object, int(dx * 16), int(dy * 16), 0, 16},
+					events.Actor, actors.MoveBy, []interface{}{object, int(dx * 16), int(dy * 16), 0, 32},
 				),
 			)
 		},
 		func(args ...interface{}) bool {
 			fmt.Printf("reaction tested\n")
-			return true
+			// subject := args[1].(actors.CanMove)
+			object := args[1].(actors.CanMove)
+			vx, vy, vz := object.Vel()
+			// x, y, z := object.Pos()
+			return (vx == 0 && vy == 0 && vz == 0)
 		},
-		16,
-		48,
+		30,
+		120,
 	)
 	block.Collider().SetReaction(reaction)
 	return block
