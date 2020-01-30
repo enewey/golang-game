@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -97,7 +96,6 @@ func Cast(x, y, z, x2, y2, z2 float64) (float64, float64, float64) {
 
 // DominantAxis - returns only the highest magnitude vector as a 1 or -1 with the other two as zeroes
 func DominantAxis(x, y, z float64) (float64, float64, float64) {
-	fmt.Printf("finding dominant %f %f %f :: ", x, y, z)
 	highest := 0.0
 	if math.Abs(x) > math.Abs(y) {
 		y = 0
@@ -112,7 +110,6 @@ func DominantAxis(x, y, z float64) (float64, float64, float64) {
 	} else {
 		z = 0
 	}
-	fmt.Printf("dominant pre-normalized %f %f %f :: ", x, y, z)
 	return Normalize(x), Normalize(y), Normalize(z)
 }
 

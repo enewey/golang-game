@@ -9,26 +9,31 @@ import (
 // Clock - represents how many ticks of gamestate have passed
 type Clock = *big.Int
 
-var clock Clock
+var singleton Clock
 
 func init() {
-	clock = big.NewInt(0)
+	singleton = big.NewInt(0)
 }
 
 // Inc - increment the game clock by a number of frames.
 func Inc(f types.Frame) Clock {
-	clock.Add(clock, big.NewInt(int64(f)))
-	return clock
+	singleton = singleton.Add(singleton, big.NewInt(int64(f)))
+	return singleton
 }
 
 // Get - get the current game clock
 func Get() Clock {
-	return clock
+	return singleton
+}
+
+// Copy - gets a copy of the current clock
+func Copy() Clock {
+	return big.NewInt(0).Set(singleton)
 }
 
 // Diff - get the difference between the current game clock and the argument
 func Diff(c Clock) Clock {
-	return clock.Sub(c, clock)
+	return big.NewInt(0).Sub(singleton, c)
 }
 
 // Cmp - returns -1 if c < i; 0 if c == i; 1 if c > i

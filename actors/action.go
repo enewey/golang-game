@@ -26,10 +26,11 @@ func InterpretEvent(ev *events.Event) Action {
 	switch ev.Code() {
 	case MoveTo:
 	case MoveBy:
+		fmt.Printf("moveby action interpreted %v\n", ev.Payload())
 		return NewMoveByAction(p[0].(Actor), p[1].(int), p[2].(int), p[3].(int), p[4].(int))
 	case Jump:
 	case Dash:
-		fmt.Printf("dash action interpreted %v :: ", ev.Payload())
+		fmt.Printf("dash action interpreted %v\n", ev.Payload())
 		return NewDashAction(p[0].(Actor), p[1].(float64), p[2].(float64), p[3].(float64))
 	case ChangePos:
 
@@ -127,7 +128,6 @@ func NewMoveByAction(target Actor, dx, dy, dz int, duration types.Frame) *MoveBy
 func (a *MoveByAction) Process(df types.Frame) bool {
 	// _, _, vz := target.Vel()
 	a.elapsed += df
-	fmt.Printf("Process dx %d dy %d dz %d\nvx %f vy %f vz %f\n duration %d elapsed %d\n", a.dx, a.dy, a.dz, a.vx, a.vy, a.vz, a.duration, a.elapsed)
 	target := a.target.(CanMove)
 	if a.elapsed > a.duration {
 		target.SetVel(0, 0, 0)
@@ -183,7 +183,6 @@ type DashAction struct {
 // NewDashAction w
 func NewDashAction(target Actor, vx, vy, vz float64) *DashAction {
 	axes := types.VecToAxisMap(utils.Normalize3(vx, vy, vz))
-	fmt.Printf("Axis map: %d %d %d\n", axes.X, axes.Y, axes.Z)
 	return &DashAction{BaseAction{target, 15, 0}, vx, vy, vz, axes}
 }
 
@@ -203,8 +202,6 @@ func (a *DashAction) Process(df types.Frame) bool {
 		a.vz += config.Get().Gravity()
 	}
 
-	fmt.Printf("Axis map: %d %d %d  :: ", a.axes.X, a.axes.Y, a.axes.Z)
-	fmt.Printf("After filter: %f %f %f :: Action vel %f %f %f\n", vx, vy, vz, a.vx, a.vy, a.vz)
 	target.SetVel(
 		a.vx+vx,
 		a.vy+vy,

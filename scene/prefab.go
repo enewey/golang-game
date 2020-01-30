@@ -77,7 +77,6 @@ func NewPushBlock(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 			)
 		},
 		func(args ...interface{}) bool {
-			fmt.Printf("reaction tested\n")
 			// subject := args[1].(actors.CanMove)
 			object := args[1].(actors.CanMove)
 			vx, vy, vz := object.Vel()
