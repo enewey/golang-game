@@ -118,7 +118,7 @@ func DominantAxis(x, y, z float64) (float64, float64, float64) {
 
 // Carry returns the value of the float after the decimal point.
 func Carry(x, y, z float64) (float64, float64, float64) {
-	return x - math.Floor(x), y - math.Floor(y), z - math.Floor(z)
+	return x - math.Trunc(x), y - math.Trunc(y), z - math.Trunc(z)
 }
 
 // Flint - floors a float and returns it as an int.
