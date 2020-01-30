@@ -8,7 +8,7 @@ import (
 	"github.com/enewey/resolv/resolv"
 )
 
-// Triangle - 3D triangular prism along the z-axis
+// Triangle - 3D right-triangular prism along a specified axis
 type Triangle struct {
 	BaseCollider
 	// r variables mean they are RELATIVE to the BaseCollider x,y,z
@@ -17,8 +17,45 @@ type Triangle struct {
 
 // Axis constants, to help build triangle prisms.
 const (
+	/* X axis is where the right angle runs along the x axis
+	     __________
+	    |\         \
+	    | \         \
+	----|  \         \-----------
+	    |   \         \
+	    |    \         \
+	    |_____\_________\
+	*/
 	XAxis = iota
+	/* A Y axis is where the right angle runs along the Y axis
+	    |\
+	    | \
+	    |  \
+	    |   \
+	    |    \
+	    |\    \
+	    | \    \
+	----|  \    |----------------
+	    |   \   |
+	    |    \  |
+	    |     \ |
+	    |______\|
+	*/
 	YAxis
+
+	/* Z axis is where the right angle runs along the Z axis
+	    |\
+	    | \
+	    |  \
+	    |   \
+	    |    \
+	----|     \-------------------------
+	    |______\
+	    |       |
+	    |       |
+	    |       |
+	    |_______|
+	*/
 	ZAxis
 )
 
@@ -151,4 +188,13 @@ func (b *Triangle) YDepth(x, z int) int {
 func (b *Triangle) XDepth(y, z int) int {
 	// TODO: parse that fucking math above... god help me
 	return b.d
+}
+
+// Center - So it might be prudent to provide an "actual" center of mass for the triangle.
+// HOWEVER, the primary use case for this is to provide a means for casting a vertex from
+// the center of one collider to another, which basically means we want it centered on a grid.
+// Need to consider a new approach here... TODO: if ever straying from square right triangles,
+// re-do this approach. You know, like the YDepth and XDepth stuff.
+func (b *Triangle) Center() (int, int, int) {
+	return b.x + (b.d / 2), b.y + (b.d / 2), b.z + (b.d / 2)
 }

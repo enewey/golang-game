@@ -22,6 +22,7 @@ type Collider interface {
 	YDepth(int, int) int
 	ZDepth(int, int) int
 	Pos() (int, int, int)
+	Center() (int, int, int)
 	SetPos(int, int, int)
 	Translate(int, int, int)
 	XYShape() resolv.Shape

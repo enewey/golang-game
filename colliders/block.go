@@ -23,6 +23,11 @@ func (b *Block) ZDepth(x, y int) int { return b.d }
 // YDepth for Blocks, y span is constant at any x/z
 func (b *Block) YDepth(x, y int) int { return b.h }
 
+// Center returns a point in the center of the rectangle
+func (b *Block) Center() (int, int, int) {
+	return b.x + (b.w / 2), b.y + (b.h / 2), b.z + (b.d / 2)
+}
+
 // NewBlock - creates a new 3D rectangle collider.
 func NewBlock(x, y, z, w, h, d int, blocking, reactive bool, name string) Collider {
 	b := &Block{w: w, h: h, d: d}

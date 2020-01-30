@@ -89,5 +89,29 @@ func Unpass(a int, b float64) float64 {
 	return b
 }
 
+// Cast - find the normalized difference between two 3d vectors (from -> to)
+func Cast(x, y, z, x2, y2, z2 float64) (float64, float64, float64) {
+	return Normalize3(x-x2, y-y2, z-z2)
+}
+
+// DominantAxis - returns only the highest magnitude vector as a 1 or -1 with the other two as zeroes
+func DominantAxis(x, y, z float64) (float64, float64, float64) {
+	highest := 0.0
+	if math.Abs(x) > math.Abs(y) {
+		y = 0
+		highest = x
+	} else {
+		x = 0
+		highest = y
+	}
+	if highest > math.Abs(z) {
+		x = 0
+		y = 0
+	} else {
+		z = 0
+	}
+	return Normalize(x), Normalize(y), Normalize(z)
+}
+
 // Flint - floors a float and returns it as an int.
 func Flint(f float64) int { return int(math.Floor(f)) }

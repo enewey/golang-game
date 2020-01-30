@@ -7,6 +7,7 @@ import (
 	"enewey.com/golang-game/colliders"
 	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/sprites"
+	"enewey.com/golang-game/utils"
 )
 
 // NewTrampoline returns a trampoline actor
@@ -60,9 +61,20 @@ func NewPushBlock(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 		func(args ...interface{}) {
 			fmt.Printf("reaction triggered\n")
 			subject := args[0].(actors.CanMove)
-			dx, dy := actors.DirToVec(subject.Direction()) // TODO: create a "cast" function to create a vector between two colliders
 			object := args[1].(actors.CanMove)
-			events.Enqueue(events.New(events.Actor, actors.MoveBy, []interface{}{object, dx * 16, dy * 16, 0, 16}))
+
+			x1, y1, z1 := subject.Collider().Center()
+			x2, y2, z2 := object.Collider().Pos()
+
+			dx, dy, _ := utils.DominantAxis(utils.Cast(
+				float64(x1), float64(y1), float64(z1),
+				float64(x2), float64(y2), float64(z2),
+			))
+			events.Enqueue(
+				events.New(
+					events.Actor, actors.MoveBy, []interface{}{object, int(dx * 16), int(dy * 16), 0, 16},
+				),
+			)
 		},
 		func(args ...interface{}) bool {
 			fmt.Printf("reaction tested\n")
