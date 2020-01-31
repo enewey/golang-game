@@ -146,7 +146,7 @@ func (a *SpriteActor) draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Imag
 // DrawOffset s
 func (a *SpriteActor) DrawOffset() (int, int) { return a.ox, a.oy }
 
-// IsBehind s
+// IsBehind tests whether this actor is "behind" another actor, which is used to determine drawing order.
 func (a *SpriteActor) IsBehind(b Actor) bool {
 	defaultToID := func(args ...int) bool {
 		for _, v := range args {

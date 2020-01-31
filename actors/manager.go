@@ -156,10 +156,9 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 
 		// Second, check collision against blocking colliders and prevent the collisions.
 		handleBlockingCollisions(dx, dy, dz, subject, colliderCtx.GetBlocking())
-
-		for _, hook := range m.hooks.PostCollision {
-			hook.Tap(colliderCtx)
-		}
+	}
+	for _, hook := range m.hooks.PostCollision {
+		hook.Tap(mcolls)
 	}
 }
 
