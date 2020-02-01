@@ -15,7 +15,7 @@ func NewTrampoline(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 	rock := actors.NewStaticActor(
 		"wall",
 		sprite,
-		colliders.NewBlock(x, y, z, 12, 8, 8, true, true, fmt.Sprintf("manual-trampoline")),
+		colliders.NewBlock(x, y, z, 12, 8, 8, true, fmt.Sprintf("manual-trampoline")),
 		-2, -8,
 	)
 	reaction := events.NewReaction(func(args ...interface{}) {
@@ -41,7 +41,7 @@ func CreateShadow(subject actors.Actor, shadowSprite *sprites.Sprite) (actors.Ac
 	x, y, z := subject.Pos()
 	w := subject.Collider().XDepth(y, z)
 	h := subject.Collider().YDepth(x, z)
-	collider := colliders.NewBlock(x, y, z, w, h, 9, false, false, fmt.Sprintf("%s-shadow", subject.Collider().Name()))
+	collider := colliders.NewBlock(x, y, z, w, h, 9, false, fmt.Sprintf("%s-shadow", subject.Collider().Name()))
 	ox, oy := subject.(actors.Drawable).DrawOffset()
 	shadow := actors.NewStaticActor("shadow", sprites.NewStaticSpritemap(shadowSprite), collider, ox, oy+4)
 
@@ -54,7 +54,7 @@ func NewPushBlock(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 	block := actors.NewMovingActor(
 		"block",
 		sprite,
-		colliders.NewBlock(x, y, z, 16, 16, 15, true, true, "push-block-boi"),
+		colliders.NewBlock(x, y, z, 16, 16, 15, true, "push-block-boi"),
 		0, -16, true,
 	)
 	reaction := events.NewAfterConsecutiveReaction(
@@ -87,5 +87,12 @@ func NewPushBlock(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 		120,
 	)
 	block.Collider().Reactions().Push(events.ReactionOnCollision, reaction)
+	interaction := events.NewReaction(func(args ...interface{}) {
+		subject := args[0].(actors.Actor)
+		object := args[1].(actors.Actor)
+
+		fmt.Printf("Actor %d says hi to actor %d\n", subject.ID(), object.ID())
+	})
+	block.Collider().Reactions().Push(events.ReactionOnInteraction, interaction)
 	return block
 }

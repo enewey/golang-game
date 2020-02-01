@@ -1,6 +1,8 @@
 package colliders
 
 import (
+	"fmt"
+
 	"enewey.com/golang-game/events"
 	"github.com/enewey/resolv/resolv"
 )
@@ -31,8 +33,16 @@ func (b *Block) Center() (int, int, int) {
 	return b.x + (b.w / 2), b.y + (b.h / 2), b.z + (b.d / 2)
 }
 
+// Copy creates a copy of this Block
+func (b *Block) Copy() Collider {
+	return NewBlock(b.x, b.y, b.z, b.w, b.h, b.d,
+		b.IsBlocking(),
+		fmt.Sprintf("copy-of-%s", b.name),
+	)
+}
+
 // NewBlock - creates a new 3D rectangle collider.
-func NewBlock(x, y, z, w, h, d int, blocking, reactive bool, name string) Collider {
+func NewBlock(x, y, z, w, h, d int, blocking bool, name string) Collider {
 	b := &Block{w: w, h: h, d: d}
 	b.x, b.y, b.z = x, y, z
 	b.name = name
@@ -40,7 +50,7 @@ func NewBlock(x, y, z, w, h, d int, blocking, reactive bool, name string) Collid
 	b.xzshape = resolv.Shape(resolv.NewRectangle(int32(x), int32(z), int32(w), int32(d)))
 	b.zyshape = resolv.Shape(resolv.NewRectangle(int32(z), int32(y), int32(d), int32(h)))
 	b.ref = -1
-	b.bodyType = &BodyType{blocking: blocking, reactive: reactive}
+	b.bodyType = &BodyType{blocking: blocking}
 	b.reactionHub = events.NewReactionHub()
 	return b
 }

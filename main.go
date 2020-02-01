@@ -44,7 +44,7 @@ func init() {
 		charas.GetSprite(60),
 		charas.GetSprite(90),
 	)
-	charBlock := colliders.NewBlock(cX, cY, cZ, 10, 10, 14, true, false, "chara")
+	charBlock := colliders.NewBlock(cX, cY, cZ, 10, 10, 14, true, "chara")
 	girl = actors.NewCharActor("player", girlChar, charBlock, -4, -8)
 	gameScene = scene.New(girl, cache.Get().LoadRoom("longboy"), tiles)
 

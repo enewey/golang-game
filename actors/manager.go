@@ -6,6 +6,7 @@ import (
 
 	"enewey.com/golang-game/colliders"
 	"enewey.com/golang-game/config"
+	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/input"
 	"enewey.com/golang-game/types"
 	"enewey.com/golang-game/utils"
@@ -14,10 +15,11 @@ import (
 
 // Manager - manages a group of actors (all actors in a scene)
 type Manager struct {
-	actors       map[int]Actor // actor 0 is always the player-controller actor
-	sortedActors []Actor
-	actions      Actions
-	hooks        *Hooks
+	actors         map[int]Actor // actor 0 is always the player-controller actor
+	sortedActors   []Actor
+	actorColliders colliders.Colliders
+	actions        Actions
+	hooks          *Hooks
 }
 
 // NewManager create a new actor manager
@@ -25,6 +27,7 @@ func NewManager() *Manager {
 	return &Manager{
 		make(map[int]Actor),
 		[]Actor{},
+		colliders.Colliders{},
 		make([]Action, 5),
 		&Hooks{[]PostCollisionHook{}},
 	}
@@ -78,6 +81,9 @@ func (m *Manager) setActor(id int, a Actor) {
 	m.actors[id] = a
 	a.Collider().SetRef(id)
 	m.sortedActors = append(m.sortedActors, a)
+	if a.CanCollide() {
+		m.actorColliders = append(m.actorColliders, a.Collider())
+	}
 }
 
 // HandleInput - returns "true" if input is captured, disallowing any other
@@ -110,6 +116,19 @@ func (m *Manager) HandleInput(state input.Input) bool {
 	player.SetVelY(dy)
 	player.CalcDirection()
 
+	if state[ebiten.KeyZ].JustPressed() {
+		box := player.Collider().Copy()
+		px, py := DirToVec(player.Direction())
+
+		for _, c := range m.actorColliders.
+			GetReactive(events.ReactionOnInteraction).
+			GetColliding(px*4, py*4, 0, box) {
+			for _, r := range c.Reactions().OnInteraction {
+				r.Tap(player, m.actors[c.Ref()])
+			}
+		}
+	}
+
 	if state[ebiten.KeySpace].JustPressed() && player.OnGround() {
 		action := NewJumpAction(playerActor, 4.0)
 		m.actions.Add(action)
@@ -127,12 +146,7 @@ func (m *Manager) HandleInput(state input.Input) bool {
 //		the provided Colliders.
 // 		Also alters velocity of actors in the air for gravity.
 func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
-	var mcolls colliders.Colliders = scoll[:]
-	for _, ac := range m.actors {
-		if ac.CanCollide() {
-			mcolls = append(mcolls, ac.Collider())
-		}
-	}
+	var mcolls colliders.Colliders = append(scoll[:], m.actorColliders...)
 
 	for _, ac := range m.actors {
 		if _, ok := ac.(CanMove); !ok {
@@ -146,7 +160,7 @@ func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
 		dx, dy, dz := subject.Vel()
 
 		// First, run subject against colliders with custom behavior (reactive colliders)
-		reactors := colliderCtx.GetReactive()
+		reactors := colliderCtx.GetReactive(events.ReactionOnCollision)
 
 		for _, r := range reactors.GetColliding(int(dx), int(dy), int(dz), subject.Collider()) {
 			for _, v := range r.Reactions().OnCollision {

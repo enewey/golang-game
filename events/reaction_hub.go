@@ -29,3 +29,14 @@ func (r *ReactionHub) Push(T int, reaction Reaction) {
 		break
 	}
 }
+
+// HasReactions returns true if the reaction hub has reactions of the provided type.
+func (r *ReactionHub) HasReactions(T int) bool {
+	switch T {
+	case ReactionOnCollision:
+		return len(r.OnCollision) != 0
+	case ReactionOnInteraction:
+		return len(r.OnInteraction) != 0
+	}
+	return false
+}

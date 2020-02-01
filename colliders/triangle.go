@@ -1,6 +1,7 @@
 package colliders
 
 import (
+	"fmt"
 	"math"
 
 	"enewey.com/golang-game/events"
@@ -64,12 +65,12 @@ const (
 // the specified axis. The named variables (x, y, z etc) are all regular XYZ
 // When the XAxis is specified: rx2/rx3 will map to the Z axis
 // When the YAxis is specified: ry2/ry3 will map to the Z axis
-func NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis int, blocking, reactive bool, name string) Collider {
+func NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis int, blocking bool, name string) Collider {
 	tri := &Triangle{rx2: rx2, ry2: ry2, rx3: rx3, ry3: ry3, d: d, axis: axis}
 	tri.x, tri.y, tri.z = x, y, z
 	tri.name = name
 	tri.ref = -1
-	tri.bodyType = &BodyType{blocking: blocking, reactive: reactive}
+	tri.bodyType = &BodyType{blocking: blocking}
 	tri.reactionHub = events.NewReactionHub()
 
 	switch axis {
@@ -104,6 +105,12 @@ func NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis int, blocking, reactive bo
 	}
 
 	return tri
+}
+
+// Copy creates a copy of this Triangle
+func (b *Triangle) Copy() Collider {
+	return NewTriangle(b.x, b.y, b.z, b.rx2, b.ry2, b.rx3, b.ry3, b.d, b.axis,
+		b.IsBlocking(), fmt.Sprintf("copy-of-%s", b.name))
 }
 
 // ZDepth for Triangles is the z span at the given point

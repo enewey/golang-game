@@ -8,7 +8,7 @@ import (
 
 // BodyType - set of flags to describe the physical body of the collider
 type BodyType struct {
-	blocking, reactive bool
+	blocking bool
 }
 
 // Collider - BaseZ gets the "root" Z level of the collider.
@@ -25,6 +25,7 @@ type Collider interface {
 	Center() (int, int, int)
 	SetPos(int, int, int)
 	Translate(int, int, int)
+	Copy() Collider
 	XYShape() resolv.Shape
 	XZShape() resolv.Shape
 	ZYShape() resolv.Shape
@@ -32,7 +33,7 @@ type Collider interface {
 	Ref() int
 	SetRef(int)
 	IsBlocking() bool
-	IsReactive() bool
+	IsReactive(int) bool
 	Reactions() *events.ReactionHub
 }
 
@@ -90,8 +91,8 @@ func (b *BaseCollider) IsBlocking() bool {
 }
 
 // IsReactive - indicates the collision behavior for this collider is custom.
-func (b *BaseCollider) IsReactive() bool {
-	return b.bodyType.reactive
+func (b *BaseCollider) IsReactive(T int) bool {
+	return b.Reactions().HasReactions(T)
 }
 
 //x, y, z, w, h, d int
@@ -336,9 +337,9 @@ func (cs Colliders) GetBlocking() Colliders {
 }
 
 // GetReactive - returns a new slice of colliders which are reactive
-func (cs Colliders) GetReactive() Colliders {
+func (cs Colliders) GetReactive(T int) Colliders {
 	return cs.Filter(func(c Collider, i int) bool {
-		return c.IsReactive()
+		return c.IsReactive(T)
 	})
 }
 
