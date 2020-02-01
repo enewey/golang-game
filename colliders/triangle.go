@@ -3,6 +3,7 @@ package colliders
 import (
 	"math"
 
+	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/types"
 	"enewey.com/golang-game/utils"
 	"github.com/enewey/resolv/resolv"
@@ -69,6 +70,7 @@ func NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis int, blocking, reactive bo
 	tri.name = name
 	tri.ref = -1
 	tri.bodyType = &BodyType{blocking: blocking, reactive: reactive}
+	tri.reactionHub = events.NewReactionHub()
 
 	switch axis {
 	case XAxis:

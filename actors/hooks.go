@@ -2,7 +2,11 @@ package actors
 
 import "enewey.com/golang-game/colliders"
 
-// Hooks w
+// Hooks are essentially a function that will be invoked ("tapped") potentially every single frame.
+// When the hook executes, and the parameters it receives, depend on the hook type.
+// Currently there are "PostCollision" hooks, which will are executed after all ollisions have been resolved,
+// and the params they receive are all the relevant colliders in the scene.
+// Other hooks will work in similar ways.
 type Hooks struct {
 	PostCollision []PostCollisionHook
 }
@@ -14,7 +18,7 @@ func (hs *Hooks) AddHook(hook Hook) {
 	}
 }
 
-// PostCollisionHook - TODO: rename this
+// PostCollisionHook - hook that occurs after collisions have been checked and prevented
 type PostCollisionHook interface {
 	SetManager(*Manager)
 	Tap(colliders.Colliders)

@@ -1,6 +1,9 @@
 package colliders
 
-import "github.com/enewey/resolv/resolv"
+import (
+	"enewey.com/golang-game/events"
+	"github.com/enewey/resolv/resolv"
+)
 
 // Block - 3D rectangle
 type Block struct {
@@ -38,5 +41,6 @@ func NewBlock(x, y, z, w, h, d int, blocking, reactive bool, name string) Collid
 	b.zyshape = resolv.Shape(resolv.NewRectangle(int32(z), int32(y), int32(d), int32(h)))
 	b.ref = -1
 	b.bodyType = &BodyType{blocking: blocking, reactive: reactive}
+	b.reactionHub = events.NewReactionHub()
 	return b
 }

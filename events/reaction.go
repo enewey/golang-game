@@ -44,11 +44,11 @@ func (r *temporalReaction) setClock(c clock.Clock) {
 	r.state["clock"] = r.getClock().Set(c)
 }
 
-func (r *AfterConsecutiveReaction) getLastTrigger() clock.Clock {
+func (r *temporalReaction) getLastTrigger() clock.Clock {
 	return r.state["last_trigger"].(clock.Clock)
 }
 
-func (r *AfterConsecutiveReaction) setLastTrigger(c clock.Clock) {
+func (r *temporalReaction) setLastTrigger(c clock.Clock) {
 	r.state["last_trigger"] = r.getLastTrigger().Set(c)
 }
 

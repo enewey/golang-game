@@ -32,7 +32,7 @@ func NewTrampoline(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 			events.Enqueue(events.New(1, actors.Dash, []interface{}{subject, 0.0, 0.0, (vz * -1.0)}))
 		}
 	})
-	rock.Collider().SetReaction(reaction)
+	rock.Collider().Reactions().Push(events.ReactionOnCollision, reaction)
 	return rock
 }
 
@@ -86,6 +86,6 @@ func NewPushBlock(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 		30,
 		120,
 	)
-	block.Collider().SetReaction(reaction)
+	block.Collider().Reactions().Push(events.ReactionOnCollision, reaction)
 	return block
 }

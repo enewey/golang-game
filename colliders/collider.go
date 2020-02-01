@@ -33,20 +33,19 @@ type Collider interface {
 	SetRef(int)
 	IsBlocking() bool
 	IsReactive() bool
-	Reaction() events.Reaction
-	SetReaction(events.Reaction)
+	Reactions() *events.ReactionHub
 }
 
 // BaseCollider is an anonymous struct included in each Collider
 type BaseCollider struct {
-	xyshape  resolv.Shape
-	xzshape  resolv.Shape
-	zyshape  resolv.Shape
-	name     string
-	x, y, z  int
-	ref      int
-	bodyType *BodyType
-	reaction events.Reaction
+	xyshape     resolv.Shape
+	xzshape     resolv.Shape
+	zyshape     resolv.Shape
+	name        string
+	x, y, z     int
+	ref         int
+	bodyType    *BodyType
+	reactionHub *events.ReactionHub
 }
 
 // X returns the root x position of this Collider
@@ -129,16 +128,9 @@ func (b *BaseCollider) Translate(dx, dy, dz int) {
 	b.setZ(dz + int(cz))
 }
 
-// Reaction - retrieves the reaction for this collider
-func (b *BaseCollider) Reaction() events.Reaction {
-	return b.reaction
-}
-
-// SetReaction - sets a function to be called when collision occurs,
-// but only if this collider bodyType is set to "special".
-// Note, colliders do not invoke this function. Managers must do so.
-func (b *BaseCollider) SetReaction(f events.Reaction) {
-	b.reaction = f
+// Reactions - retrieves the ReactionMux for this collider
+func (b *BaseCollider) Reactions() *events.ReactionHub {
+	return b.reactionHub
 }
 
 //
