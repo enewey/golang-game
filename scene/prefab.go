@@ -50,11 +50,11 @@ func CreateShadow(subject actors.Actor, shadowSprite *sprites.Sprite) (actors.Ac
 }
 
 // NewPushBlock - a block that can be pushed!
-func NewPushBlock(x, y, z int, sprite sprites.Spritemap) actors.Actor {
+func NewPushBlock(x, y, z int, name string, sprite sprites.Spritemap) actors.Actor {
 	block := actors.NewMovingActor(
 		"block",
 		sprite,
-		colliders.NewBlock(x, y, z, 16, 16, 15, true, "push-block-boi"),
+		colliders.NewBlock(x, y, z, 16, 16, 15, true, name),
 		0, -16, true,
 	)
 	reaction := events.NewAfterConsecutiveReaction(

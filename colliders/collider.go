@@ -325,7 +325,7 @@ func (cs Colliders) Filter(test func(Collider, int) bool) Colliders {
 // ExcludeByCollider - return a new array excluding the given collider
 func (cs Colliders) ExcludeByCollider(test Collider) Colliders {
 	return cs.Filter(func(c Collider, i int) bool {
-		return c.Name() != test.Name()
+		return c != test
 	})
 }
 
