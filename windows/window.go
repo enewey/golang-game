@@ -17,7 +17,7 @@ import (
 // context from actors. Unlike Actors, windows do not rely on Actions to progress
 // their gamestate. They receive input and are stateful.
 type Window interface {
-	Draw(*ebiten.Image)
+	Draw(*ebiten.Image, int, int)
 	HandleInput(input.Input) bool
 	Act(types.Frame)
 	IsDisposed() bool
@@ -70,16 +70,17 @@ func (w *MessageWindow) Act(df types.Frame) {
 		w.elapsed += df
 		substr := int(w.elapsed / w.speed)
 		w.currMessage = w.message[0:substr]
+		fmt.Printf("current message %s\n", w.currMessage)
 	} else {
 		w.currMessage = w.message
 	}
 }
 
 // Draw does a draw
-func (w *MessageWindow) Draw(img *ebiten.Image) {
+func (w *MessageWindow) Draw(img *ebiten.Image, ox, oy int) {
 
-	fmt.Printf(w.currMessage)
-	w.skin.Sprite.Draw(w.x, w.y, img)
+	fmt.Printf("window draw call made\n")
+	w.skin.Sprite.Draw(w.x+ox, w.y+oy, img)
 
 	font := cache.Get().LoadFont(config.Get().Font())
 	text.Draw(img, w.currMessage, font, w.x, w.y, color.White)
@@ -87,9 +88,12 @@ func (w *MessageWindow) Draw(img *ebiten.Image) {
 
 // HandleInput - so long as the message window is active, it will consume input.
 func (w *MessageWindow) HandleInput(state input.Input) bool {
+	if w.elapsed < 5 {
+		return true
+	}
 	cfg := config.Get()
 
-	if state[cfg.KeyConfirm()].Pressed() {
+	if state[cfg.KeyConfirm()].JustPressed() {
 		if w.elapsed >= w.end {
 			w.dispose()
 		} else {
@@ -97,7 +101,7 @@ func (w *MessageWindow) HandleInput(state input.Input) bool {
 		}
 	}
 
-	if state[cfg.KeyCancel()].Pressed() {
+	if state[cfg.KeyCancel()].JustPressed() {
 		w.elapsed = w.end
 		w.dispose()
 	}

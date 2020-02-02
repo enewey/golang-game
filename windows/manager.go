@@ -30,8 +30,8 @@ func (m *Manager) HandleInput(state input.Input) bool {
 	}
 	// iterate over windows in reverse; last window added should have focus
 	for i := range m.windows {
-		i = len(m.windows) - i - 1
-		v := m.windows[i]
+		pos := len(m.windows) - i - 1
+		v := m.windows[pos]
 		if v.HandleInput(state) {
 			return true
 		}
@@ -55,6 +55,8 @@ func (m *Manager) Act(df types.Frame) bool {
 			if len(m.windows) == 0 {
 				break
 			}
+		} else {
+			break
 		}
 	}
 	return true
@@ -64,7 +66,7 @@ func (m *Manager) Act(df types.Frame) bool {
 // (window with focus will be drawn last, i.e. on top)
 func (m *Manager) Render(img *ebiten.Image, ox, oy int) *ebiten.Image {
 	for _, v := range m.windows {
-		v.Draw(img)
+		v.Draw(img, ox, oy)
 	}
 	return img
 }

@@ -161,6 +161,9 @@ func (s *Scene) processEvents() {
 }
 
 func (s *Scene) act(df int) {
+	if s.WindowM.Act(df) {
+		return
+	}
 	s.ActorM.Act(df)
 }
 
