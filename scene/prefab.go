@@ -5,6 +5,7 @@ import (
 
 	"enewey.com/golang-game/actors"
 	"enewey.com/golang-game/colliders"
+	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/sprites"
 	"enewey.com/golang-game/utils"
@@ -90,6 +91,12 @@ func NewPushBlock(x, y, z int, name string, sprite sprites.Spritemap) actors.Act
 	interaction := events.NewReaction(func(args ...interface{}) {
 		subject := args[0].(actors.Actor)
 		object := args[1].(actors.Actor)
+
+		events.Enqueue(
+			events.NewMessageWindowEvent(0, 100,
+				config.Get().ScreenWidth(), config.Get().ScreenHeight()/4,
+				"Hello this is a test"),
+		)
 
 		fmt.Printf("Actor %d says hi to actor %d\n", subject.ID(), object.ID())
 	})

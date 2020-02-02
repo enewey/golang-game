@@ -89,6 +89,7 @@ func (m *Manager) setActor(id int, a Actor) {
 // HandleInput - returns "true" if input is captured, disallowing any other
 // 				 manager from handling the input.
 func (m *Manager) HandleInput(state input.Input) bool {
+	cfg := config.Get()
 	playerActor := m.actors[0]
 	player := playerActor.(CanMove)
 
@@ -100,23 +101,23 @@ func (m *Manager) HandleInput(state input.Input) bool {
 		player.SetVel(0, 0, vz)
 	}
 	var dx, dy float64
-	if state[ebiten.KeyUp].Pressed() {
+	if state[cfg.KeyUp()].Pressed() {
 		dy--
 	}
-	if state[ebiten.KeyDown].Pressed() {
+	if state[cfg.KeyDown()].Pressed() {
 		dy++
 	}
-	if state[ebiten.KeyLeft].Pressed() {
+	if state[cfg.KeyLeft()].Pressed() {
 		dx--
 	}
-	if state[ebiten.KeyRight].Pressed() {
+	if state[cfg.KeyRight()].Pressed() {
 		dx++
 	}
 	player.SetVelX(dx)
 	player.SetVelY(dy)
 	player.CalcDirection()
 
-	if state[ebiten.KeyZ].JustPressed() {
+	if state[cfg.KeyConfirm()].JustPressed() {
 		box := player.Collider().Copy()
 		px, py := DirToVec(player.Direction())
 
@@ -129,12 +130,12 @@ func (m *Manager) HandleInput(state input.Input) bool {
 		}
 	}
 
-	if state[ebiten.KeySpace].JustPressed() && player.OnGround() {
+	if state[cfg.KeyJump()].JustPressed() && player.OnGround() {
 		action := NewJumpAction(playerActor, 4.0)
 		m.actions.Add(action)
 	}
 
-	if state[ebiten.KeyShift].JustPressed() && !player.(CanDash).Dashed() && player.OnGround() {
+	if state[cfg.KeyDash()].JustPressed() && !player.(CanDash).Dashed() && player.OnGround() {
 		vx, vy := utils.Normalize2(utils.Itof(DirToVec(player.Direction())))
 		action := NewDashAction(playerActor, vx*2.5, vy*2.5, 0.0)
 		m.actions.Add(action)
@@ -263,8 +264,6 @@ func handleBlockingCollisions(dx, dy, dz float64, v CanMove, colliderCtx collide
 		_, _, vz := v.Vel()
 		v.SetVelZ(math.Max(vz+config.Get().Gravity(), -6.0))
 	}
-
-	// v.shadowZ = scoll.FindFloor(v.Collider())
 }
 
 // Render - draw the actors given a priority and row

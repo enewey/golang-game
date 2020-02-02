@@ -1,10 +1,14 @@
 package cache
 
 import (
+	"io/ioutil"
 	"log"
+
+	"golang.org/x/image/font"
 
 	"enewey.com/golang-game/room"
 	"enewey.com/golang-game/sprites"
+	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
@@ -14,10 +18,12 @@ type Cache struct {
 	images map[string]*ebiten.Image
 	rooms  map[string]*room.Room
 	sheets map[string]*sprites.Spritesheet
+	fonts  map[string]font.Face
 }
 
 const imgLoc = "assets/img/"
 const roomLoc = "assets/rooms/"
+const fontLoc = "assets/fonts/"
 
 var singer *Cache
 
@@ -28,6 +34,7 @@ func Get() *Cache {
 			make(map[string]*ebiten.Image),
 			make(map[string]*room.Room),
 			make(map[string]*sprites.Spritesheet),
+			make(map[string]font.Face),
 		}
 	}
 
@@ -36,7 +43,7 @@ func Get() *Cache {
 
 // LoadSpritesheet woo
 func (c *Cache) LoadSpritesheet(src string, th, tw int) *sprites.Spritesheet {
-	if (c.sheets[src] == nil) {
+	if c.sheets[src] == nil {
 		c.sheets[src] = sprites.New(c.LoadImage(src), th, tw, 30, 30)
 	}
 	return c.sheets[src]
@@ -62,4 +69,26 @@ func (c *Cache) LoadRoom(name string) *room.Room {
 	}
 
 	return c.rooms[name]
+}
+
+// LoadFont loads a font face from the cache.
+// TODO: make font size adjustable and dpi and shit
+func (c *Cache) LoadFont(src string) font.Face {
+	if c.fonts[src] == nil {
+		bytes, err := ioutil.ReadFile(fontLoc + src)
+		if err != nil {
+			panic(err)
+		}
+		tt, err := truetype.Parse(bytes)
+		if err != nil {
+			panic(err)
+		}
+		face := truetype.NewFace(tt, &truetype.Options{
+			Size:    24,
+			DPI:     72,
+			Hinting: font.HintingFull,
+		})
+		c.fonts[src] = face
+	}
+	return c.fonts[src]
 }

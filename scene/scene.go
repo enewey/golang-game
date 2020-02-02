@@ -12,6 +12,7 @@ import (
 	"enewey.com/golang-game/sprites"
 	"enewey.com/golang-game/types"
 	"enewey.com/golang-game/utils"
+	"enewey.com/golang-game/windows"
 
 	"github.com/hajimehoshi/ebiten"
 )
@@ -20,6 +21,7 @@ import (
 // 			processes inputs, delegates queued events, triggers actions, and
 //			resolves collisions.
 type Scene struct {
+	WindowM          *windows.Manager
 	ActorM           *actors.Manager
 	Room             *room.Room
 	Tiles            *sprites.Spritesheet
@@ -38,6 +40,7 @@ func New(
 	room *room.Room,
 	tiles *sprites.Spritesheet,
 ) *Scene {
+	wmgr := windows.NewManager()
 	mgr := actors.NewManager()
 	mgr.SetPlayer(player)
 	for _, actor := range roomToActors(room, tiles, 16, room.Width()) {
@@ -50,7 +53,7 @@ func New(
 		room.Height()*cfg.TileDimY,
 		0, 0,
 		px, py, pz)
-	return &Scene{mgr, room, tiles, ox, oy}
+	return &Scene{wmgr, mgr, room, tiles, ox, oy}
 }
 
 func roomToActors(rm *room.Room, tiles *sprites.Spritesheet, px, dimX int) []actors.Actor {
@@ -110,15 +113,15 @@ func (s *Scene) AddActor(actor actors.Actor) {
 	s.ActorM.AddActor(actor)
 }
 
-// Update w
+// Update - main update loop
 func (s *Scene) Update(df types.Frame) {
 	// first process inputs
 	state := input.State().Tick(df)
-	// blocked := false
-	// if !blocked {
-	/* blocked = */
-	s.ActorM.HandleInput(state)
-	// }
+
+	// windows take priority over actors
+	if !s.WindowM.HandleInput(state) {
+		s.ActorM.HandleInput(state)
+	}
 
 	// then process/delegate events
 	s.processEvents()
@@ -148,6 +151,8 @@ func (s *Scene) processEvents() {
 		switch ev.Scope() {
 		case events.Actor:
 			s.ActorM.Actions().Add(actors.InterpretEvent(ev))
+		case events.Window:
+			s.WindowM.AddWindow(windows.InterpretEvent(ev))
 		default:
 			fmt.Printf("unknown event scope %d\n", ev.Scope())
 			continue
@@ -191,6 +196,7 @@ func getScrollOffset(w, h, ox, oy, px, py, pz int) (int, int) {
 
 // Render - called by main render loop
 func (s *Scene) Render(img *ebiten.Image) *ebiten.Image {
+	s.WindowM.Render(img, s.offsetX, s.offsetY)
 	s.ActorM.Render(img, s.offsetX, s.offsetY)
 
 	return img

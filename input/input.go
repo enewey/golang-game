@@ -8,7 +8,7 @@ import (
 var keys = []ebiten.Key{
 	ebiten.KeyRight, ebiten.KeyLeft, ebiten.KeyDown, ebiten.KeyUp,
 	ebiten.KeySpace, ebiten.KeyTab, ebiten.KeyShift,
-	ebiten.KeyZ,
+	ebiten.KeyZ, ebiten.KeyX,
 }
 
 // Input - map of ebiten Keys to how many frames they have been held down
