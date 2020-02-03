@@ -23,6 +23,7 @@ func (s *Sprite) Dims() (int, int) {
 func (s *Sprite) Draw(x, y int, img *ebiten.Image) *ebiten.Image {
 	opt := &ebiten.DrawImageOptions{}
 	opt.GeoM.Translate(float64(x), float64(y))
+	opt.Filter = ebiten.FilterNearest
 
 	img.DrawImage(s.img, opt)
 	return img

@@ -70,7 +70,15 @@ func init() {
 var debug bool
 var slownum int
 
-func update(screen *ebiten.Image) error {
+type game struct {
+	width, height int
+}
+
+func (g *game) Layout(ow, oh int) (int, int) {
+	return cfg.ScreenWidth() * 3, cfg.ScreenHeight() * 3
+}
+
+func (g *game) Update(screen *ebiten.Image) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
@@ -106,9 +114,14 @@ func update(screen *ebiten.Image) error {
 }
 
 func main() {
-	if err := ebiten.Run(
-		update, cfg.ScreenWidth()*3, cfg.ScreenHeight()*3, 1, "Jumpin' Game",
-	); err != nil {
+	g := &game{cfg.ScreenWidth() * 3, cfg.ScreenHeight() * 3}
+	w := g.width
+	h := g.height
+
+	ebiten.SetWindowSize(w, h)
+	ebiten.SetWindowResizable(true)
+	ebiten.SetWindowTitle("Jumpin' Game")
+	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
 }

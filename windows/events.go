@@ -16,6 +16,7 @@ const (
 func InterpretEvent(ev *events.Event) Window {
 	cfg := config.Get()
 	p := ev.Payload()
+	fmt.Printf("interpreting window event %d :: ", ev.Code())
 	switch ev.Code() {
 	case Message:
 		return messageWindowEvent(p)
@@ -29,5 +30,6 @@ func messageWindowEvent(p []interface{}) *MessageWindow {
 	cfg := config.Get()
 	x, y, w, h := p[0].(int), p[1].(int), p[2].(int), p[3].(int)
 	msg := p[4].(string)
+	fmt.Printf("message window interpreted %d %d %d %d %s", x, y, w, h, msg)
 	return NewMessageWindow(x, y, w, h, cfg.WindowColor(), msg, cfg.TextSpeed())
 }

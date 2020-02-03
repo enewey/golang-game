@@ -89,16 +89,11 @@ func NewPushBlock(x, y, z int, name string, sprite sprites.Spritemap) actors.Act
 	)
 	block.Collider().Reactions().Push(events.ReactionOnCollision, reaction)
 	interaction := events.NewReaction(func(args ...interface{}) {
-		subject := args[0].(actors.Actor)
-		object := args[1].(actors.Actor)
-
 		events.Enqueue(
-			events.NewMessageWindowEvent(0, 100,
-				config.Get().ScreenWidth(), config.Get().ScreenHeight()/4,
-				"Hello this is a test"),
+			events.NewMessageWindowEvent(0, (config.Get().ScreenHeight()*2)/3,
+				config.Get().ScreenWidth(), (config.Get().ScreenHeight()/3)+1,
+				"Hello! This is a test of drawing text\non a message window.\nNeato!~"),
 		)
-
-		fmt.Printf("Actor %d says hi to actor %d\n", subject.ID(), object.ID())
 	})
 	block.Collider().Reactions().Push(events.ReactionOnInteraction, interaction)
 	return block

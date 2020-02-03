@@ -19,8 +19,8 @@ var singer *Config
 func Get() *Config {
 	if singer == nil {
 		singer = &Config{
-			16, 16, 10, 8, -0.25,
-			"ponderosa.ttf",
+			16, 16, 15, 10, -0.25,
+			"MARKEN.TTF",
 		}
 	}
 	return singer
@@ -57,14 +57,29 @@ const (
 	RightKey
 )
 
-func (c *Config) KeyUp() ebiten.Key      { return c.buttonSetting(UpKey) }
-func (c *Config) KeyDown() ebiten.Key    { return c.buttonSetting(DownKey) }
-func (c *Config) KeyLeft() ebiten.Key    { return c.buttonSetting(LeftKey) }
-func (c *Config) KeyRight() ebiten.Key   { return c.buttonSetting(RightKey) }
+// KeyUp w
+func (c *Config) KeyUp() ebiten.Key { return c.buttonSetting(UpKey) }
+
+// KeyDown w
+func (c *Config) KeyDown() ebiten.Key { return c.buttonSetting(DownKey) }
+
+// KeyLeft w
+func (c *Config) KeyLeft() ebiten.Key { return c.buttonSetting(LeftKey) }
+
+// KeyRight w
+func (c *Config) KeyRight() ebiten.Key { return c.buttonSetting(RightKey) }
+
+// KeyConfirm w
 func (c *Config) KeyConfirm() ebiten.Key { return c.buttonSetting(ConfirmKey) }
-func (c *Config) KeyCancel() ebiten.Key  { return c.buttonSetting(CancelKey) }
-func (c *Config) KeyJump() ebiten.Key    { return c.buttonSetting(JumpKey) }
-func (c *Config) KeyDash() ebiten.Key    { return c.buttonSetting(DashKey) }
+
+// KeyCancel w
+func (c *Config) KeyCancel() ebiten.Key { return c.buttonSetting(CancelKey) }
+
+// KeyJump w
+func (c *Config) KeyJump() ebiten.Key { return c.buttonSetting(JumpKey) }
+
+// KeyDash w
+func (c *Config) KeyDash() ebiten.Key { return c.buttonSetting(DashKey) }
 
 // ButtonSetting takes in a button function and returns what key it maps to.
 func (c *Config) buttonSetting(k int) ebiten.Key {
@@ -104,14 +119,17 @@ func (c *Config) Gravity() float64 {
 	return c.gravity
 }
 
+// Font returns the default font file name
 func (c *Config) Font() string {
 	return c.fontName
 }
 
+// TextSpeed is the frequency at which text appears on the screen
 func (c *Config) TextSpeed() int {
-	return 1
+	return 2
 }
 
+// WindowColor is the default window color
 func (c *Config) WindowColor() color.Color {
 	return color.Black
 }

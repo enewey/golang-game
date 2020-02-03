@@ -1,16 +1,14 @@
 package windows
 
 import (
-	"fmt"
 	"image/color"
 
-	"enewey.com/golang-game/cache"
 	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/input"
 	"enewey.com/golang-game/sprites"
 	"enewey.com/golang-game/types"
 	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/text"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 // Window represents a box to contain text or images that appears in a separate
@@ -32,8 +30,8 @@ type BaseWindow struct {
 
 // NewBlankWindow returns a blank window.
 func NewBlankWindow(x, y, w, h int, c color.Color) *BaseWindow {
-	sprite := sprites.NewSpriteRect(w, h)
-	sprite.Sprite.Img().Fill(c)
+	sprite := sprites.NewSpriteRect(w, h, c)
+	// sprite.Sprite.Img().Fill(c)
 	return &BaseWindow{sprite, x, y, w, h, false}
 }
 
@@ -41,11 +39,6 @@ func NewBlankWindow(x, y, w, h int, c color.Color) *BaseWindow {
 func (w *BaseWindow) IsDisposed() bool { return w.disposed }
 
 func (w *BaseWindow) dispose() { w.disposed = true }
-
-// Draw does a draw
-// func (w *BaseWindow) Draw(df types.Frame, img *ebiten.Image) {
-// 	w.skin.Sprite.Draw(w.x, w.y, img)
-// }
 
 // MessageWindow is a window containing a text message
 type MessageWindow struct {
@@ -70,7 +63,6 @@ func (w *MessageWindow) Act(df types.Frame) {
 		w.elapsed += df
 		substr := int(w.elapsed / w.speed)
 		w.currMessage = w.message[0:substr]
-		fmt.Printf("current message %s\n", w.currMessage)
 	} else {
 		w.currMessage = w.message
 	}
@@ -79,11 +71,11 @@ func (w *MessageWindow) Act(df types.Frame) {
 // Draw does a draw
 func (w *MessageWindow) Draw(img *ebiten.Image, ox, oy int) {
 
-	fmt.Printf("window draw call made\n")
-	w.skin.Sprite.Draw(w.x+ox, w.y+oy, img)
+	w.skin.Sprite.Draw(w.x, w.y, img)
 
-	font := cache.Get().LoadFont(config.Get().Font())
-	text.Draw(img, w.currMessage, font, w.x, w.y, color.White)
+	// font := cache.Get().LoadFont(config.Get().Font())
+	// text.Draw(img, w.currMessage, font, w.x+2, w.y+12, color.White)
+	ebitenutil.DebugPrintAt(img, w.currMessage, w.x, w.y)
 }
 
 // HandleInput - so long as the message window is active, it will consume input.

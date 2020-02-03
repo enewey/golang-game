@@ -84,9 +84,11 @@ func (c *Cache) LoadFont(src string) font.Face {
 			panic(err)
 		}
 		face := truetype.NewFace(tt, &truetype.Options{
-			Size:    24,
-			DPI:     72,
-			Hinting: font.HintingFull,
+			Size:       10,
+			DPI:        72,
+			Hinting:    font.HintingFull,
+			SubPixelsX: 0,
+			SubPixelsY: 0,
 		})
 		c.fonts[src] = face
 	}

@@ -127,13 +127,11 @@ func (s *Scene) Update(df types.Frame) {
 	s.processEvents()
 
 	// then call the manager act() functions
-	s.act(df)
-
-	// resolve collisions of actor against room based on staged actor velocities
-	s.resolveCollisions()
-
-	// allow actor manager to resolve collisions between actors
-	// (which may generate more events)
+	if !s.WindowM.Act(df) {
+		// actors only get to act if window manager doesnt declare focus
+		s.ActorM.Act(df)
+		s.ActorM.ResolveCollisions(s.Room.Colliders())
+	}
 
 	//At the end of it, get the player's position and adjust the scroll offset
 	px, py, pz := s.ActorM.GetPlayer().Pos()
@@ -158,17 +156,6 @@ func (s *Scene) processEvents() {
 			continue
 		}
 	}
-}
-
-func (s *Scene) act(df int) {
-	if s.WindowM.Act(df) {
-		return
-	}
-	s.ActorM.Act(df)
-}
-
-func (s *Scene) resolveCollisions() {
-	s.ActorM.ResolveCollisions(s.Room.Colliders())
 }
 
 func getScrollOffset(w, h, ox, oy, px, py, pz int) (int, int) {
@@ -199,8 +186,9 @@ func getScrollOffset(w, h, ox, oy, px, py, pz int) (int, int) {
 
 // Render - called by main render loop
 func (s *Scene) Render(img *ebiten.Image) *ebiten.Image {
-	s.WindowM.Render(img, s.offsetX, s.offsetY)
 	s.ActorM.Render(img, s.offsetX, s.offsetY)
+	s.WindowM.Render(img, s.offsetX, s.offsetY)
+	// windows render on TOP.. i.e. AFTER
 
 	return img
 }
