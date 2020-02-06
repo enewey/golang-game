@@ -53,6 +53,16 @@ func Enqueue(ev *Event) {
 	bus = append(bus, ev)
 }
 
+// EnqueueAll - queue up multiple events, with the assumption that they'll be executed in the order of events
+// This requires reversing the input array, so that the array is appended to provide a FIFO ordering
+func EnqueueAll(evs []*Event) {
+	a := append(evs[:0:0], evs...)
+	for i, j := 0, len(a)-1; i < j; i, j = i+1, j-1 {
+		a[i], a[j] = a[j], a[i]
+	}
+	bus = append(bus, a...)
+}
+
 // Read - reads the next event in the queue
 func Read() *Event {
 	if len(bus) == 0 {

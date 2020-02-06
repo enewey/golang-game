@@ -21,7 +21,7 @@ type Window interface {
 	IsDisposed() bool
 }
 
-// BaseWindow is a
+// BaseWindow is an abstraction to encapsulate elements common across all windows.
 type BaseWindow struct {
 	skin       *sprites.SpriteRect
 	x, y, w, h int

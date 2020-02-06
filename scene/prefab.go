@@ -5,7 +5,6 @@ import (
 
 	"enewey.com/golang-game/actors"
 	"enewey.com/golang-game/colliders"
-	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/sprites"
 	"enewey.com/golang-game/utils"
@@ -88,13 +87,14 @@ func NewPushBlock(x, y, z int, name string, sprite sprites.Spritemap) actors.Act
 		120,
 	)
 	block.Collider().Reactions().Push(events.ReactionOnCollision, reaction)
-	interaction := events.NewReaction(func(args ...interface{}) {
-		events.Enqueue(
-			events.NewMessageWindowEvent(0, (config.Get().ScreenHeight()*2)/3,
-				config.Get().ScreenWidth(), (config.Get().ScreenHeight()/3)+1,
-				"Hello! This is a test of drawing text\non a message window.\nNeato!~"),
-		)
-	})
+	// interaction := events.NewReaction(func(args ...interface{}) {
+	// 	events.Enqueue(
+	// 		events.NewMessageWindowEvent(0, (config.Get().ScreenHeight()*2)/3,
+	// 			config.Get().ScreenWidth(), (config.Get().ScreenHeight()/3)+1,
+	// 			"Hello! This is a test of drawing text\non a message window.\nNeato!~"),
+	// 	)
+	// })
+	interaction := events.NewMessageReaction([]string{"Hello! This is a test of drawing text\non a message window.\nNeato!~", "This is a second message!"})
 	block.Collider().Reactions().Push(events.ReactionOnInteraction, interaction)
 	return block
 }
