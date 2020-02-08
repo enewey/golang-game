@@ -52,3 +52,23 @@ func NewCompoundSprite(sprites []*Sprite, rows, cols, tilex, tiley int) *Sprite 
 
 	return &Sprite{img}
 }
+
+// NewTiledSprite - create a sprite composed of one tile repeated over and over
+// in a rectangle.
+func NewTiledSprite(sprite *Sprite, rows, cols, tilex, tiley int) *Sprite {
+	img, err := ebiten.NewImage(cols*tilex, rows*tiley, ebiten.FilterDefault)
+	if err != nil {
+		panic(err)
+	}
+
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			opt := &ebiten.DrawImageOptions{}
+			opt.GeoM.Translate(float64(c*tilex), float64(r*tiley))
+
+			img.DrawImage(sprite.Img(), opt)
+		}
+	}
+
+	return &Sprite{img}
+}

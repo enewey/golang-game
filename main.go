@@ -46,12 +46,18 @@ func init() {
 	)
 	charBlock := colliders.NewBlock(cX, cY, cZ, 10, 10, 14, true, "chara")
 	girl = actors.NewCharActor("player", girlChar, charBlock, -4, -8)
-	gameScene = scene.New(girl, cache.Get().LoadRoom("longboy"), tiles)
+	gameScene = scene.New(girl, cache.Get().LoadRoom("emptyguy"), tiles)
 
 	shadowChar := charas.GetSprite(1)
 	shadow, hook := scene.CreateShadow(girl, shadowChar)
 	gameScene.AddActor(shadow)
 	gameScene.ActorM.AddHook(hook)
+
+	floorSprite := sprites.NewTiledSprite(tiles.GetSprite(16), 15, 20, cfg.TileDimX, cfg.TileDimY)
+	floorCollider := colliders.NewBlock(0, 0, -1, 320, 240, 1, true, "the_floor")
+	floor := actors.NewStaticActor("floor", sprites.NewStaticSpritemap(floorSprite), floorCollider, 0, 0)
+
+	gameScene.AddActor(floor)
 
 	// end scene initialization
 
