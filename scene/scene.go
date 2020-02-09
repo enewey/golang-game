@@ -35,7 +35,13 @@ func New(player actors.Actor, dataFile string) *Scene {
 	wmgr := windows.NewManager()
 	mgr := actors.NewManager()
 	mgr.SetPlayer(player)
+
 	room := createRoom(FromJSON(dataFile))
+	boundaries := NewBoundaries(room.Width, room.Height)
+	for _, bound := range boundaries {
+		mgr.AddActor(bound)
+	}
+
 	for _, actor := range room.actors {
 		mgr.AddActor(actor)
 	}

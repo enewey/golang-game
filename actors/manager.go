@@ -269,7 +269,10 @@ func handleBlockingCollisions(dx, dy, dz float64, v CanMove, colliderCtx collide
 func (m *Manager) Render(img *ebiten.Image, ox, oy int) *ebiten.Image {
 	m.drawSort()
 	for _, actor := range m.sortedActors {
-		drawable := actor.(Drawable)
+		drawable, ok := actor.(Drawable)
+		if !ok {
+			continue
+		}
 		drawable.draw(img, -ox, -oy)
 	}
 	return img

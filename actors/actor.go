@@ -84,8 +84,7 @@ type baseActor struct {
 	id       int
 	category string // denotes the "type" of actor
 
-	spritemap sprites.Spritemap
-	collider  colliders.Collider
+	collider colliders.Collider
 }
 
 // ID - unique id for actor
@@ -100,20 +99,36 @@ func (a *baseActor) Pos() (int, int, int) { return a.collider.Pos() }
 // Collider - returns the raw collider for the actor
 func (a *baseActor) Collider() colliders.Collider { return a.collider }
 
-// CanCollide tells wheter this actor can resolve collisions.
+// CanCollide tells whether this actor can resolve collisions.
 func (a *baseActor) CanCollide() bool { return false }
 
 // Category - returns the designated category metadata of the actor
 func (a *baseActor) Category() string { return a.category }
 
-// SpriteActor s
+func (a *baseActor) IsBehind(b Actor) bool { return true }
+
+// InvisibleActor is an actor with no sprite, but does have collision.
+type InvisibleActor struct {
+	baseActor
+}
+
+// NewInvisibleActor returns a new invisible actor with the provided collider.
+func NewInvisibleActor(category string, collider colliders.Collider) *InvisibleActor {
+	return &InvisibleActor{baseActor{-1, category, collider}}
+}
+
+// CanCollide tells whether this actor can resolve collisions.
+func (a *InvisibleActor) CanCollide() bool { return true }
+
+// SpriteActor is an actor that has a sprite.
 type SpriteActor struct {
 	baseActor
 	// drawn offset
-	ox, oy int
+	spritemap sprites.Spritemap
+	ox, oy    int
 }
 
-// NewSpriteActor s
+// NewSpriteActor returns a new SpriteActor, an actor with collision and a sprite.
 func NewSpriteActor(
 	category string,
 	sprite sprites.Spritemap,
@@ -122,7 +137,8 @@ func NewSpriteActor(
 ) *SpriteActor {
 
 	return &SpriteActor{
-		baseActor{-1, category, sprite, collider},
+		baseActor{-1, category, collider},
+		sprite,
 		ox, oy,
 	}
 }

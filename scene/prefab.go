@@ -5,10 +5,26 @@ import (
 
 	"enewey.com/golang-game/actors"
 	"enewey.com/golang-game/colliders"
+	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/sprites"
 	"enewey.com/golang-game/utils"
 )
+
+// NewBoundaries creates boundaries for a room.
+func NewBoundaries(roomWidth, roomHeight int) []actors.Actor {
+	dimx, dimy := config.Get().TileDimX, config.Get().TileDimY
+	width, height := dimx*roomWidth, dimy*roomHeight
+	//north
+	north := actors.NewInvisibleActor("boundary", colliders.NewBlock(-dimx, -dimy, 0, width+(dimx*2), dimy, 99999, true, "north_boundary"))
+	//east
+	east := actors.NewInvisibleActor("boundary", colliders.NewBlock(width, -dimy, 0, dimx, height+(dimy*2), 99999, true, "east_boundary"))
+	//south
+	south := actors.NewInvisibleActor("boundary", colliders.NewBlock(-dimx, height, 0, width+(dimx*2), dimy, 99999, true, "south_boundary"))
+	//west
+	west := actors.NewInvisibleActor("boundary", colliders.NewBlock(-dimx, -dimy, 0, dimx, height+(dimy*2), 99999, true, "west_boundary"))
+	return []actors.Actor{north, east, south, west}
+}
 
 // NewTrampoline returns a trampoline actor
 func NewTrampoline(x, y, z int, sprite sprites.Spritemap) actors.Actor {
