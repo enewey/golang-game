@@ -4,12 +4,9 @@ import (
 	"fmt"
 
 	"enewey.com/golang-game/actors"
-	"enewey.com/golang-game/colliders"
 	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/input"
-	"enewey.com/golang-game/room"
-	"enewey.com/golang-game/sprites"
 	"enewey.com/golang-game/types"
 	"enewey.com/golang-game/utils"
 	"enewey.com/golang-game/windows"
@@ -23,8 +20,7 @@ import (
 type Scene struct {
 	WindowM          *windows.Manager
 	ActorM           *actors.Manager
-	Room             *room.Room
-	Tiles            *sprites.Spritesheet
+	width, height    int
 	offsetX, offsetY int // room rendering offsets
 }
 
@@ -35,78 +31,75 @@ func init() {
 }
 
 // New w
-func New(
-	player actors.Actor,
-	room *room.Room,
-	tiles *sprites.Spritesheet,
-) *Scene {
+func New(player actors.Actor, dataFile string) *Scene {
 	wmgr := windows.NewManager()
 	mgr := actors.NewManager()
 	mgr.SetPlayer(player)
-	for _, actor := range roomToActors(room, tiles, 16, room.Width()) {
+	room := createRoom(FromJSON(dataFile))
+	for _, actor := range room.actors {
 		mgr.AddActor(actor)
 	}
 
 	px, py, pz := player.Pos()
 	ox, oy := getScrollOffset(
-		room.Width()*cfg.TileDimX,
-		room.Height()*cfg.TileDimY,
+		room.Width*cfg.TileDimX,
+		room.Height*cfg.TileDimY,
 		0, 0,
 		px, py, pz)
-	return &Scene{wmgr, mgr, room, tiles, ox, oy}
+	return &Scene{wmgr, mgr, room.Width, room.Height, ox, oy}
 }
 
-func roomToActors(rm *room.Room, tiles *sprites.Spritesheet, px, dimX int) []actors.Actor {
-	// the current room situation is such that tiles on an even priority are floors,
-	// and tiles on an odd priority are walls.
-	// Floor xyz calculation:
-	//		x = column * px
-	//		y = (row + (priority/2)) * px
-	//		z = (priority/2) * px
-	// Wall xyz calculation:
-	//		x = column * px
-	//		y = (row + 1 + (priority/2)) * px
-	//		z = (priority/2) * px
-	//
-	// note the only difference is adding 1 to the Y when dealing with a wall
-	// which only happens on an odd-numbered priority
-	ret := []actors.Actor{}
+// func roomToActors(rm *room.Room, tiles *sprites.Spritesheet, px, dimX int) []actors.Actor {
+// 	// the current room situation is such that tiles on an even priority are floors,
+// 	// and tiles on an odd priority are walls.
+// 	// Floor xyz calculation:
+// 	//		x = column * px
+// 	//		y = (row + (priority/2)) * px
+// 	//		z = (priority/2) * px
+// 	// Wall xyz calculation:
+// 	//		x = column * px
+// 	//		y = (row + 1 + (priority/2)) * px
+// 	//		z = (priority/2) * px
+// 	//
+// 	// note the only difference is adding 1 to the Y when dealing with a wall
+// 	// which only happens on an odd-numbered priority
+// 	ret := []actors.Actor{}
 
-	for lyrNum, lyr := range rm.Layers() {
-		yFactor := lyr.Priority() % 2
-		isWalls := yFactor == 1
+// 	for lyrNum, lyr := range rm.Layers() {
+// 		yFactor := lyr.Priority() % 2
+// 		isWalls := yFactor == 1
 
-		for i, tile := range lyr.Tiles() {
-			if tile == 0 {
-				continue
-			}
-			r := i / dimX
-			c := i % dimX
+// 		for i, tile := range lyr.Tiles() {
+// 			if tile == 0 {
+// 				continue
+// 			}
+// 			r := i / dimX
+// 			c := i % dimX
 
-			x := c * px
-			y := (r + yFactor + (lyr.Priority() / 2)) * px
-			z := (lyr.Priority() / 2) * px
+// 			x := c * px
+// 			y := (r + yFactor + (lyr.Priority() / 2)) * px
+// 			z := (lyr.Priority() / 2) * px
 
-			if isWalls {
-				ret = append(ret, actors.NewSpriteActor(
-					"wall",
-					sprites.NewStaticSpritemap(tiles.GetSprite(tile)),
-					colliders.NewBlock(x, y, z, px, 0, px, false, fmt.Sprintf("wall-%d-%d", lyrNum, i)),
-					0, -px,
-				))
-			} else {
-				ret = append(ret, actors.NewSpriteActor(
-					"floor",
-					sprites.NewStaticSpritemap(tiles.GetSprite(tile)),
-					colliders.NewBlock(x, y, z, px, px, 0, false, fmt.Sprintf("floor-%d-%d", lyrNum, i)),
-					0, 0,
-				))
-			}
-		}
-	}
+// 			if isWalls {
+// 				ret = append(ret, actors.NewSpriteActor(
+// 					"wall",
+// 					sprites.NewStaticSpritemap(tiles.GetSprite(tile)),
+// 					colliders.NewBlock(x, y, z, px, 0, px, false, fmt.Sprintf("wall-%d-%d", lyrNum, i)),
+// 					0, -px,
+// 				))
+// 			} else {
+// 				ret = append(ret, actors.NewSpriteActor(
+// 					"floor",
+// 					sprites.NewStaticSpritemap(tiles.GetSprite(tile)),
+// 					colliders.NewBlock(x, y, z, px, px, 0, false, fmt.Sprintf("floor-%d-%d", lyrNum, i)),
+// 					0, 0,
+// 				))
+// 			}
+// 		}
+// 	}
 
-	return ret
-}
+// 	return ret
+// }
 
 // AddActor adds an actor to the scene
 func (s *Scene) AddActor(actor actors.Actor) {
@@ -130,14 +123,14 @@ func (s *Scene) Update(df types.Frame) {
 	if !s.WindowM.Act(df) {
 		// actors only get to act if window manager doesnt declare focus
 		s.ActorM.Act(df)
-		s.ActorM.ResolveCollisions(s.Room.Colliders())
+		s.ActorM.ResolveCollisions()
 	}
 
 	//At the end of it, get the player's position and adjust the scroll offset
 	px, py, pz := s.ActorM.GetPlayer().Pos()
 	s.offsetX, s.offsetY = getScrollOffset(
-		s.Room.Width()*cfg.TileDimX,
-		s.Room.Height()*cfg.TileDimY,
+		s.width*cfg.TileDimX,
+		s.height*cfg.TileDimY,
 		s.offsetX, s.offsetY,
 		px, py, pz)
 }

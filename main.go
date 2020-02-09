@@ -14,7 +14,6 @@ import (
 	"enewey.com/golang-game/clock"
 	"enewey.com/golang-game/colliders"
 	"enewey.com/golang-game/config"
-	"enewey.com/golang-game/room"
 	"enewey.com/golang-game/scene"
 	"enewey.com/golang-game/sprites"
 )
@@ -29,15 +28,6 @@ var roomImage *ebiten.Image
 var cfg *config.Config
 
 func init() {
-
-	// testing a thing
-
-	data := room.FromJSON("assets/rooms/v2.room.json")
-	fmt.Printf("%+v\n", data)
-	fmt.Printf("%+v\n", data.Actors[0])
-	fmt.Printf("%+v\n", data.Actors[0].Sprite)
-	fmt.Printf("%+v\n", data.Actors[0].Collider)
-
 	// game initialization
 
 	cfg = config.Get()
@@ -55,18 +45,12 @@ func init() {
 	)
 	charBlock := colliders.NewBlock(cX, cY, cZ, 10, 10, 14, true, "chara")
 	girl = actors.NewCharActor("player", girlChar, charBlock, -4, -8)
-	gameScene = scene.New(girl, cache.Get().LoadRoom("emptyguy"), tiles)
+	gameScene = scene.New(girl, "assets/rooms/v2.room.json")
 
 	shadowChar := charas.GetSprite(1)
 	shadow, hook := scene.CreateShadow(girl, shadowChar)
 	gameScene.AddActor(shadow)
 	gameScene.ActorM.AddHook(hook)
-
-	floorSprite := sprites.NewTiledSprite(tiles.GetSprite(16), 15, 20, cfg.TileDimX, cfg.TileDimY)
-	floorCollider := colliders.NewBlock(0, 0, 0, 320, 240, 0, true, "the_floor")
-	floor := actors.NewStaticActor("floor", sprites.NewStaticSpritemap(floorSprite), floorCollider, 0, 0)
-
-	gameScene.AddActor(floor)
 
 	// end scene initialization
 

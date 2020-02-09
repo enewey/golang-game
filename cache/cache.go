@@ -6,7 +6,6 @@ import (
 
 	"golang.org/x/image/font"
 
-	"enewey.com/golang-game/room"
 	"enewey.com/golang-game/sprites"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten"
@@ -16,7 +15,6 @@ import (
 // Cache woo
 type Cache struct {
 	images map[string]*ebiten.Image
-	rooms  map[string]*room.Room
 	sheets map[string]*sprites.Spritesheet
 	fonts  map[string]font.Face
 }
@@ -32,7 +30,6 @@ func Get() *Cache {
 	if singer == nil {
 		singer = &Cache{
 			make(map[string]*ebiten.Image),
-			make(map[string]*room.Room),
 			make(map[string]*sprites.Spritesheet),
 			make(map[string]font.Face),
 		}
@@ -60,15 +57,6 @@ func (c *Cache) LoadImage(src string) *ebiten.Image {
 	}
 
 	return c.images[src]
-}
-
-// LoadRoom woo
-func (c *Cache) LoadRoom(name string) *room.Room {
-	if c.rooms[name] == nil {
-		c.rooms[name] = room.NewRoomFromFile(roomLoc + name + ".room")
-	}
-
-	return c.rooms[name]
 }
 
 // LoadFont loads a font face from the cache.

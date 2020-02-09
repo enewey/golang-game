@@ -146,9 +146,8 @@ func (m *Manager) HandleInput(state input.Input) bool {
 // ResolveCollisions - every CanMove actor being managed will check collision against
 //		the provided Colliders.
 // 		Also alters velocity of actors in the air for gravity.
-func (m *Manager) ResolveCollisions(scoll colliders.Colliders) {
-	var mcolls colliders.Colliders = append(scoll[:], m.actorColliders...)
-
+func (m *Manager) ResolveCollisions() {
+	mcolls := m.actorColliders
 	for _, ac := range m.actors {
 		if _, ok := ac.(CanMove); !ok {
 			continue
