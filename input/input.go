@@ -44,14 +44,23 @@ type KeyState struct {
 	frames types.Frame
 }
 
-// Pressed w
+// Pressed indicates whether this button is pressed down.
 func (k *KeyState) Pressed() bool { return ebiten.IsKeyPressed(k.key) }
 
-// JustPressed w
+// JustPressed indicates whether this button was pressed on the current frame.
 func (k *KeyState) JustPressed() bool { return k.frames == 1 }
 
-// Frames w
+// Frames tells how many frames this button has been pressed.
 func (k *KeyState) Frames() types.Frame { return k.frames }
+
+// PressedUnder returns true if the button has been pressed for less than the number of frames.
+func (k *KeyState) PressedUnder(f int) bool { return k.frames < f }
+
+// PressedOver returns true if the button has been pressed for more than the number of frames.
+func (k *KeyState) PressedOver(f int) bool { return k.frames > f }
+
+// PressedWindow returns true if the button has been pressed for a number of frames greater than f but less than g
+func (k *KeyState) PressedWindow(f, g int) bool { return k.frames > f && k.frames < g }
 
 // CalcPress - accumulates the frames this key has been pressed.
 func (k *KeyState) CalcPress(df types.Frame) types.Frame {

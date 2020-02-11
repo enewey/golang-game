@@ -7,6 +7,7 @@ import (
 	"enewey.com/golang-game/colliders"
 	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/events"
+	"enewey.com/golang-game/input"
 	"enewey.com/golang-game/sprites"
 	"enewey.com/golang-game/utils"
 )
@@ -42,10 +43,19 @@ func NewTrampoline(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 		_, _, sz := subject.Collider().Pos()
 		ox, oy, oz := object.Collider().Pos()
 		od := object.Collider().ZDepth(ox, oy)
+
+		var upward float64
+		pressed := input.State()[config.Get().KeyJump()]
+		if pressed.PressedWindow(0, 24) {
+			upward = 4.5
+		} else {
+			upward = 3.3
+		}
+
 		if sz >= oz+od && vz < 0 {
 			subject.SetVel(vx, vy, 0)
 			subject.SetOnGround(false)
-			events.Enqueue(events.New(1, actors.Dash, []interface{}{subject, 0.0, 0.0, (vz * -1.0)}))
+			events.Enqueue(events.New(1, actors.Dash, []interface{}{subject, 0.0, 0.0, upward}))
 		}
 	})
 	rock.Collider().Reactions().Push(events.ReactionOnCollision, reaction)
