@@ -308,6 +308,33 @@ func (cs Colliders) PreventCollision(dx, dy, dz int, subject Collider) (bool, bo
 	return hitGround, hitCeiling, hitWall, ax, ay, az
 }
 
+// ShoveCollision - shove all of the colliders aside in favor of the subject movement.
+func (cs Colliders) ShoveCollision(dx, dy, dz int, subject Collider) Colliders {
+	clone := subject.Copy()
+	x, y, z := subject.Pos()
+	clone.SetPos(dx+x, dy+y, dz+z)
+
+	var sub Colliders = []Collider{clone}
+	// shoved := cs.GetColliding(dx, dy, dz, subject)
+
+	for _, v := range cs {
+		// this is some hacky shit.
+		// we translate the "shoved" collider by the movement of the heavy collider
+		// and then attempt to move it back via prevent collision.
+		// this is because Resolv does not try to prevent a collision
+		// if the deltas are zero.
+		// This will undoubtedly create some wacky edge cases, so need to do some
+		// diligent testing around this stuff.
+		vx, vy, vz := v.Pos()
+		v.SetPos(vx+dx, vy+dy, vz+dz)
+
+		var ax, ay, az = -dx, -dy, -dz
+
+		sub.PreventCollision(ax, ay, az, v)
+	}
+	return cs
+}
+
 // Filter - filter func for Colliders.
 // Returns a new slice where all the colliders return true for the test function.
 func (cs Colliders) Filter(test func(Collider, int) bool) Colliders {

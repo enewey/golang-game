@@ -21,6 +21,8 @@ type Manager struct {
 	actorColliders colliders.Colliders
 	actions        Actions
 	hooks          *Hooks
+
+	collState map[int]bool
 }
 
 // NewManager create a new actor manager
@@ -32,6 +34,7 @@ func NewManager() *Manager {
 		colliders.Colliders{},
 		make([]Action, 5),
 		&Hooks{[]PostCollisionHook{}},
+		nil,
 	}
 	return ret
 }
@@ -143,52 +146,94 @@ func (m *Manager) HandleInteraction(subject Actor) bool {
 //		the provided Colliders.
 // 		Also alters velocity of actors in the air for gravity.
 func (m *Manager) ResolveCollisions() {
-	mcolls := m.actorColliders
+	m.collState = make(map[int]bool)
+	mcolls := colliders.Colliders{}
+	for _, act := range m.actors {
+		mcolls = append(mcolls, act.Collider())
+	}
 	for _, ac := range m.actors {
 		if _, ok := ac.(CanMove); !ok {
 			continue
 		}
+		if m.collState[ac.ID()] {
+			continue
+		}
 		subject := ac.(CanMove)
 
-		// Exclude the subject actor
-		colliderCtx := mcolls.ExcludeByCollider(subject.Collider())
-
-		dx, dy, dz := subject.Vel()
-
-		// For stuff on top of other stuff, make them move with 'em
-		if subject.OnGround() {
-			for _, block := range colliderCtx.GetBlocking().GetColliding(int(dx), int(dy), -1, subject.Collider()) {
-				bx, by, bz := block.Pos()
-				// sx,sy,sz := subject.Collider().Pos()
-				blockD := block.ZDepth(bx, by)
-				// subD := subject.Collider().ZDepth(sx,sy)
-				above := subject.Collider().Z() >= blockD+bz
-
-				if obj, ok := m.actors[block.Ref()].(CanMove); ok && above {
-					a, b, c := subject.Vel()
-					x, y, z := obj.Vel()
-					subject.SetVel(a+x, b+y, c+z)
-				}
-			}
-		}
-
-		// First, run subject against colliders with custom behavior (reactive colliders)
-		reactors := colliderCtx.GetReactive(events.ReactionOnCollision)
-
-		for _, r := range reactors.GetColliding(int(dx), int(dy), int(dz), subject.Collider()) {
-			for _, v := range r.Reactions().OnCollision {
-				v.Tap(ac, m.actors[r.Ref()])
-			}
-		}
-
-		dx, dy, dz = subject.Vel()
-
-		// Second, check collision against blocking colliders and prevent the collisions.
-		handleBlockingCollisions(dx, dy, dz, subject, colliderCtx.GetBlocking())
+		m.handleCollision(subject, mcolls)
+		m.collState[ac.ID()] = true
 	}
 	for _, hook := range m.hooks.PostCollision {
 		hook.Tap(mcolls)
 	}
+}
+
+func (m *Manager) handleCollision(subject CanMove, mcolls colliders.Colliders) {
+	// Exclude the subject actor
+	colliderCtx := mcolls.ExcludeByCollider(subject.Collider())
+
+	dx, dy, dz := subject.Vel()
+
+	// For stuff on top of other stuff, make them move with 'em
+	if subject.OnGround() {
+		for _, block := range colliderCtx.GetBlocking().GetColliding(int(dx), int(dy), -1, subject.Collider()) {
+			bx, by, bz := block.Pos()
+			// sx,sy,sz := subject.Collider().Pos()
+			blockD := block.ZDepth(bx, by)
+			// subD := subject.Collider().ZDepth(sx,sy)
+			above := subject.Collider().Z() >= blockD+bz
+
+			if obj, ok := m.actors[block.Ref()].(CanMove); ok && above {
+				a, b, c := subject.Vel()
+				x, y, z := obj.Vel()
+				subject.SetVel(a+x, b+y, c+z)
+			}
+		}
+	}
+
+	// First, run subject against colliders with custom behavior (reactive colliders)
+	reactors := colliderCtx.GetReactive(events.ReactionOnCollision)
+
+	for _, r := range reactors.GetColliding(int(dx), int(dy), int(dz), subject.Collider()) {
+		for _, v := range r.Reactions().OnCollision {
+			v.Tap(subject.(Actor), m.actors[r.Ref()])
+		}
+	}
+
+	dx, dy, dz = subject.Vel()
+
+	// Next, shove lighter things we run into, and force them to resolve collisions again.
+	// This needs diligent testing... a shoved collider needs to have its collisions handled again.
+	colliderCtx.GetBlocking().GetColliding(int(dx), int(dy), int(dz), subject.Collider()).Filter(func(c colliders.Collider, i int) bool {
+		actor := m.actors[c.Ref()]
+		if mover, ok := actor.(CanMove); ok {
+			return mover.Weight() < subject.Weight()
+		}
+		return false
+	}).ShoveCollision(int(dx), int(dy), int(dz), subject.Collider())
+	// fmt.Printf("shoved ctx length %d\n", len(shovedCtx))
+	// for _, v := range shovedCtx {
+	// 	shoved := m.actors[v.Ref()].(CanMove)
+
+	// 	x, y, z := shoved.Vel()
+	// 	if dx != 0 {
+	// 		x = dx
+	// 	}
+
+	// 	m.handleCollision(shoved, mcolls)
+	// }
+
+	blockerCtx := colliderCtx.GetBlocking().Filter(func(c colliders.Collider, i int) bool {
+		actor := m.actors[c.Ref()]
+		if mover, ok := actor.(CanMove); ok {
+			return mover.Weight() >= subject.Weight()
+		}
+		return true
+	})
+
+	// Second, check collision against blocking colliders and prevent the collisions.
+	handleBlockingCollisions(dx, dy, dz, subject, blockerCtx)
+
 }
 
 func handleBlockingCollisions(dx, dy, dz float64, v CanMove, colliderCtx colliders.Colliders) {
