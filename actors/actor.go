@@ -8,7 +8,7 @@ import (
 )
 
 // DirToVec converts a Direction to a 2D vector
-func DirToVec(d int) (int, int) {
+func DirToVec(d types.Direction) (int, int) {
 	switch d {
 	case types.Up:
 		return 0, -1
@@ -41,12 +41,12 @@ type CanMove interface {
 	SetVelZ(z float64)
 	Collider() colliders.Collider
 
-	Direction() int
+	Direction() types.Direction
 	FacingVertical() bool
 	FacingHorizontal() bool
 	Orthogonal() bool
 	FacingDiagonal() bool
-	CalcDirection() int
+	CalcDirection() types.Direction
 }
 
 // Controllable w
@@ -219,7 +219,7 @@ func (a *StaticActor) CanCollide() bool { return true }
 type MovingActor struct {
 	StaticActor
 	vx, vy, vz float64
-	direction  int
+	direction  types.Direction
 	onGround   bool
 }
 
@@ -259,7 +259,7 @@ func (a *MovingActor) SetVelY(y float64) { a.vy = y }
 func (a *MovingActor) SetVelZ(z float64) { a.vz = z }
 
 // Direction - gets the last calculated direction for this actor
-func (a *MovingActor) Direction() int { return a.direction }
+func (a *MovingActor) Direction() types.Direction { return a.direction }
 
 // FacingVertical returns true if the actor's direction is Up or Down
 func (a *MovingActor) FacingVertical() bool {
@@ -283,7 +283,7 @@ func (a *MovingActor) FacingDiagonal() bool {
 }
 
 // CalcDirection - resolves the actor's direciton based on its current velocity.
-func (a *MovingActor) CalcDirection() int {
+func (a *MovingActor) CalcDirection() types.Direction {
 	if a.vx < 0 && a.vy < 0 {
 		a.direction = types.UpLeft
 	} else if a.vx > 0 && a.vy < 0 {
@@ -345,7 +345,7 @@ func (a *CharActor) SetControlled(b bool) { a.controlled = b }
 
 // Sprite woo
 func (a *CharActor) Sprite() *sprites.Sprite {
-	return a.spritemap.Sprite(a.direction)
+	return a.spritemap.Sprite(int(a.direction))
 }
 
 // DrawPos - returns the position this actor should be drawn in world space
@@ -356,7 +356,7 @@ func (a *CharActor) DrawPos() (int, int) {
 
 func (a *CharActor) draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
 	x, y, z := a.Pos()
-	return a.spritemap.Sprite(a.direction).Draw(x+a.ox+offsetX, y-z+a.oy+offsetY, img)
+	return a.spritemap.Sprite(int(a.direction)).Draw(x+a.ox+offsetX, y-z+a.oy+offsetY, img)
 }
 
 // DrawOffset s

@@ -16,6 +16,7 @@ import (
 	"enewey.com/golang-game/config"
 	"enewey.com/golang-game/scene"
 	"enewey.com/golang-game/sprites"
+	"enewey.com/golang-game/types"
 )
 
 var cX = 120
@@ -49,7 +50,7 @@ func init() {
 
 	shadowChar := charas.GetSprite(1)
 	shadow, hook := scene.CreateShadow(girl, shadowChar)
-	gameScene.AddActor(shadow)
+	gameScene.ActorM.AddActor(shadow)
 	gameScene.ActorM.AddHook(hook)
 
 	// end scene initialization
@@ -57,13 +58,14 @@ func init() {
 	// adding extraneous actors
 
 	rock := scene.NewTrampoline(81, 150, 0, sprites.NewStaticSpritemap(tiles.GetSprite(441)))
-	gameScene.AddActor(rock)
+	gameScene.ActorM.AddActor(rock)
 
 	pushy := scene.NewPushBlock(128, 160, 32, "push-block-1", sprites.Create2by1Block(tiles.GetSprite(366), tiles.GetSprite(133)))
-	gameScene.AddActor(pushy)
+	gameScene.ActorM.AddActor(pushy)
 
-	pushy2 := scene.NewPushBlock(200, 80, 160, "push-block-2", sprites.Create2by1Block(tiles.GetSprite(366), tiles.GetSprite(133)))
-	gameScene.AddActor(pushy2)
+	pushy2 := scene.NewPushBlock(200, 80, 0, "push-block-2", sprites.Create2by1Block(tiles.GetSprite(366), tiles.GetSprite(133)))
+	rockCtrl := actors.NewMoveSequenceController([]types.Direction{types.Up, types.Left, types.Down, types.Right}, 16, 32)
+	gameScene.ActorM.AddActorWithController(pushy2, rockCtrl)
 }
 
 var debug bool

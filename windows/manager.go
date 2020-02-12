@@ -24,7 +24,7 @@ func (m *Manager) AddWindow(win Window) {
 }
 
 // HandleInput - handles the input state. Returns true if input is consumed.
-func (m *Manager) HandleInput(state input.Input) bool {
+func (m *Manager) HandleInput(state input.Input, df int) bool {
 	if len(m.windows) == 0 {
 		return false
 	}

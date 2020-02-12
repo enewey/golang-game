@@ -1,6 +1,7 @@
 package actors
 
 import (
+	"fmt"
 	"math"
 	"sort"
 
@@ -14,8 +15,8 @@ import (
 
 // Manager - manages a group of actors (all actors in a scene)
 type Manager struct {
-	actors         map[int]Actor // actor 0 is always the player-controller actor
-	controllers    map[int][]int // controller types to actor IDs
+	actors         map[int]Actor      // actor 0 is always the player-controller actor
+	controllers    map[int]Controller // actor IDs to controllers
 	sortedActors   []Actor
 	actorColliders colliders.Colliders
 	actions        Actions
@@ -26,7 +27,7 @@ type Manager struct {
 func NewManager() *Manager {
 	return &Manager{
 		make(map[int]Actor),
-		make(map[int][]int),
+		make(map[int]Controller),
 		[]Actor{},
 		colliders.Colliders{},
 		make([]Action, 5),
@@ -65,7 +66,7 @@ func (m *Manager) AddHook(hook Hook) {
 func (m *Manager) SetPlayer(a Actor) {
 	a.SetID(0)
 	m.setActor(0, a)
-	m.setController(0, 0)
+	m.setController(0, NewPlayerController())
 }
 
 // GetPlayer returns a pointer to the actor whom is controlled by the player.
@@ -80,7 +81,7 @@ func (m *Manager) AddActor(a Actor) {
 }
 
 // AddActorWithController - add a new actor to the manager with a controller type
-func (m *Manager) AddActorWithController(a Actor, ctrl int) {
+func (m *Manager) AddActorWithController(a Actor, ctrl Controller) {
 	a.SetID(len(m.actors) + 1)
 	m.setActor(a.ID(), a)
 	m.setController(a.ID(), ctrl)
@@ -95,20 +96,26 @@ func (m *Manager) setActor(id int, a Actor) {
 	}
 }
 
-func (m *Manager) setController(id int, ctrl int) {
-	if m.controllers[ctrl] == nil {
-		m.controllers[ctrl] = []int{}
-	}
-	m.controllers[ctrl] = append(m.controllers[ctrl], id)
+func (m *Manager) setController(id int, ctrl Controller) {
+	ctrl.SetTarget(id)
+	m.controllers[id] = ctrl
+	fmt.Printf("setting controller %+v\n", ctrl)
 }
 
 // HandleInput - returns "true" if input is captured, disallowing any other
 // 				 manager from handling the input.
-func (m *Manager) HandleInput(state input.Input) bool {
-	for _, id := range m.controllers[PlayerController] {
-		Control(PlayerController, m.actors[id], state)
+func (m *Manager) HandleInput(state input.Input, df int) bool {
+	ret := false
+	for id, ctrl := range m.controllers {
+		if m.actors[id] == nil {
+			delete(m.controllers, id)
+			continue
+		}
+		if ctrl.Tap(m.actors[id], state, df) {
+			ret = true
+		}
 	}
-	return true
+	return ret
 }
 
 // HandleInteraction handles an actor interacting with its environment (i.e. all other actors in play)

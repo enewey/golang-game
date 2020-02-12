@@ -1,11 +1,19 @@
 package actors
 
-import "enewey.com/golang-game/events"
+import (
+	"enewey.com/golang-game/events"
+	"enewey.com/golang-game/types"
+)
 
 // This file contains a bunch of prefabricated events to be queued.
 // They are not necessarily all actor-scoped events.
 
 // ==== Actor Events
+
+// NewMoveByEvent w
+func NewMoveByEvent(target Actor, dx, dy, dz int, duration types.Frame) *events.Event {
+	return events.New(events.Actor, MoveByActionType, []interface{}{target, dx, dy, dz, duration})
+}
 
 // NewDashEvent creates an event that interprets as an actor Dash event
 func NewDashEvent(target Actor, x, y, z float64) *events.Event {

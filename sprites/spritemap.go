@@ -15,14 +15,14 @@ type CharaMap map[int]*Sprite
 // NewCharaSpritemap returns a new 4 directional spritemap for an actor
 func NewCharaSpritemap(d, r, u, l *Sprite) *CharaMap {
 	return &CharaMap{
-		types.Up:        u,
-		types.Down:      d,
-		types.Right:     r,
-		types.Left:      l,
-		types.UpRight:   u,
-		types.UpLeft:    u,
-		types.DownRight: d,
-		types.DownLeft:  d,
+		int(types.Up):        u,
+		int(types.Down):      d,
+		int(types.Right):     r,
+		int(types.Left):      l,
+		int(types.UpRight):   u,
+		int(types.UpLeft):    u,
+		int(types.DownRight): d,
+		int(types.DownLeft):  d,
 	}
 }
 

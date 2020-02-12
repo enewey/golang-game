@@ -55,19 +55,14 @@ func New(player actors.Actor, dataFile string) *Scene {
 	return &Scene{wmgr, mgr, room.Width, room.Height, ox, oy}
 }
 
-// AddActor adds an actor to the scene
-func (s *Scene) AddActor(actor actors.Actor) {
-	s.ActorM.AddActor(actor)
-}
-
 // Update - main update loop
 func (s *Scene) Update(df types.Frame) {
 	// first process inputs
 	state := input.State().Tick(df)
 
 	// windows take priority over actors
-	if !s.WindowM.HandleInput(state) {
-		s.ActorM.HandleInput(state)
+	if !s.WindowM.HandleInput(state, df) {
+		s.ActorM.HandleInput(state, df)
 	}
 
 	// then process/delegate events
