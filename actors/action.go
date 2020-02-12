@@ -10,13 +10,13 @@ import (
 	"enewey.com/golang-game/utils"
 )
 
-// Action types, expressed from an Event.command
+// ActionType, expressed from an Event.command
 const (
-	MoveTo = iota
-	MoveBy
-	Jump
-	Dash
-	ChangePos
+	MoveToActionType = iota
+	MoveByActionType
+	JumpActionType
+	DashActionType
+	ChangePosActionType
 )
 
 // InterpretEvent - translate an event into an action
@@ -24,15 +24,17 @@ func InterpretEvent(ev *events.Event) Action {
 	fmt.Printf("interpreting event %d :: ", ev.Code())
 	p := ev.Payload()
 	switch ev.Code() {
-	case MoveTo:
-	case MoveBy:
+	case MoveToActionType:
+	case MoveByActionType:
 		fmt.Printf("moveby action interpreted %v\n", ev.Payload())
 		return NewMoveByAction(p[0].(Actor), p[1].(int), p[2].(int), p[3].(int), p[4].(int))
-	case Jump:
-	case Dash:
+	case JumpActionType:
+		fmt.Printf("jump action interpreted %v\n", ev.Payload())
+		return NewJumpAction(p[0].(Actor), p[1].(float64))
+	case DashActionType:
 		fmt.Printf("dash action interpreted %v\n", ev.Payload())
 		return NewDashAction(p[0].(Actor), p[1].(float64), p[2].(float64), p[3].(float64))
-	case ChangePos:
+	case ChangePosActionType:
 
 	default:
 		fmt.Printf("unknown actor event code %d\n", ev.Code())

@@ -55,7 +55,7 @@ func NewTrampoline(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 		if sz >= oz+od && vz < 0 {
 			subject.SetVel(vx, vy, 0)
 			subject.SetOnGround(false)
-			events.Enqueue(events.New(1, actors.Dash, []interface{}{subject, 0.0, 0.0, upward}))
+			events.Enqueue(events.New(1, actors.DashActionType, []interface{}{subject, 0.0, 0.0, upward}))
 		}
 	})
 	rock.Collider().Reactions().Push(events.ReactionOnCollision, reaction)
@@ -98,7 +98,7 @@ func NewPushBlock(x, y, z int, name string, sprite sprites.Spritemap) actors.Act
 			))
 			events.Enqueue(
 				events.New(
-					events.Actor, actors.MoveBy, []interface{}{object, int(dx * 16), int(dy * 16), 0, 32},
+					events.Actor, actors.MoveByActionType, []interface{}{object, int(dx * 16), int(dy * 16), 0, 32},
 				),
 			)
 		},

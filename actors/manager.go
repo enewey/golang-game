@@ -9,13 +9,13 @@ import (
 	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/input"
 	"enewey.com/golang-game/types"
-	"enewey.com/golang-game/utils"
 	"github.com/hajimehoshi/ebiten"
 )
 
 // Manager - manages a group of actors (all actors in a scene)
 type Manager struct {
 	actors         map[int]Actor // actor 0 is always the player-controller actor
+	controllers    map[int][]int // controller types to actor IDs
 	sortedActors   []Actor
 	actorColliders colliders.Colliders
 	actions        Actions
@@ -26,6 +26,7 @@ type Manager struct {
 func NewManager() *Manager {
 	return &Manager{
 		make(map[int]Actor),
+		make(map[int][]int),
 		[]Actor{},
 		colliders.Colliders{},
 		make([]Action, 5),
@@ -64,6 +65,7 @@ func (m *Manager) AddHook(hook Hook) {
 func (m *Manager) SetPlayer(a Actor) {
 	a.SetID(0)
 	m.setActor(0, a)
+	m.setController(0, 0)
 }
 
 // GetPlayer returns a pointer to the actor whom is controlled by the player.
@@ -71,10 +73,17 @@ func (m *Manager) GetPlayer() Actor {
 	return m.actors[0]
 }
 
-// AddActor - add a new actor to the manager
+// AddActor - add a new actor to the manager that has no controller
 func (m *Manager) AddActor(a Actor) {
 	a.SetID(len(m.actors) + 1)
 	m.setActor(a.ID(), a)
+}
+
+// AddActorWithController - add a new actor to the manager with a controller type
+func (m *Manager) AddActorWithController(a Actor, ctrl int) {
+	a.SetID(len(m.actors) + 1)
+	m.setActor(a.ID(), a)
+	m.setController(a.ID(), ctrl)
 }
 
 func (m *Manager) setActor(id int, a Actor) {
@@ -86,61 +95,40 @@ func (m *Manager) setActor(id int, a Actor) {
 	}
 }
 
+func (m *Manager) setController(id int, ctrl int) {
+	if m.controllers[ctrl] == nil {
+		m.controllers[ctrl] = []int{}
+	}
+	m.controllers[ctrl] = append(m.controllers[ctrl], id)
+}
+
 // HandleInput - returns "true" if input is captured, disallowing any other
 // 				 manager from handling the input.
 func (m *Manager) HandleInput(state input.Input) bool {
-	cfg := config.Get()
-	playerActor := m.actors[0]
-	player := playerActor.(CanMove)
-
-	if player.(Controllable).Controlled() {
-		return false
-	}
-	if player.OnGround() {
-		_, _, vz := player.Vel()
-		player.SetVel(0, 0, vz)
-	}
-	var dx, dy float64
-	if state[cfg.KeyUp()].Pressed() {
-		dy--
-	}
-	if state[cfg.KeyDown()].Pressed() {
-		dy++
-	}
-	if state[cfg.KeyLeft()].Pressed() {
-		dx--
-	}
-	if state[cfg.KeyRight()].Pressed() {
-		dx++
-	}
-	player.SetVelX(dx)
-	player.SetVelY(dy)
-	player.CalcDirection()
-
-	if state[cfg.KeyConfirm()].JustPressed() {
-		box := player.Collider().Copy()
-		px, py := DirToVec(player.Direction())
-
-		for _, c := range m.actorColliders.
-			GetReactive(events.ReactionOnInteraction).
-			GetColliding(px*4, py*4, 0, box) {
-			for _, r := range c.Reactions().OnInteraction {
-				r.Tap(player, m.actors[c.Ref()])
-			}
-		}
-	}
-
-	if state[cfg.KeyJump()].JustPressed() && player.OnGround() {
-		action := NewJumpAction(playerActor, 4.0)
-		m.actions.Add(action)
-	}
-
-	if state[cfg.KeyDash()].JustPressed() && !player.(CanDash).Dashed() && player.OnGround() {
-		vx, vy := utils.Normalize2(utils.Itof(DirToVec(player.Direction())))
-		action := NewDashAction(playerActor, vx*2.5, vy*2.5, 0.0)
-		m.actions.Add(action)
+	for _, id := range m.controllers[PlayerController] {
+		Control(PlayerController, m.actors[id], state)
 	}
 	return true
+}
+
+// HandleInteraction handles an actor interacting with its environment (i.e. all other actors in play)
+func (m *Manager) HandleInteraction(subject Actor) bool {
+	box := subject.Collider().Copy()
+
+	var px, py int = 0, 0
+	if cm, ok := subject.(CanMove); ok {
+		px, py = DirToVec(cm.Direction())
+	}
+
+	for _, c := range m.actorColliders.
+		GetReactive(events.ReactionOnInteraction).
+		GetColliding(px*4, py*4, 0, box) {
+		for _, r := range c.Reactions().OnInteraction {
+			r.Tap(subject, m.actors[c.Ref()])
+		}
+		return true
+	}
+	return false
 }
 
 // ResolveCollisions - every CanMove actor being managed will check collision against

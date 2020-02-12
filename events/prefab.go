@@ -1,6 +1,8 @@
 package events
 
-import "enewey.com/golang-game/config"
+import (
+	"enewey.com/golang-game/config"
+)
 
 // NewMessageReaction creates a reaction that produces one or more default messages windows.
 func NewMessageReaction(messages []string) Reaction {

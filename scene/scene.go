@@ -55,58 +55,6 @@ func New(player actors.Actor, dataFile string) *Scene {
 	return &Scene{wmgr, mgr, room.Width, room.Height, ox, oy}
 }
 
-// func roomToActors(rm *room.Room, tiles *sprites.Spritesheet, px, dimX int) []actors.Actor {
-// 	// the current room situation is such that tiles on an even priority are floors,
-// 	// and tiles on an odd priority are walls.
-// 	// Floor xyz calculation:
-// 	//		x = column * px
-// 	//		y = (row + (priority/2)) * px
-// 	//		z = (priority/2) * px
-// 	// Wall xyz calculation:
-// 	//		x = column * px
-// 	//		y = (row + 1 + (priority/2)) * px
-// 	//		z = (priority/2) * px
-// 	//
-// 	// note the only difference is adding 1 to the Y when dealing with a wall
-// 	// which only happens on an odd-numbered priority
-// 	ret := []actors.Actor{}
-
-// 	for lyrNum, lyr := range rm.Layers() {
-// 		yFactor := lyr.Priority() % 2
-// 		isWalls := yFactor == 1
-
-// 		for i, tile := range lyr.Tiles() {
-// 			if tile == 0 {
-// 				continue
-// 			}
-// 			r := i / dimX
-// 			c := i % dimX
-
-// 			x := c * px
-// 			y := (r + yFactor + (lyr.Priority() / 2)) * px
-// 			z := (lyr.Priority() / 2) * px
-
-// 			if isWalls {
-// 				ret = append(ret, actors.NewSpriteActor(
-// 					"wall",
-// 					sprites.NewStaticSpritemap(tiles.GetSprite(tile)),
-// 					colliders.NewBlock(x, y, z, px, 0, px, false, fmt.Sprintf("wall-%d-%d", lyrNum, i)),
-// 					0, -px,
-// 				))
-// 			} else {
-// 				ret = append(ret, actors.NewSpriteActor(
-// 					"floor",
-// 					sprites.NewStaticSpritemap(tiles.GetSprite(tile)),
-// 					colliders.NewBlock(x, y, z, px, px, 0, false, fmt.Sprintf("floor-%d-%d", lyrNum, i)),
-// 					0, 0,
-// 				))
-// 			}
-// 		}
-// 	}
-
-// 	return ret
-// }
-
 // AddActor adds an actor to the scene
 func (s *Scene) AddActor(actor actors.Actor) {
 	s.ActorM.AddActor(actor)
@@ -146,6 +94,8 @@ func (s *Scene) processEvents() {
 		ev := events.Read()
 		fmt.Printf("processing events %d :: ", ev.Code())
 		switch ev.Scope() {
+		case events.Global:
+			s.handleEvent(ev)
 		case events.Actor:
 			s.ActorM.Actions().Add(actors.InterpretEvent(ev))
 		case events.Window:
@@ -154,6 +104,19 @@ func (s *Scene) processEvents() {
 			fmt.Printf("unknown event scope %d\n", ev.Scope())
 			continue
 		}
+	}
+}
+
+// GlobalEventTypes
+const (
+	InteractEvent = iota
+)
+
+func (s *Scene) handleEvent(ev *events.Event) {
+	switch ev.Code() {
+	case InteractEvent:
+		s.ActorM.HandleInteraction(ev.Payload()[0].(actors.Actor))
+	default:
 	}
 }
 
