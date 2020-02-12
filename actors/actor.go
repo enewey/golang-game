@@ -40,6 +40,7 @@ type CanMove interface {
 	SetVelY(y float64)
 	SetVelZ(z float64)
 	Collider() colliders.Collider
+	Weight() int
 
 	Direction() types.Direction
 	FacingVertical() bool
@@ -220,6 +221,7 @@ type MovingActor struct {
 	StaticActor
 	vx, vy, vz float64
 	direction  types.Direction
+	weight     int
 	onGround   bool
 }
 
@@ -229,11 +231,13 @@ func NewMovingActor(
 	sprite sprites.Spritemap,
 	collider colliders.Collider,
 	ox, oy int,
+	weight int,
 	onGround bool,
 ) Actor {
 	return &MovingActor{
 		*NewStaticActor(category, sprite, collider, ox, oy),
 		0, 0, 0, types.Down,
+		weight,
 		true,
 	}
 }
@@ -310,6 +314,9 @@ func (a *MovingActor) OnGround() bool { return a.onGround }
 // SetOnGround woo
 func (a *MovingActor) SetOnGround(b bool) { a.onGround = b }
 
+// Weight is the priority of this actor in terms of blocking; heavier actors will push around lighter actors.
+func (a *MovingActor) Weight() int { return a.weight }
+
 // CharActor woo
 type CharActor struct {
 	MovingActor
@@ -324,9 +331,10 @@ func NewCharActor(
 	sprite sprites.Spritemap,
 	collider colliders.Collider,
 	ox, oy int,
+	weight int,
 ) Actor {
 	return &CharActor{
-		*NewMovingActor(category, sprite, collider, ox, oy, true).(*MovingActor),
+		*NewMovingActor(category, sprite, collider, ox, oy, weight, true).(*MovingActor),
 		false, false,
 	}
 }

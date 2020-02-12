@@ -1,10 +1,12 @@
 package actors
 
-import "enewey.com/golang-game/colliders"
+import (
+	"enewey.com/golang-game/colliders"
+)
 
 // Hooks are essentially a function that will be invoked ("tapped") potentially every single frame.
 // When the hook executes, and the parameters it receives, depend on the hook type.
-// Currently there are "PostCollision" hooks, which will are executed after all ollisions have been resolved,
+// Currently there are "PostCollision" hooks, which will are executed after all collisions have been resolved,
 // and the params they receive are all the relevant colliders in the scene.
 // Other hooks will work in similar ways.
 type Hooks struct {
@@ -39,13 +41,13 @@ func (h *baseHook) SetManager(m *Manager) {
 
 // ShadowHook - hook for making on actor act as another actor's shadow.
 type ShadowHook struct {
-	*baseHook
+	baseHook
 	shadow, subject Actor
 }
 
 // NewShadowHook creates a new shadow hook
 func NewShadowHook(shadow, subject Actor) *ShadowHook {
-	return &ShadowHook{&baseHook{}, shadow, subject}
+	return &ShadowHook{baseHook{}, shadow, subject}
 }
 
 // Tap - queues a change position action

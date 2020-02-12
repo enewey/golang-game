@@ -25,7 +25,7 @@ type Manager struct {
 
 // NewManager create a new actor manager
 func NewManager() *Manager {
-	return &Manager{
+	ret := &Manager{
 		make(map[int]Actor),
 		make(map[int]Controller),
 		[]Actor{},
@@ -33,6 +33,7 @@ func NewManager() *Manager {
 		make([]Action, 5),
 		&Hooks{[]PostCollisionHook{}},
 	}
+	return ret
 }
 
 // Actors w
@@ -153,6 +154,23 @@ func (m *Manager) ResolveCollisions() {
 		colliderCtx := mcolls.ExcludeByCollider(subject.Collider())
 
 		dx, dy, dz := subject.Vel()
+
+		// For stuff on top of other stuff, make them move with 'em
+		if subject.OnGround() {
+			for _, block := range colliderCtx.GetBlocking().GetColliding(int(dx), int(dy), -1, subject.Collider()) {
+				bx, by, bz := block.Pos()
+				// sx,sy,sz := subject.Collider().Pos()
+				blockD := block.ZDepth(bx, by)
+				// subD := subject.Collider().ZDepth(sx,sy)
+				above := subject.Collider().Z() >= blockD+bz
+
+				if obj, ok := m.actors[block.Ref()].(CanMove); ok && above {
+					a, b, c := subject.Vel()
+					x, y, z := obj.Vel()
+					subject.SetVel(a+x, b+y, c+z)
+				}
+			}
+		}
 
 		// First, run subject against colliders with custom behavior (reactive colliders)
 		reactors := colliderCtx.GetReactive(events.ReactionOnCollision)

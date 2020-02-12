@@ -47,7 +47,7 @@ func NewTrampoline(x, y, z int, sprite sprites.Spritemap) actors.Actor {
 		var upward float64
 		pressed := input.State()[config.Get().KeyJump()]
 		if pressed.PressedWindow(0, 24) {
-			upward = 4.5
+			upward = 5.0
 		} else {
 			upward = 3.3
 		}
@@ -81,7 +81,7 @@ func NewPushBlock(x, y, z int, name string, sprite sprites.Spritemap) actors.Act
 		"block",
 		sprite,
 		colliders.NewBlock(x, y, z, 16, 16, 15, true, name),
-		0, -16, true,
+		0, -16, 10, true,
 	)
 	reaction := events.NewAfterConsecutiveReaction(
 		func(args ...interface{}) {

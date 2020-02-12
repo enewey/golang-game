@@ -45,7 +45,7 @@ func init() {
 		charas.GetSprite(90),
 	)
 	charBlock := colliders.NewBlock(cX, cY, cZ, 10, 10, 14, true, "chara")
-	girl = actors.NewCharActor("player", girlChar, charBlock, -4, -8)
+	girl = actors.NewCharActor("player", girlChar, charBlock, -4, -8, 1)
 	gameScene = scene.New(girl, "assets/rooms/v2.room.json")
 
 	shadowChar := charas.GetSprite(1)
