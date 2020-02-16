@@ -238,8 +238,8 @@ func (m *Manager) handleCollision(subject CanMove, mcolls colliders.Colliders) {
 
 func handleBlockingCollisions(dx, dy, dz float64, v CanMove, colliderCtx colliders.Colliders) {
 	// resolve the actor's direction
-	v.CalcDirection()
 	dz = math.Max(dz, -6)
+	moveDir := VecToDir(dx, dy, v.Direction())
 
 	hitG, hitC, hitW, ax, ay, _ :=
 		colliderCtx.PreventCollision(int(dx), int(dy), int(dz), v.Collider())
@@ -247,7 +247,7 @@ func handleBlockingCollisions(dx, dy, dz float64, v CanMove, colliderCtx collide
 	// traversing up or down a slope
 	if v.OnGround() { // going up
 		if hitW {
-			vx, vy := DirToVec(v.Direction())
+			vx, vy := DirToVec(moveDir)
 			if !colliderCtx.WouldCollide(vx-ax, vy-ay, 1, v.Collider()) &&
 				colliderCtx.WouldCollide(vx-ax, vy-ay, 0, v.Collider()) {
 				v.Collider().Translate(vx-ax, vy-ay, 1)
@@ -266,7 +266,7 @@ func handleBlockingCollisions(dx, dy, dz float64, v CanMove, colliderCtx collide
 	// glancing collisions - collisions where only one pixel is the
 	// difference, just force the actor to the side to avoid the collision.
 	if hitW && v.Orthogonal() {
-		switch v.Direction() {
+		switch moveDir {
 		case types.Left:
 			if !colliderCtx.WouldCollide(-1, 1, 0, v.Collider()) {
 				v.Collider().Translate(-1, 1, 0)

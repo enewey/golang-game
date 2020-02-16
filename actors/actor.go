@@ -30,6 +30,28 @@ func DirToVec(d types.Direction) (int, int) {
 	return 0, 0
 }
 
+// VecToDir - transform a 2D vector to a Direction
+func VecToDir(vx, vy float64, def types.Direction) types.Direction {
+	if vx < 0 && vy < 0 {
+		return types.UpLeft
+	} else if vx > 0 && vy < 0 {
+		return types.UpRight
+	} else if vx > 0 && vy > 0 {
+		return types.DownRight
+	} else if vx < 0 && vy > 0 {
+		return types.DownLeft
+	} else if vx == 0 && vy > 0 {
+		return types.Down
+	} else if vx == 0 && vy < 0 {
+		return types.Up
+	} else if vx > 0 && vy == 0 {
+		return types.Right
+	} else if vx < 0 && vy == 0 {
+		return types.Left
+	}
+	return def
+}
+
 // CanMove is an interface for entities which can be moved and/or controlled.
 type CanMove interface {
 	OnGround() bool
@@ -288,23 +310,7 @@ func (a *MovingActor) FacingDiagonal() bool {
 
 // CalcDirection - resolves the actor's direciton based on its current velocity.
 func (a *MovingActor) CalcDirection() types.Direction {
-	if a.vx < 0 && a.vy < 0 {
-		a.direction = types.UpLeft
-	} else if a.vx > 0 && a.vy < 0 {
-		a.direction = types.UpRight
-	} else if a.vx > 0 && a.vy > 0 {
-		a.direction = types.DownRight
-	} else if a.vx < 0 && a.vy > 0 {
-		a.direction = types.DownLeft
-	} else if a.vx == 0 && a.vy > 0 {
-		a.direction = types.Down
-	} else if a.vx == 0 && a.vy < 0 {
-		a.direction = types.Up
-	} else if a.vx > 0 && a.vy == 0 {
-		a.direction = types.Right
-	} else if a.vx < 0 && a.vy == 0 {
-		a.direction = types.Left
-	}
+	a.direction = VecToDir(a.vx, a.vy, a.direction)
 	return a.direction
 }
 
