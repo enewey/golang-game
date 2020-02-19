@@ -55,7 +55,26 @@ func init() {
 
 	// end scene initialization
 
-	// adding extraneous actors
+	// adding extraneous (test) actors
+
+	// stairsSprite := sprites.NewLayeredSprite(
+	// 	[]*sprites.Sprite{
+	// 		sprites.NewCompoundSprite([]*sprites.Sprite{
+	// 			tiles.GetSprite(0),
+	// 			tiles.GetSprite(133),
+	// 		}, 2, 1, 16, 16),
+	// 		sprites.NewCompoundSprite([]*sprites.Sprite{
+	// 			tiles.GetSprite(438),
+	// 			tiles.GetSprite(468),
+	// 		}, 2, 1, 16, 16),
+	// 	},
+	// 	16,
+	// 	32,
+	// )
+	// stairsCollider := colliders.NewTriangle(32, 64, 0, 0, 16, 16, 0, 16, colliders.YAxis, true, "triangle-test")
+
+	// stairs := actors.NewStaticActor("stairs", sprites.NewStaticSpritemap(stairsSprite), stairsCollider, 0, -16)
+	// gameScene.ActorM.AddActor(stairs)
 
 	rock := scene.NewTrampoline(81, 150, 0, sprites.NewStaticSpritemap(tiles.GetSprite(441)))
 	gameScene.ActorM.AddActor(rock)

@@ -72,3 +72,19 @@ func NewTiledSprite(sprite *Sprite, rows, cols, tilex, tiley int) *Sprite {
 
 	return &Sprite{img}
 }
+
+// NewLayeredSprite creates a new sprite by drawing a list of sprites on top of one another.
+// Sprites are drawn in order such that the last sprite in the list will be drawn on top.
+func NewLayeredSprite(layers []*Sprite, dimx, dimy int) *Sprite {
+	img, err := ebiten.NewImage(dimx, dimy, ebiten.FilterDefault)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, s := range layers {
+		opt := &ebiten.DrawImageOptions{}
+		img.DrawImage(s.Img(), opt)
+	}
+
+	return &Sprite{img}
+}
