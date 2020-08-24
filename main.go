@@ -57,24 +57,35 @@ func init() {
 
 	// adding extraneous (test) actors
 
-	// stairsSprite := sprites.NewLayeredSprite(
-	// 	[]*sprites.Sprite{
-	// 		sprites.NewCompoundSprite([]*sprites.Sprite{
-	// 			tiles.GetSprite(0),
-	// 			tiles.GetSprite(133),
-	// 		}, 2, 1, 16, 16),
-	// 		sprites.NewCompoundSprite([]*sprites.Sprite{
-	// 			tiles.GetSprite(438),
-	// 			tiles.GetSprite(468),
-	// 		}, 2, 1, 16, 16),
-	// 	},
-	// 	16,
-	// 	32,
-	// )
-	// stairsCollider := colliders.NewTriangle(32, 64, 0, 0, 16, 16, 0, 16, colliders.YAxis, true, "triangle-test")
+	stairsSprite := sprites.NewLayeredSprite(
+		[]*sprites.Sprite{
+			sprites.NewCompoundSprite([]*sprites.Sprite{
+				tiles.GetSprite(0), tiles.GetSprite(0),
+				tiles.GetSprite(103), tiles.GetSprite(0),
+				tiles.GetSprite(133), tiles.GetSprite(133),
+			}, 3, 2, 16, 16),
+			sprites.NewCompoundSprite([]*sprites.Sprite{
+				tiles.GetSprite(438), tiles.GetSprite(0),
+				tiles.GetSprite(468), tiles.GetSprite(438),
+				tiles.GetSprite(0), tiles.GetSprite(468),
+			}, 3, 2, 16, 16),
+		},
+		32,
+		48,
+	)
+	stairsCollider := colliders.NewTriangle(64, 128, 0, 0, 32, 32, 0, 16, colliders.YAxis, true, "triangle-test")
+	stairs := actors.NewStaticActor("stairs", sprites.NewStaticSpritemap(stairsSprite), stairsCollider, 0, -32)
+	gameScene.ActorM.AddActor(stairs)
 
-	// stairs := actors.NewStaticActor("stairs", sprites.NewStaticSpritemap(stairsSprite), stairsCollider, 0, -16)
-	// gameScene.ActorM.AddActor(stairs)
+	stairsSprite2 := sprites.NewCompoundSprite([]*sprites.Sprite{
+		tiles.GetSprite(407),
+		tiles.GetSprite(407),
+		tiles.GetSprite(407),
+		tiles.GetSprite(407),
+	}, 4, 1, 16, 16)
+	stairsCollider2 := colliders.NewTriangle(32, 176, 0, 0, 32, 32, 0, 16, colliders.XAxis, true, "triangle-test2")
+	stairs2 := actors.NewStaticActor("stairs2", sprites.NewStaticSpritemap(stairsSprite2), stairsCollider2, 0, -32)
+	gameScene.ActorM.AddActor(stairs2)
 
 	rock := scene.NewTrampoline(81, 150, 0, sprites.NewStaticSpritemap(tiles.GetSprite(441)))
 	gameScene.ActorM.AddActor(rock)

@@ -56,6 +56,9 @@ func VecToDir(vx, vy float64, def types.Direction) types.Direction {
 type CanMove interface {
 	OnGround() bool
 	SetOnGround(bool)
+	SubPos() (float64, float64, float64)
+	SetSubPos(float64, float64, float64)
+	MoveDelta(float64, float64, float64) (float64, float64, float64)
 	Vel() (float64, float64, float64)
 	SetVel(x, y, z float64)
 	SetVelX(x float64)
@@ -72,17 +75,24 @@ type CanMove interface {
 	CalcDirection() types.Direction
 }
 
+var _ CanMove = &MovingActor{}
+var _ CanMove = &CharActor{}
+
 // Controllable w
 type Controllable interface {
 	Controlled() bool
 	SetControlled(bool)
 }
 
+var _ Controllable = &CharActor{}
+
 // CanDash w
 type CanDash interface {
 	Dashed() bool
 	SetDashed(bool)
 }
+
+var _ CanDash = &CharActor{}
 
 // Drawable is an interface for entities which can be drawn on the screen
 type Drawable interface {
@@ -92,16 +102,26 @@ type Drawable interface {
 	draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image
 }
 
+var _ Drawable = &CharActor{}
+var _ Drawable = &SpriteActor{}
+
 // Actor interface
 type Actor interface {
 	ID() int
 	SetID(int)
 	Pos() (int, int, int)
+	SetPos(int, int, int)
 	Collider() colliders.Collider
 	CanCollide() bool
 	Category() string
 	IsBehind(Actor) bool
 }
+
+var _ Actor = &baseActor{}
+var _ Actor = &SpriteActor{}
+var _ Actor = &StaticActor{}
+var _ Actor = &MovingActor{}
+var _ Actor = &CharActor{}
 
 type baseActor struct {
 	id       int
@@ -118,6 +138,11 @@ func (a *baseActor) SetID(id int) { a.id = id }
 
 // Pos - returns an x,y,z tuple of the actor position
 func (a *baseActor) Pos() (int, int, int) { return a.collider.Pos() }
+
+// SetPos - sets the position of the actor
+func (a *baseActor) SetPos(x, y, z int) {
+	a.collider.SetPos(x, y, z)
+}
 
 // Collider - returns the raw collider for the actor
 func (a *baseActor) Collider() colliders.Collider { return a.collider }
@@ -158,7 +183,6 @@ func NewSpriteActor(
 	collider colliders.Collider,
 	ox, oy int,
 ) *SpriteActor {
-
 	return &SpriteActor{
 		baseActor{-1, category, collider},
 		sprite,
@@ -239,12 +263,15 @@ func NewStaticActor(
 func (a *StaticActor) CanCollide() bool { return true }
 
 // MovingActor is like a static actor, but can move.
+// vx/vy/vz is the actor's velocity
+// subx/suby/subz is the actor's sub-pixel position
 type MovingActor struct {
 	StaticActor
-	vx, vy, vz float64
-	direction  types.Direction
-	weight     int
-	onGround   bool
+	vx, vy, vz       float64
+	subx, suby, subz float64
+	direction        types.Direction
+	weight           int
+	onGround         bool
 }
 
 // NewMovingActor creates a new MovingActor, which is like a static actor that can move.
@@ -258,7 +285,9 @@ func NewMovingActor(
 ) Actor {
 	return &MovingActor{
 		*NewStaticActor(category, sprite, collider, ox, oy),
-		0, 0, 0, types.Down,
+		0, 0, 0,
+		0, 0, 0,
+		types.Down,
 		weight,
 		true,
 	}
@@ -268,6 +297,13 @@ func NewMovingActor(
 //		 to move each frame update
 func (a *MovingActor) Vel() (float64, float64, float64) {
 	return a.vx, a.vy, a.vz
+}
+
+// MoveDelta - gets a calculated movement delta using the provided velocity and
+// the actor's sub-pixel position.
+func (a *MovingActor) MoveDelta(vx, vy, vz float64) (float64, float64, float64) {
+	sx, sy, sz := a.SubPos()
+	return sx + vx, sy + vy, sz + vz
 }
 
 // SetVel woo
@@ -283,6 +319,16 @@ func (a *MovingActor) SetVelY(y float64) { a.vy = y }
 
 // SetVelZ z
 func (a *MovingActor) SetVelZ(z float64) { a.vz = z }
+
+// SubPos - gets the sub-pixel offset of the actor's position
+func (a *MovingActor) SubPos() (float64, float64, float64) {
+	return a.subx, a.suby, a.subz
+}
+
+// SetSubPos -- set the actor's subpixel position
+func (a *MovingActor) SetSubPos(cx, cy, cz float64) {
+	a.subx, a.suby, a.subz = cx, cy, cz
+}
 
 // Direction - gets the last calculated direction for this actor
 func (a *MovingActor) Direction() types.Direction { return a.direction }
@@ -369,8 +415,8 @@ func (a *CharActor) DrawPos() (int, int) {
 }
 
 func (a *CharActor) draw(img *ebiten.Image, offsetX, offsetY int) *ebiten.Image {
-	x, y, z := a.Pos()
-	return a.spritemap.Sprite(int(a.direction)).Draw(x+a.ox+offsetX, y-z+a.oy+offsetY, img)
+	x, y := a.DrawPos()
+	return a.spritemap.Sprite(int(a.direction)).Draw(x+offsetX, y+offsetY, img)
 }
 
 // DrawOffset s

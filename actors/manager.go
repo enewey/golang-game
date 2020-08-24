@@ -10,6 +10,7 @@ import (
 	"enewey.com/golang-game/events"
 	"enewey.com/golang-game/input"
 	"enewey.com/golang-game/types"
+	"enewey.com/golang-game/utils"
 	"github.com/hajimehoshi/ebiten"
 )
 
@@ -200,17 +201,24 @@ func (m *Manager) handleCollision(subject CanMove, mcolls colliders.Colliders) {
 		}
 	}
 
-	dx, dy, dz = subject.Vel()
+	dx, dy, dz = subject.MoveDelta(subject.Vel())
 
 	// Next, shove lighter things we run into, and force them to resolve collisions again.
 	// This needs diligent testing... a shoved collider needs to have its collisions handled again.
-	colliderCtx.GetBlocking().GetColliding(int(dx), int(dy), int(dz), subject.Collider()).Filter(func(c colliders.Collider, i int) bool {
+	colliderCtx.GetBlocking().GetColliding(
+		int(dx), int(dy), int(dz), subject.Collider(),
+	).Filter(func(c colliders.Collider, i int) bool {
 		actor := m.actors[c.Ref()]
 		if mover, ok := actor.(CanMove); ok {
 			return mover.Weight() < subject.Weight()
 		}
 		return false
 	}).ShoveCollision(int(dx), int(dy), int(dz), subject.Collider())
+
+	// for _, v := range shoved {
+	// 	shoveActor := m.actors[v.Ref()].(CanMove)
+	// 	shoveActor.AlignWithCollider(shoveActor.SubPos())
+	// }
 	// fmt.Printf("shoved ctx length %d\n", len(shovedCtx))
 	// for _, v := range shovedCtx {
 	// 	shoved := m.actors[v.Ref()].(CanMove)
@@ -233,9 +241,9 @@ func (m *Manager) handleCollision(subject CanMove, mcolls colliders.Colliders) {
 
 	// Second, check collision against blocking colliders and prevent the collisions.
 	handleBlockingCollisions(dx, dy, dz, subject, blockerCtx)
-
 }
 
+// receives a movement delta, NOT a velocity.
 func handleBlockingCollisions(dx, dy, dz float64, v CanMove, colliderCtx colliders.Colliders) {
 	// resolve the actor's direction
 	dz = math.Max(dz, -6)
@@ -321,6 +329,8 @@ func handleBlockingCollisions(dx, dy, dz float64, v CanMove, colliderCtx collide
 		_, _, vz := v.Vel()
 		v.SetVelZ(math.Max(vz+config.Get().Gravity(), -6.0))
 	}
+
+	v.SetSubPos(utils.Carry(dx, dy, dz))
 }
 
 // Render - draw the actors given a priority and row

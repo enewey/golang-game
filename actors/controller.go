@@ -67,7 +67,7 @@ func controlPlayer(target Actor, state input.Input) bool {
 	}
 
 	if state[cfg.KeyJump()].JustPressed() && player.OnGround() {
-		events.Enqueue(NewJumpEvent(target, 4.0))
+		events.Enqueue(NewJumpEvent(target, 3.5))
 	}
 
 	if state[cfg.KeyDash()].JustPressed() && !player.(CanDash).Dashed() && player.OnGround() {
@@ -108,7 +108,7 @@ func (c *MoveSequenceController) Tap(target Actor, state input.Input, df types.F
 	move := int(ticks/c.delay) % len(c.moves)
 	if c.lastMove != move {
 		dx, dy := DirToVec(c.moves[move])
-		events.Enqueue(NewMoveByEvent(target, dx*c.dist, dy*c.dist, 0, c.delay))
+		events.Enqueue(NewMoveByEvent(target, float64(dx*c.dist), float64(dy*c.dist), 0, c.delay))
 		c.lastMove = move
 	}
 	return true

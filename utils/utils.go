@@ -34,6 +34,11 @@ func Abs(v int) int {
 	return v
 }
 
+// Sub3 subtracts vector a from vector b
+func Sub3(ax, ay, az, bx, by, bz float64) (float64, float64, float64) {
+	return ax - bx, ay - by, az - bz
+}
+
 // Itof converts two ints to two floats.
 func Itof(a, b int) (float64, float64) {
 	return float64(a), float64(b)
@@ -116,7 +121,16 @@ func DominantAxis(x, y, z float64) (float64, float64, float64) {
 // Carry returns the value of the float after the decimal point.
 func Carry(x, y, z float64) (float64, float64, float64) {
 	return x - math.Trunc(x), y - math.Trunc(y), z - math.Trunc(z)
+
 }
 
 // Flint - floors a float and returns it as an int.
 func Flint(f float64) int { return int(math.Floor(f)) }
+
+// Flint3 - converts a thruple of floats into ints
+func Flint3(a, b, c float64) (int, int, int) { return int(a), int(b), int(c) }
+
+// Itoa3 - conversts a thruple of ints into floats
+func Itoa3(a, b, c int) (float64, float64, float64) {
+	return float64(a), float64(b), float64(c)
+}

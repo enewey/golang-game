@@ -30,7 +30,7 @@ func init() {
 	cfg = config.Get()
 }
 
-// New w
+// New creates a new scene with the given player actor and data file path
 func New(player actors.Actor, dataFile string) *Scene {
 	wmgr := windows.NewManager()
 	mgr := actors.NewManager()

@@ -11,6 +11,8 @@ import (
 )
 
 // ActionType, expressed from an Event.command
+// Each action has a "Process" function and a "New___Action" function
+// Creating an action should rarely happen directly, and instead should be the result of processing an event.
 const (
 	MoveToActionType = iota
 	MoveByActionType
@@ -25,9 +27,10 @@ func InterpretEvent(ev *events.Event) Action {
 	p := ev.Payload()
 	switch ev.Code() {
 	case MoveToActionType:
+		// TODO: Do we need this? I mean probably, but...
 	case MoveByActionType:
 		fmt.Printf("moveby action interpreted %v\n", ev.Payload())
-		return NewMoveByAction(p[0].(Actor), p[1].(int), p[2].(int), p[3].(int), p[4].(int))
+		return NewMoveByAction(p[0].(Actor), p[1].(float64), p[2].(float64), p[3].(float64), p[4].(int))
 	case JumpActionType:
 		fmt.Printf("jump action interpreted %v\n", ev.Payload())
 		return NewJumpAction(p[0].(Actor), p[1].(float64))
@@ -51,7 +54,7 @@ type Action interface {
 	// A completed Action is to be discarded.
 }
 
-// Actions woo
+// Actions - an array of actions
 type Actions []Action
 
 // Add - Add a new action. Keeps the slice slim.
@@ -65,39 +68,41 @@ func (acts Actions) Add(a Action) {
 	acts = append(acts, a)
 }
 
-// BaseAction woo
+// BaseAction - common data type for all actions.
 type BaseAction struct {
 	target   Actor
 	duration types.Frame // frames
 	elapsed  types.Frame // frames
 }
 
-// Target woo
+// Target - the subject Actor of this Action
 func (b *BaseAction) Target() Actor { return b.target }
 
-// Elapsed woo
+// Elapsed - the number of frames for which this Action has been processed
 func (b *BaseAction) Elapsed() types.Frame { return b.elapsed }
 
-// MoveToAction woo
+// --- Action Definitions
+
+// MoveToAction - moves the Actor to a specific position at a given speed.
 type MoveToAction struct {
 	BaseAction
-	sx, sy, sz int     // starting x/y/z
-	tx, ty, tz int     // target x/y/z
+	sx, sy, sz float64 // starting x/y/z
+	tx, ty, tz float64 // target x/y/z
 	speed      float64 // pixels per 0.0167 seconds
 }
 
-// Process woo
+// Process - processes a MoveToAction
 func (a *MoveToAction) Process(df int) bool {
 	x, y, z := a.target.Pos()
 	target := a.target.(CanMove)
 	a.elapsed += df
-	if (x == a.tx && y == a.ty && z == a.tz) || a.elapsed > a.duration {
+	if (float64(x) == a.tx && float64(y) == a.ty && float64(z) == a.tz) || a.elapsed > a.duration {
 		target.SetVel(0, 0, 0)
 		return true
 	}
-	vx := calcMoveToVel(a.sx, a.tx, x, a.speed, a.elapsed)
-	vy := calcMoveToVel(a.sy, a.ty, y, a.speed, a.elapsed)
-	vz := calcMoveToVel(a.sz, a.tz, z, a.speed, a.elapsed)
+	vx := calcMoveToVel(a.sx, a.tx, float64(x), a.speed, a.elapsed)
+	vy := calcMoveToVel(a.sy, a.ty, float64(y), a.speed, a.elapsed)
+	vz := calcMoveToVel(a.sz, a.tz, float64(z), a.speed, a.elapsed)
 	target.SetVel(vx, vy, vz)
 	return false
 }
@@ -105,13 +110,12 @@ func (a *MoveToAction) Process(df int) bool {
 // MoveByAction woo
 type MoveByAction struct {
 	BaseAction
-	dx, dy, dz int // delta x/y/z
+	dx, dy, dz float64 // delta x/y/z
 	vx, vy, vz float64
-	cx, cy, cz float64 // carry-over values between frames
 }
 
 // NewMoveByAction woo
-func NewMoveByAction(target Actor, dx, dy, dz int, duration types.Frame) *MoveByAction {
+func NewMoveByAction(target Actor, dx, dy, dz float64, duration types.Frame) *MoveByAction {
 	return &MoveByAction{
 		BaseAction{
 			target,
@@ -119,10 +123,9 @@ func NewMoveByAction(target Actor, dx, dy, dz int, duration types.Frame) *MoveBy
 			0,
 		},
 		dx, dy, dz,
-		float64(dx) / float64(duration),
-		float64(dy) / float64(duration),
-		float64(dz) / float64(duration),
-		0.0, 0.0, 0.0,
+		dx / float64(duration),
+		dy / float64(duration),
+		dz / float64(duration),
 	}
 }
 
@@ -135,12 +138,11 @@ func (a *MoveByAction) Process(df types.Frame) bool {
 		target.SetVel(0, 0, 0)
 		return true
 	}
-	target.SetVel(a.vx+a.cx, a.vy+a.cy, a.vz+a.cz)
-	a.cx, a.cy, a.cz = utils.Carry(a.vx+a.cx, a.vy+a.cy, a.vz+a.cz)
+	target.SetVel(a.vx, a.vy, a.vz)
 	return false
 }
 
-func calcMoveToVel(start, end, current int, speed float64, elapsed types.Frame) float64 {
+func calcMoveToVel(start, end, current float64, speed float64, elapsed types.Frame) float64 {
 	projectedDist := speed * float64(elapsed) // hmm.. rounding?
 	actualDist := current - start
 	destinationDist := end - start

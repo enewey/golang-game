@@ -76,23 +76,24 @@ func NewTriangle(x, y, z, rx2, ry2, rx3, ry3, d, axis int, blocking bool, name s
 	switch axis {
 	case XAxis:
 		//fmt.Printf("parsed x triangle")
-		w := d
+		w := utils.Max(x, x+rx2, x+rx3) - utils.Min(x, x+rx2, x+rx3)
 		h := utils.Max(y, y+ry2, y+ry3) - utils.Min(y, y+ry2, y+ry3)
 		tri.zyshape = resolv.NewTriangle(
 			int32(z), int32(y),
 			int32(z+rx2), int32(y+ry2),
 			int32(z+rx3), int32(y+ry3))
-		tri.xzshape = resolv.Shape(resolv.NewRectangle(int32(x), int32(z), int32(w), int32(d)))
+		tri.xzshape = resolv.Shape(resolv.NewRectangle(int32(x), int32(z), int32(d), int32(w)))
 		tri.xyshape = resolv.Shape(resolv.NewRectangle(int32(x), int32(y), int32(d), int32(h)))
 	case YAxis:
 		w := utils.Max(x, x+rx2, x+rx3) - utils.Min(x, x+rx2, x+rx3)
-		h := d
+		h := utils.Max(y, y+ry2, y+ry3) - utils.Min(y, y+ry2, y+ry3)
 		tri.xzshape = resolv.NewTriangle(
 			int32(x), int32(z),
 			int32(x+rx2), int32(z+ry2),
 			int32(x+rx3), int32(z+ry3))
 		tri.xyshape = resolv.Shape(resolv.NewRectangle(int32(x), int32(y), int32(w), int32(d)))
-		tri.zyshape = resolv.Shape(resolv.NewRectangle(int32(z), int32(y), int32(d), int32(h)))
+		tri.zyshape = resolv.Shape(resolv.NewRectangle(int32(z), int32(y), int32(h), int32(d)))
+		fmt.Printf("triangle created, w: %d, h: %d\n", w, h)
 	case ZAxis:
 		w := utils.Max(x, x+rx2, x+rx3) - utils.Min(x, x+rx2, x+rx3)
 		h := utils.Max(y, y+ry2, y+ry3) - utils.Min(y, y+ry2, y+ry3)

@@ -98,7 +98,7 @@ func NewPushBlock(x, y, z int, name string, sprite sprites.Spritemap) actors.Act
 			))
 			events.Enqueue(
 				events.New(
-					events.Actor, actors.MoveByActionType, []interface{}{object, int(dx * 16), int(dy * 16), 0, 32},
+					events.Actor, actors.MoveByActionType, []interface{}{object, dx * 16.0, dy * 16.0, 0.0, 32},
 				),
 			)
 		},

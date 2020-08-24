@@ -54,5 +54,5 @@ func NewShadowHook(shadow, subject Actor) *ShadowHook {
 func (h *ShadowHook) Tap(colls colliders.Colliders) {
 	x, y, _ := h.subject.Pos()
 	floor := colls.GetBlocking().FindFloor(h.subject.Collider())
-	h.shadow.Collider().SetPos(x, y, floor+4)
+	h.shadow.SetPos(x, y, floor+4.0)
 }

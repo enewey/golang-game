@@ -11,7 +11,7 @@ import (
 // ==== Actor Events
 
 // NewMoveByEvent w
-func NewMoveByEvent(target Actor, dx, dy, dz int, duration types.Frame) *events.Event {
+func NewMoveByEvent(target Actor, dx, dy, dz float64, duration types.Frame) *events.Event {
 	return events.New(events.Actor, MoveByActionType, []interface{}{target, dx, dy, dz, duration})
 }
 
